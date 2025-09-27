@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 from uuid import UUID
@@ -50,3 +50,57 @@ class StoryResponse(StoryBase):
 
     class Config:
         from_attributes = True
+
+class StoryPage(BaseModel):
+    """故事页面"""
+    page_number: int
+    text: str
+    illustration_prompt: str
+    crowd_prompt: Optional[Dict[str, str]] = None
+    reading_time_seconds: int = 30
+    word_count: int = 0
+
+class StoryRequest(BaseModel):
+    """故事生成请求"""
+    child_id: str
+    theme: str
+    series_bible_id: Optional[str] = None
+    user_preferences: Optional[Dict[str, Any]] = None
+    generation_type: GenerationType = GenerationType.REALTIME
+
+class StoryGenerationResponse(BaseModel):
+    """故事生成响应"""
+    story_id: str
+    status: StoryStatus
+    estimated_time_minutes: Optional[int] = None
+    message: str
+
+class StoryGenerationStatus(BaseModel):
+    """故事生成状态"""
+    status: str
+    progress_percentage: Optional[float] = None
+    estimated_remaining_seconds: Optional[int] = None
+    story_id: Optional[str] = None
+    title: Optional[str] = None
+    quality_score: Optional[float] = None
+    error_message: Optional[str] = None
+
+class ProgressiveGenerationRequest(BaseModel):
+    """渐进式生成请求"""
+    child_id: str
+    theme: str
+    total_pages: int = 8
+    series_bible_id: Optional[str] = None
+    user_preferences: Optional[Dict[str, Any]] = None
+
+class ProgressiveGenerationResponse(BaseModel):
+    """渐进式生成响应"""
+    story_id: str
+    status: StoryStatus
+    total_pages: int
+    generated_pages: int
+    websocket_url: str
+
+class StoryDetailResponse(StoryResponse):
+    """故事详情响应（继承自StoryResponse）"""
+    pass
