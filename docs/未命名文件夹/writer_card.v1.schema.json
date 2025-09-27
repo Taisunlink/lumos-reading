@@ -1,0 +1,357 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lumosread.app/schemas/writer_card.v1.json",
+  "title": "WriterCard",
+  "description": "LLM写作与审校的上游输入卡片（与工程API解耦）。用于约束故事主题、语言模式、角色一致性、禁忌分级与教育目标。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "project_id",
+    "release_locale",
+    "age_band",
+    "language_mode",
+    "story_taxonomy",
+    "structure",
+    "constraints",
+    "safety"
+  ],
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "series_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "protagonist_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "release_locale": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z]{2}(-[A-Z]{2})?$"
+      }
+    },
+    "age_band": {
+      "type": "string",
+      "enum": [
+        "3-4",
+        "5-6",
+        "7-9",
+        "9-12"
+      ]
+    },
+    "language_mode": {
+      "type": "string",
+      "enum": [
+        "CN",
+        "EN",
+        "BILINGUAL_SIDE",
+        "BILINGUAL_INLINE",
+        "ALTERNATE"
+      ]
+    },
+    "localization": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "script": {
+          "type": "string",
+          "enum": [
+            "SC",
+            "TC"
+          ]
+        },
+        "accent_en": {
+          "type": "string",
+          "enum": [
+            "US",
+            "UK"
+          ]
+        },
+        "pinyin_enabled": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "story_taxonomy": {
+      "type": "object",
+      "required": [
+        "industry",
+        "sel",
+        "archetype"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "industry": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "Action_Adventure",
+              "Family",
+              "Social_Emotions",
+              "Imagination",
+              "Science_Nature",
+              "Humor",
+              "Holidays",
+              "School"
+            ]
+          }
+        },
+        "sel": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "SelfAwareness",
+              "SelfManagement",
+              "SocialAwareness",
+              "Relationship",
+              "DecisionMaking"
+            ]
+          }
+        },
+        "archetype": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "enum": [
+              "Quest",
+              "VoyageReturn",
+              "OvercomeMonster",
+              "Rebirth",
+              "Comedy",
+              "RagsToRiches"
+            ]
+          }
+        }
+      }
+    },
+    "learning_targets": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "en_new_words": {
+          "type": "array",
+          "maxItems": 3,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 24
+          },
+          "description": "每个新词需在正文复现≥6次"
+        },
+        "cn_keywords": {
+          "type": "array",
+          "maxItems": 6,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 12
+          }
+        },
+        "phonics": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "phase": {
+              "type": "string",
+              "examples": [
+                "CVC",
+                "CVCe",
+                "Blends"
+              ]
+            },
+            "review_graphemes": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 6
+              },
+              "maxItems": 8
+            }
+          }
+        }
+      }
+    },
+    "structure": {
+      "type": "object",
+      "required": [
+        "pages"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "pages": {
+          "type": "integer",
+          "minimum": 6,
+          "maximum": 24
+        },
+        "beats": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "examples": [
+            [
+              "设定",
+              "小冲突",
+              "尝试",
+              "低谷",
+              "解决",
+              "余韵"
+            ]
+          ]
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "required": [
+        "illustration_density",
+        "per_page_interaction"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "max_sentence_len_en": {
+          "type": "integer",
+          "minimum": 5,
+          "maximum": 20
+        },
+        "max_subclauses": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "target_word_count": {
+          "type": "object",
+          "properties": {
+            "cn": {
+              "type": "integer",
+              "minimum": 50,
+              "maximum": 2000
+            },
+            "en": {
+              "type": "integer",
+              "minimum": 30,
+              "maximum": 1500
+            }
+          }
+        },
+        "illustration_density": {
+          "type": "number",
+          "minimum": 0.2,
+          "maximum": 0.9
+        },
+        "per_page_interaction": {
+          "type": "boolean"
+        }
+      }
+    },
+    "safety": {
+      "type": "object",
+      "required": [
+        "forbidden_elements"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "forbidden_elements": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "weapon",
+              "shaming",
+              "danger_demo",
+              "strong_scare",
+              "bullying",
+              "commercial_placement"
+            ]
+          },
+          "maxItems": 12,
+          "uniqueItems": true
+        },
+        "age_safety_rule": {
+          "type": "string",
+          "enum": [
+            "3-4_strict",
+            "5-6_standard",
+            "7-9_guided",
+            "9-12_open"
+          ]
+        },
+        "cultural_notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 10
+        }
+      }
+    },
+    "continuity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "series_bible_version": {
+          "type": "string"
+        },
+        "fixed_assets": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "如 背包颜色、发卡形状、宠物名称等视觉锚点"
+        }
+      }
+    },
+    "audio": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tracks": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "cn",
+              "en"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "speeds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "slow",
+              "normal",
+              "fast"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "parent_cards": {
+      "type": "integer",
+      "minimum": 3,
+      "maximum": 5
+    }
+  }
+}

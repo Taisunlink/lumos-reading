@@ -1,0 +1,99 @@
+{
+  "project_id": "lumosreading",
+  "series_id": "sprout_friends",
+  "protagonist_id": "char_001",
+  "release_locale": [
+    "zh-CN",
+    "en-US"
+  ],
+  "age_band": "5-6",
+  "language_mode": "BILINGUAL_INLINE",
+  "localization": {
+    "script": "SC",
+    "accent_en": "US",
+    "pinyin_enabled": true
+  },
+  "story_taxonomy": {
+    "industry": [
+      "Family",
+      "Social_Emotions"
+    ],
+    "sel": [
+      "SelfAwareness",
+      "Relationship"
+    ],
+    "archetype": [
+      "VoyageReturn"
+    ]
+  },
+  "learning_targets": {
+    "en_new_words": [
+      "share",
+      "brave"
+    ],
+    "cn_keywords": [
+      "分享",
+      "勇敢"
+    ],
+    "phonics": {
+      "phase": "CVC",
+      "review_graphemes": [
+        "sh",
+        "br"
+      ]
+    }
+  },
+  "structure": {
+    "pages": 12,
+    "beats": [
+      "设定",
+      "小冲突",
+      "尝试",
+      "低谷",
+      "解决",
+      "余韵"
+    ]
+  },
+  "constraints": {
+    "max_sentence_len_en": 12,
+    "max_subclauses": 1,
+    "target_word_count": {
+      "cn": 320,
+      "en": 220
+    },
+    "illustration_density": 0.6,
+    "per_page_interaction": true
+  },
+  "safety": {
+    "forbidden_elements": [
+      "weapon",
+      "shaming",
+      "danger_demo"
+    ],
+    "age_safety_rule": "5-6_standard",
+    "cultural_notes": [
+      "春节元素",
+      "同伴多元肤色"
+    ]
+  },
+  "continuity": {
+    "series_bible_version": "1.0",
+    "fixed_assets": {
+      "backpack_color": "yellow",
+      "hair": "short",
+      "accessory": "star pin"
+    }
+  },
+  "audio": {
+    "tracks": [
+      "cn",
+      "en"
+    ],
+    "speeds": [
+      "slow",
+      "normal",
+      "fast"
+    ]
+  },
+  "parent_cards": 4
+}

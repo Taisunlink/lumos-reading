@@ -1,0 +1,49 @@
+{
+  "name": "lumos-reading",
+  "version": "2.1.0",
+  "description": "AI驱动的儿童个性化绘本平台 - 基于教育心理学理论的智能阅读伙伴",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "clean": "turbo run clean",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "db:migrate": "cd apps/api && alembic upgrade head",
+    "db:seed": "cd apps/api && python scripts/seed_data.py",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:build": "docker-compose build"
+  },
+  "devDependencies": {
+    "@turbo/gen": "^1.10.12",
+    "turbo": "^1.10.12",
+    "prettier": "^3.0.3",
+    "typescript": "^5.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ethanzh/lumos-reading.git"
+  },
+  "keywords": [
+    "children",
+    "education",
+    "ai",
+    "storytelling",
+    "neurodiversity",
+    "reading",
+    "personalization"
+  ],
+  "author": "LumosReading Team",
+  "license": "MIT"
+}
