@@ -68,6 +68,12 @@ jspm_packages/
 .env.test.local
 .env.production.local
 
+# Google Cloud credentials
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+
 # parcel-bundler cache
 .cache
 .parcel-cache
