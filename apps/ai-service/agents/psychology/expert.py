@@ -10,6 +10,7 @@ import os
 
 from config import config
 from utils.cost_tracker import CostTracker
+from .emotional_regulation import EmotionalRegulationFramework
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,7 @@ class EducationalFramework(BaseModel):
     safety_considerations: List[str]
     cultural_adaptations: List[str]
     parent_guidance: List[str]
+    emotional_development: Optional[Dict[str, Any]] = None  # 情绪发展框架
 
 class PsychologyExpert:
     """
@@ -51,6 +53,7 @@ class PsychologyExpert:
         self.client = AsyncAnthropic(api_key=config.anthropic_api_key)
         self.redis_client = redis.Redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379"))
         self.cost_tracker = CostTracker(self.redis_client)
+        self.emotional_framework = EmotionalRegulationFramework()
 
     async def generate_educational_framework(
         self,
@@ -89,6 +92,25 @@ class PsychologyExpert:
             # 解析响应
             framework = await self._parse_framework_response(response.content[0].text)
 
+            # 新增：情绪发展框架生成
+            emotional_framework = self.emotional_framework.generate_story_emotional_framework(
+                child_profile,
+                story_request
+            )
+
+            # 整合到教育框架中
+            framework.emotional_development = emotional_framework
+            
+            # 将情绪调节的交互提示整合到CROWD策略中
+            if emotional_framework.get('interaction_prompts'):
+                for prompt in emotional_framework['interaction_prompts']:
+                    if prompt['type'] == 'Completion':
+                        framework.crowd_strategy.completion_prompts.append(prompt['prompt'])
+                    elif prompt['type'] == 'Recall':
+                        framework.crowd_strategy.recall_questions.append(prompt['prompt'])
+                    elif prompt['type'] == 'Open_ended':
+                        framework.crowd_strategy.open_ended_prompts.append(prompt['prompt'])
+
             # 缓存结果
             if config.enable_framework_cache:
                 await self._cache_framework(cache_key, framework)
@@ -100,7 +122,7 @@ class PsychologyExpert:
                 output_tokens=response.usage.output_tokens
             )
 
-            logger.info(f"Generated framework for child age {child_profile.get('age', 'unknown')}")
+            logger.info(f"Generated framework with emotional support for child age {child_profile.get('age', 'unknown')}")
             return framework
 
         except Exception as e:
@@ -301,6 +323,12 @@ ADHD适配专项指导：
         age = child_profile.get('age', 5)
         cognitive_stage = self._determine_cognitive_stage(age)
         
+        # 生成基础情绪框架
+        emotional_framework = self.emotional_framework.generate_story_emotional_framework(
+            child_profile,
+            {"theme": "友谊", "conflicts": []}
+        )
+        
         return EducationalFramework(
             age_group=f"{age}-{age+2}",
             cognitive_stage=cognitive_stage,
@@ -316,5 +344,6 @@ ADHD适配专项指导：
             interaction_density="medium",
             safety_considerations=["确保内容积极正面", "避免恐怖或暴力元素"],
             cultural_adaptations=["体现中华文化价值观", "尊重多元文化背景"],
-            parent_guidance=["鼓励孩子表达想法", "耐心倾听孩子的回答", "创造轻松的阅读氛围"]
+            parent_guidance=["鼓励孩子表达想法", "耐心倾听孩子的回答", "创造轻松的阅读氛围"],
+            emotional_development=emotional_framework
         )

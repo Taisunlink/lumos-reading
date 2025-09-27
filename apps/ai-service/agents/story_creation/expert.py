@@ -9,6 +9,7 @@ from config import config
 from utils.qwen_client import QwenClient
 from utils.cost_tracker import CostTracker
 from agents.psychology.expert import EducationalFramework
+from .rhythm_analyzer import ChineseRhythmAnalyzer
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +66,7 @@ class ChildrenLiteratureExpert:
         )
         self.redis_client = redis_client
         self.cost_tracker = CostTracker(redis_client)
+        self.rhythm_analyzer = ChineseRhythmAnalyzer()
         self.template_library = self._load_literature_templates()
         self.cultural_elements_db = self._load_cultural_elements()
 
@@ -107,10 +109,24 @@ class ChildrenLiteratureExpert:
                 # 再次质量检查
                 quality_report = await self._literature_quality_check(story_content, framework)
 
+            # 韵律质量检查
+            target_age = framework.age_group
+            full_text = ' '.join(page.text for page in story_content.pages)
+            rhythm_score = self.rhythm_analyzer.analyze_text_rhythm(full_text, target_age)
+            
+            # 综合质量评分（原有质量 + 韵律质量）
+            combined_quality_score = (
+                quality_report.overall_score * 0.7 +
+                rhythm_score.overall_score * 0.3
+            )
+            
             # 记录质量分数
-            story_content.educational_value_score = quality_report.overall_score
+            story_content.educational_value_score = combined_quality_score
+            
+            # 添加韵律分析元数据
+            story_content.language_complexity_level = self._determine_language_complexity(rhythm_score, target_age)
 
-            logger.info(f"Story created: {story_content.title}, Quality: {quality_report.overall_score:.2f}")
+            logger.info(f"Story created: {story_content.title}, Quality: {combined_quality_score:.2f}, Rhythm: {rhythm_score.overall_score:.2f}")
             return story_content
 
         except Exception as e:
@@ -448,3 +464,50 @@ CROWD互动嵌入要求：
             "values": ["孝道", "诚信", "和谐", "自强"],
             "symbols": ["龙", "凤凰", "熊猫", "竹子"]
         }
+
+    def _determine_language_complexity(self, rhythm_score, target_age: str) -> str:
+        """根据韵律评分确定语言复杂度"""
+        if target_age == '3-5':
+            if rhythm_score.overall_score >= 0.8:
+                return "简单优美"
+            elif rhythm_score.overall_score >= 0.6:
+                return "简单"
+            else:
+                return "需要优化"
+        elif target_age == '6-8':
+            if rhythm_score.overall_score >= 0.8:
+                return "适中优美"
+            elif rhythm_score.overall_score >= 0.6:
+                return "适中"
+            else:
+                return "需要优化"
+        else:  # 9-11
+            if rhythm_score.overall_score >= 0.8:
+                return "丰富优美"
+            elif rhythm_score.overall_score >= 0.6:
+                return "丰富"
+            else:
+                return "需要优化"
+
+    async def analyze_story_rhythm(self, story_text: str, target_age: str) -> Dict[str, Any]:
+        """分析故事韵律质量"""
+        try:
+            rhythm_score = self.rhythm_analyzer.analyze_text_rhythm(story_text, target_age)
+            return {
+                "overall_score": rhythm_score.overall_score,
+                "rhythm_consistency": rhythm_score.rhythm_consistency,
+                "tone_harmony": rhythm_score.tone_harmony,
+                "reading_flow": rhythm_score.reading_flow,
+                "age_appropriateness": rhythm_score.age_appropriateness,
+                "improvement_suggestions": rhythm_score.improvement_suggestions
+            }
+        except Exception as e:
+            logger.error(f"Rhythm analysis failed: {str(e)}")
+            return {
+                "overall_score": 0.5,
+                "rhythm_consistency": 0.5,
+                "tone_harmony": 0.5,
+                "reading_flow": 0.5,
+                "age_appropriateness": 0.5,
+                "improvement_suggestions": ["韵律分析失败，建议人工检查"]
+            }

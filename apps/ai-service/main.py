@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
@@ -8,6 +8,10 @@ from datetime import datetime
 
 from config import config
 from orchestrator import AIOrchestrator, StoryGenerationRequest, StoryGenerationResponse
+
+class RhythmAnalysisRequest(BaseModel):
+    story_text: str
+    target_age: str
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -120,6 +124,43 @@ async def generate_psychology_framework(
         logger.error(f"Psychology framework generation failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Psychology framework generation failed: {str(e)}")
 
+@app.post("/psychology/emotional-framework")
+async def generate_emotional_framework(
+    child_profile: Dict[str, Any],
+    story_context: Dict[str, Any]
+):
+    """
+    生成情绪调节发展框架
+    """
+    try:
+        emotional_framework = orchestrator.psychology_expert.emotional_framework.generate_story_emotional_framework(
+            child_profile, story_context
+        )
+        return emotional_framework
+        
+    except Exception as e:
+        logger.error(f"Emotional framework generation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Emotional framework generation failed: {str(e)}")
+
+@app.get("/psychology/emotional-skills/{age_group}")
+async def get_emotional_skills(age_group: str, neuro_profile: Dict[str, Any] = None):
+    """
+    获取年龄适宜的情绪技能
+    """
+    try:
+        skills = orchestrator.psychology_expert.emotional_framework.get_neuro_adapted_skills(
+            age_group, neuro_profile or {}
+        )
+        return {
+            "age_group": age_group,
+            "neuro_profile": neuro_profile,
+            "skills": [skill.to_dict() for skill in skills]
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get emotional skills: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get emotional skills: {str(e)}")
+
 @app.post("/literature/create")
 async def create_story_content(
     framework: Dict[str, Any],
@@ -173,6 +214,21 @@ async def quality_check(
     except Exception as e:
         logger.error(f"Quality check failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Quality check failed: {str(e)}")
+
+@app.post("/literature/rhythm-analysis")
+async def analyze_rhythm(request: RhythmAnalysisRequest):
+    """
+    韵律分析
+    """
+    try:
+        rhythm_analysis = await orchestrator.literature_expert.analyze_story_rhythm(
+            request.story_text, request.target_age
+        )
+        return rhythm_analysis
+        
+    except Exception as e:
+        logger.error(f"Rhythm analysis failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Rhythm analysis failed: {str(e)}")
 
 async def cache_story_response(response: StoryGenerationResponse):
     """缓存故事响应"""
