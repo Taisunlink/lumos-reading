@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, ReactNode } from 'react'
-import { useNeuroAdaptiveStore } from '@/stores/neuro-adaptive'
+import { useNeuroAdaptiveStore, defaultState } from '@/stores/neuro-adaptive'
 import { ChildProfile } from '@/types/child'
 
 interface AdaptiveProviderProps {
@@ -21,16 +21,10 @@ export function AdaptiveProvider({ children, childProfile }: AdaptiveProviderPro
     if (childProfile?.neuro_profile) {
       initializeFromProfile(childProfile.neuro_profile)
     }
-  }, [childProfile, initializeFromProfile])
+  }, [childProfile?.neuro_profile]) // 移除 initializeFromProfile 依赖
 
-  // 确保adaptations有默认值
-  const safeAdaptations = adaptations || {
-    textSize: 16,
-    lineHeight: 1.6,
-    fontFamily: 'system-ui, -apple-system, sans-serif',
-    backgroundColor: '#ffffff',
-    textColor: '#1f2937'
-  }
+  // 确保adaptations有默认值，使用store的完整默认状态
+  const safeAdaptations = adaptations || defaultState
 
   return (
     <AdaptiveContext.Provider value={{ adaptations: safeAdaptations, updateAdaptation }}>

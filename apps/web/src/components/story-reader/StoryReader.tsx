@@ -3,14 +3,14 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
-import { Story, StoryPage } from '@/types/story'
+import { Story, StoryPage } from '@/services/storyApi'
 import { AttentionManager } from '@/components/neuro-adaptive/AttentionManager'
 import { StoryPageRenderer } from './StoryPageRenderer'
 import { StoryNavigation } from './StoryNavigation'
 import { CROWDInteraction } from './CROWDInteraction'
 import { ProgressTracker } from './ProgressTracker'
 import { useNeuroAdaptiveStore } from '@/stores/neuro-adaptive'
-import { storyApi } from '@/lib/api/stories'
+import { storyApi } from '@/services/storyApi'
 
 interface StoryReaderProps {
   storyId: string
@@ -49,13 +49,13 @@ export function StoryReader({ storyId, childId, onComplete }: StoryReaderProps) 
       setHasCompletedPage(true)
 
       // 显示CROWD互动（如果有）
-      if (currentPage?.crowd_prompt && adaptations.enableCROWDInteractions) {
+      if (currentPage?.crowd_prompt && adaptations?.enableCROWDInteractions) {
         setShowCROWDPrompt(true)
       } else {
         // 自动进入下一页或完成
         setTimeout(() => {
           handleNextPage()
-        }, adaptations.autism?.enhancePredictability ? 2000 : 1000)
+        }, adaptations?.autism?.enhancePredictability ? 2000 : 1000)
       }
     }
   }, [currentPageIndex, pages.length, currentPage, hasCompletedPage, adaptations])
@@ -162,15 +162,16 @@ export function StoryReader({ storyId, childId, onComplete }: StoryReaderProps) 
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -50 }}
                 transition={{
-                  duration: adaptations.autism?.reduceAnimations ? 0.2 : 0.5
+                  duration: adaptations?.autism?.reduceAnimations ? 0.2 : 0.5
                 }}
                 className="mb-8"
               >
                 <StoryPageRenderer
                   page={currentPage}
                   pageNumber={currentPageIndex + 1}
+                  storyId={storyId}
                   onReadComplete={handlePageComplete}
-                  autoAdvance={!adaptations.autism?.enhancePredictability}
+                  autoAdvance={!adaptations?.autism?.enhancePredictability}
                 />
               </motion.div>
             </AnimatePresence>

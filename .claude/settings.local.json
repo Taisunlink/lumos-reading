@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(alembic revision:*)",
+      "Bash(alembic current:*)",
+      "Bash(alembic:*)",
+      "Bash(python:*)",
+      "Bash(pip install:*)",
+      "Bash(curl:*)",
+      "Bash(find:*)",
+      "Bash(npm run dev:*)",
+      "WebSearch"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

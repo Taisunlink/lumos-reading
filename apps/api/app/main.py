@@ -2,14 +2,16 @@ from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import logging
 import time
 import uvicorn
+import os
 
 from app.core.database import engine, Base
 from app.core.config import settings
-from app.routers import users, children, stories, auth
+from app.routers import users, children, stories, auth, illustrations
 from app.middleware.security import SecurityMiddleware
 from app.middleware.rate_limiting import RateLimitMiddleware
 
@@ -26,9 +28,8 @@ async def lifespan(app: FastAPI):
     # 启动时
     logger.info("Starting LumosReading API Server...")
 
-    # 创建数据库表
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # 创建数据库表（同步方式）
+    Base.metadata.create_all(bind=engine)
 
     # 初始化AI服务连接
     from app.services.ai_orchestrator import AIOrchestrator
@@ -127,6 +128,12 @@ app.include_router(auth.router, prefix="/api/v1/auth", tags=["authentication"])
 app.include_router(users.router, prefix="/api/v1/users", tags=["users"])
 app.include_router(children.router, prefix="/api/v1/children", tags=["children"])
 app.include_router(stories.router, prefix="/api/v1/stories", tags=["stories"])
+app.include_router(illustrations.router, prefix="/api/v1/illustrations", tags=["illustrations"])
+
+# 静态文件服务
+static_dir = "/tmp/claude/illustrations"
+if os.path.exists(static_dir):
+    app.mount("/api/static/illustrations", StaticFiles(directory=static_dir), name="illustrations")
 
 # 根端点
 @app.get("/")

@@ -46,7 +46,7 @@ export default function HomePage() {
 
   // 模拟故事数据
   const mockStory = {
-    id: 'story-1',
+    id: '11111111-1111-1111-1111-111111111111',
     title: '小兔子的冒险',
     theme: '友谊',
     reading_time: 600, // 10分钟
@@ -204,7 +204,7 @@ export default function HomePage() {
                   <button
                     onClick={() => applyPreset('adhd')}
                     className={`p-4 rounded-lg border-2 transition-colors ${
-                      adaptations.adhd?.shortAttentionBlocks
+                      adaptations?.adhd?.shortAttentionBlocks
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
@@ -219,7 +219,7 @@ export default function HomePage() {
                   <button
                     onClick={() => applyPreset('autism')}
                     className={`p-4 rounded-lg border-2 transition-colors ${
-                      adaptations.autism?.enhancePredictability
+                      adaptations?.autism?.enhancePredictability
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
@@ -234,7 +234,7 @@ export default function HomePage() {
                   <button
                     onClick={() => applyPreset('dyslexia')}
                     className={`p-4 rounded-lg border-2 transition-colors ${
-                      adaptations.dyslexia?.highContrastText
+                      adaptations?.dyslexia?.highContrastText
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}

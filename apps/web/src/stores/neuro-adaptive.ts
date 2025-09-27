@@ -53,7 +53,7 @@ export interface NeuroAdaptiveState {
   applyPreset: (preset: 'adhd' | 'autism' | 'dyslexia' | 'default') => void
 }
 
-const defaultState = {
+export const defaultState = {
   textSize: 16,
   lineHeight: 1.6,
   fontFamily: 'system-ui, -apple-system, sans-serif',
@@ -115,25 +115,40 @@ export const useNeuroAdaptiveStore = create<NeuroAdaptiveState>()(
       initializeFromProfile: (neuroProfile: any) => {
         if (!neuroProfile) return
         
+        // 使用浅比较避免不必要的更新
         set((state) => {
           const updates: Partial<NeuroAdaptiveState> = {}
+          let hasChanges = false
           
           // 应用ADHD设置
           if (neuroProfile.adhd) {
-            updates.adhd = { ...state.adhd, ...neuroProfile.adhd }
+            const newAdhd = { ...state.adhd, ...neuroProfile.adhd }
+            if (JSON.stringify(newAdhd) !== JSON.stringify(state.adhd)) {
+              updates.adhd = newAdhd
+              hasChanges = true
+            }
           }
           
           // 应用自闭谱系设置
           if (neuroProfile.autism) {
-            updates.autism = { ...state.autism, ...neuroProfile.autism }
+            const newAutism = { ...state.autism, ...neuroProfile.autism }
+            if (JSON.stringify(newAutism) !== JSON.stringify(state.autism)) {
+              updates.autism = newAutism
+              hasChanges = true
+            }
           }
           
           // 应用阅读障碍设置
           if (neuroProfile.dyslexia) {
-            updates.dyslexia = { ...state.dyslexia, ...neuroProfile.dyslexia }
+            const newDyslexia = { ...state.dyslexia, ...neuroProfile.dyslexia }
+            if (JSON.stringify(newDyslexia) !== JSON.stringify(state.dyslexia)) {
+              updates.dyslexia = newDyslexia
+              hasChanges = true
+            }
           }
           
-          return updates
+          // 只有在有实际变化时才更新状态
+          return hasChanges ? updates : state
         })
       },
       

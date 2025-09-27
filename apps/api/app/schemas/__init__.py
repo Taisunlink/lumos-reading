@@ -5,6 +5,10 @@ from .story import StoryCreate, StoryResponse, StoryUpdate
 from .series_bible import SeriesBibleCreate, SeriesBibleResponse, SeriesBibleUpdate
 from .reading_session import ReadingSessionCreate, ReadingSessionResponse
 from .reading_achievement import ReadingAchievementResponse
+from .illustration import (
+    IllustrationCreate, IllustrationResponse, IllustrationUpdate,
+    BatchIllustrationRequest, BatchIllustrationResponse, IllustrationStatusResponse
+)
 
 __all__ = [
     "UserCreate",

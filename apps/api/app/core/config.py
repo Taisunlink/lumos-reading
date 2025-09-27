@@ -82,6 +82,33 @@ class Settings(BaseSettings):
     oss_access_key_secret: Optional[str] = Field(default=None, env="OSS_ACCESS_KEY_SECRET")
     oss_endpoint: Optional[str] = Field(default=None, env="OSS_ENDPOINT")
     oss_bucket_name: Optional[str] = Field(default=None, env="OSS_BUCKET_NAME")
+
+    # AI图像生成配置
+    image_provider: str = Field(default="qwen", env="IMAGE_PROVIDER")  # qwen, vertex, openai
+
+    # OpenAI配置 (用于图像生成)
+    openai_api_key: Optional[str] = Field(default=None, env="OPENAI_API_KEY")
+    openai_model: str = Field(default="dall-e-3", env="OPENAI_MODEL")
+    openai_image_size: str = Field(default="1024x1024", env="OPENAI_IMAGE_SIZE")
+    openai_image_quality: str = Field(default="standard", env="OPENAI_IMAGE_QUALITY")
+
+    # Google Vertex AI配置
+    google_project_id: str = Field(default="tokyo-silicon-473221", env="GOOGLE_PROJECT_ID")
+    google_location: str = Field(default="us-central1", env="GOOGLE_LOCATION")
+    google_credentials_path: str = Field(default="tokyo-silicon-473221-k1-53da36c03c3b.json", env="GOOGLE_CREDENTIALS_PATH")
+    vertex_model: str = Field(default="imagegeneration@006", env="VERTEX_MODEL")
+
+    # 通义千问配置 (主要图像生成服务)
+    qwen_api_key: Optional[str] = Field(default=None, env="QWEN_API_KEY")
+    qwen_model: str = Field(default="qwen-image", env="QWEN_MODEL")  # qwen-image, wanxiang, stable-diffusion, flux
+    qwen_style: str = Field(default="cartoon", env="QWEN_STYLE")  # cartoon, watercolor, realistic, anime
+    qwen_size: str = Field(default="1024*1024", env="QWEN_SIZE")
+    qwen_timeout: int = Field(default=60, env="QWEN_TIMEOUT")  # API超时时间(秒)
+
+    # 插图存储配置
+    illustration_storage_type: str = Field(default="local", env="ILLUSTRATION_STORAGE_TYPE")
+    illustration_cache_ttl: int = Field(default=3600, env="ILLUSTRATION_CACHE_TTL")
+    static_files_url: str = Field(default="http://localhost:8000/api/static", env="STATIC_FILES_URL")
     
     @validator("cors_origins", pre=True)
     def parse_cors_origins(cls, v):

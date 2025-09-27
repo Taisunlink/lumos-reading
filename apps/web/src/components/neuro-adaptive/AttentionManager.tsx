@@ -28,7 +28,7 @@ export function AttentionManager({
   const progressPercent = (elapsedTime / targetSeconds) * 100
 
   // ADHD适配：较短的专注时间块
-  const attentionBlockDuration = adaptations.adhd?.shortAttentionBlocks ?
+  const attentionBlockDuration = adaptations?.adhd?.shortAttentionBlocks ?
     Math.min(targetSeconds, 300) : // 5分钟最大
     targetSeconds
 
@@ -39,7 +39,7 @@ export function AttentionManager({
           const newTime = prev + 1
 
           // 检查是否需要注意力休息
-          if (adaptations.adhd?.enableBreakReminders &&
+          if (adaptations?.adhd?.enableBreakReminders &&
               newTime % attentionBlockDuration === 0 &&
               newTime < targetSeconds) {
             setShowBreakSuggestion(true)
@@ -66,7 +66,7 @@ export function AttentionManager({
         clearInterval(intervalRef.current)
       }
     }
-  }, [isActive, attentionBlockDuration, targetSeconds, onSessionComplete, adaptations.adhd])
+  }, [isActive, attentionBlockDuration, targetSeconds, onSessionComplete, adaptations?.adhd])
 
   const handleStart = () => setIsActive(true)
   const handlePause = () => setIsActive(false)
@@ -80,7 +80,7 @@ export function AttentionManager({
     setShowBreakSuggestion(false)
     onAttentionBreak()
     // 可以选择自动继续或需要手动开始
-    if (adaptations.adhd?.autoResumeAfterBreak) {
+    if (adaptations?.adhd?.autoResumeAfterBreak) {
       setTimeout(() => setIsActive(true), 1000)
     }
   }
@@ -94,7 +94,7 @@ export function AttentionManager({
   return (
     <div className="relative">
       {/* 注意力进度条 - ADHD友好设计 */}
-      {adaptations.adhd?.showProgressIndicator && (
+      {adaptations?.adhd?.showProgressIndicator && (
         <motion.div
           className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50"
           initial={{ y: -50, opacity: 0 }}
@@ -196,8 +196,8 @@ export function AttentionManager({
       {/* 主要内容 */}
       <div
         className={`
-          ${adaptations.adhd?.reduceVisualClutter ? 'space-y-6' : 'space-y-4'}
-          ${adaptations.adhd?.increaseFocusIndicators ? 'focus-enhanced' : ''}
+          ${adaptations?.adhd?.reduceVisualClutter ? 'space-y-6' : 'space-y-4'}
+          ${adaptations?.adhd?.increaseFocusIndicators ? 'focus-enhanced' : ''}
         `}
       >
         {children}

@@ -4,10 +4,12 @@ import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { StoryPage } from '@/types/story'
 import { useNeuroAdaptiveStore } from '@/stores/neuro-adaptive'
+import { StoryIllustration } from '@/components/illustration/SmartImage'
 
 interface StoryPageRendererProps {
   page: StoryPage
   pageNumber: number
+  storyId?: string
   onReadComplete: () => void
   autoAdvance?: boolean
 }
@@ -15,6 +17,7 @@ interface StoryPageRendererProps {
 export function StoryPageRenderer({ 
   page, 
   pageNumber, 
+  storyId,
   onReadComplete, 
   autoAdvance = false 
 }: StoryPageRendererProps) {
@@ -62,13 +65,13 @@ export function StoryPageRenderer({
       <div 
         className="text-center mb-8"
         style={{
-          fontSize: adaptations.dyslexia?.largerFontSize ? 
-            `${(adaptations.textSize || 16) + 4}px` : 
-            `${adaptations.textSize || 16}px`,
-          lineHeight: adaptations.dyslexia?.largerFontSize ? 2.2 : adaptations.lineHeight,
-          color: adaptations.dyslexia?.highContrastText ? '#000000' : adaptations.textColor,
-          backgroundColor: adaptations.dyslexia?.highContrastText ? '#ffffff' : 'transparent',
-          padding: adaptations.dyslexia?.highContrastText ? '1rem' : '0'
+          fontSize: adaptations?.dyslexia?.largerFontSize ? 
+            `${(adaptations?.textSize || 16) + 4}px` : 
+            `${adaptations?.textSize || 16}px`,
+          lineHeight: adaptations?.dyslexia?.largerFontSize ? 2.2 : adaptations?.lineHeight,
+          color: adaptations?.dyslexia?.highContrastText ? '#000000' : adaptations?.textColor,
+          backgroundColor: adaptations?.dyslexia?.highContrastText ? '#ffffff' : 'transparent',
+          padding: adaptations?.dyslexia?.highContrastText ? '1rem' : '0'
         }}
       >
         <p className="leading-relaxed whitespace-pre-line">
@@ -76,23 +79,20 @@ export function StoryPageRenderer({
         </p>
       </div>
 
-      {/* 插图占位符 */}
+      {/* 智能插图组件 */}
       <div className="text-center mb-8">
-        <div 
-          className="w-full h-64 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center"
+        <StoryIllustration
+          storyId={storyId || "mock-story-id"}
+          pageNumber={pageNumber}
+          prompt={page.illustration_prompt}
+          className="w-full h-64"
           style={{
-            border: adaptations.autism?.clearVisualStructure ? '2px solid #e5e7eb' : 'none'
+            border: adaptations?.autism?.clearVisualStructure ? '2px solid #e5e7eb' : 'none'
           }}
-        >
-          <div className="text-center">
-            <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-white text-2xl">📖</span>
-            </div>
-            <p className="text-gray-600 text-sm">
-              插图: {page.illustration_prompt}
-            </p>
-          </div>
-        </div>
+          showPrompt={true}
+          onLoad={() => console.log('Illustration loaded')}
+          onError={() => console.log('Illustration failed to load')}
+        />
       </div>
 
       {/* 阅读完成按钮 */}

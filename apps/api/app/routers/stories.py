@@ -22,6 +22,130 @@ from app.dependencies.rate_limit import rate_limit
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+def get_mock_story(story_id: str) -> StoryDetailResponse:
+    """返回模拟故事数据"""
+    from datetime import datetime
+    from uuid import uuid4
+    
+    return StoryDetailResponse(
+        id=str(uuid4()),  # 使用随机UUID代替story_id
+        child_id=str(uuid4()),
+        series_bible_id=None,
+        title="小兔子的冒险",
+        theme="友谊",
+        age_group="6-8",
+        content={
+            "pages": [
+                {
+                    "page_number": 1,
+                    "text": "从前，有一只小兔子叫小白，它住在一个美丽的森林里。小白非常善良，总是愿意帮助别人。",
+                    "illustration_prompt": "一只可爱的小白兔在森林里，阳光透过树叶洒在它身上",
+                    "crowd_prompt": {
+                        "completion": "小白是一只...",
+                        "recall": "小兔子住在哪里？",
+                        "open_ended": "你觉得小白是什么样的兔子？",
+                        "wh_question": "为什么小白总是愿意帮助别人？",
+                        "distancing": "你有没有像小白一样帮助过朋友？"
+                    },
+                    "reading_time_seconds": 30,
+                    "word_count": 45
+                },
+                {
+                    "page_number": 2,
+                    "text": "有一天，小白的朋友小熊生病了，不能出门玩耍。小白很担心，决定去看望小熊。",
+                    "illustration_prompt": "小白担心地看着躺在床上的小熊，手里拿着一些水果",
+                    "crowd_prompt": {
+                        "completion": "小熊生病了，小白决定...",
+                        "recall": "小熊怎么了？",
+                        "open_ended": "如果你是小白，你会怎么做？",
+                        "wh_question": "小白为什么要去看望小熊？",
+                        "distancing": "当你的朋友生病时，你会怎么做？"
+                    },
+                    "reading_time_seconds": 35,
+                    "word_count": 42
+                },
+                {
+                    "page_number": 3,
+                    "text": "小白带着新鲜的水果和温暖的拥抱去看小熊。小熊看到小白，脸上露出了笑容。",
+                    "illustration_prompt": "小白和小熊拥抱在一起，周围有水果，画面温馨",
+                    "crowd_prompt": {
+                        "completion": "小白带着...去看小熊",
+                        "recall": "小白带了什么去看小熊？",
+                        "open_ended": "小熊为什么笑了？",
+                        "wh_question": "为什么小白要带水果？",
+                        "distancing": "你生病时，朋友是怎么关心你的？"
+                    },
+                    "reading_time_seconds": 30,
+                    "word_count": 38
+                },
+                {
+                    "page_number": 4,
+                    "text": "从那天起，小白每天都去看望小熊，陪它聊天，给它讲故事。小熊很快就康复了。",
+                    "illustration_prompt": "小白坐在小熊床边讲故事，小熊开心地听着",
+                    "crowd_prompt": {
+                        "completion": "小白每天都...",
+                        "recall": "小白每天做什么？",
+                        "open_ended": "你觉得友谊是什么？",
+                        "wh_question": "为什么小白要每天去看小熊？",
+                        "distancing": "真正的朋友应该怎么做？"
+                    },
+                    "reading_time_seconds": 35,
+                    "word_count": 40
+                },
+                {
+                    "page_number": 5,
+                    "text": "小熊康复后，两个好朋友更加亲密了。他们明白了，真正的友谊就是在需要时互相帮助。",
+                    "illustration_prompt": "小白和小熊手拉手在森林里玩耍，阳光明媚",
+                    "crowd_prompt": {
+                        "completion": "真正的友谊就是...",
+                        "recall": "小熊康复后，他们明白了什么？",
+                        "open_ended": "这个故事告诉我们什么道理？",
+                        "wh_question": "什么是真正的友谊？",
+                        "distancing": "你和朋友之间有什么感人的故事？"
+                    },
+                    "reading_time_seconds": 30,
+                    "word_count": 42
+                }
+            ],
+            "characters": [
+                {
+                    "name": "小白",
+                    "description": "一只善良的小白兔",
+                    "personality": "善良、乐于助人、关心朋友",
+                    "visual_description": "毛茸茸的白色兔子，有着粉色的鼻子和长长的耳朵",
+                    "role_in_story": "主角"
+                },
+                {
+                    "name": "小熊",
+                    "description": "小白的好朋友",
+                    "personality": "友善、感恩、坚强",
+                    "visual_description": "棕色的小熊，有着圆圆的眼睛和温暖的微笑",
+                    "role_in_story": "配角"
+                }
+            ],
+            "vocabulary_targets": ["友谊", "帮助", "关心", "康复", "互相"],
+            "extension_activities": [
+                "画出你心中的小白和小熊",
+                "和爸爸妈妈讨论什么是真正的友谊",
+                "想想你可以怎样帮助朋友"
+            ],
+            "cultural_elements": ["中华文化中的友谊观念", "助人为乐的传统美德"]
+        },
+        generation_type=GenerationType.PREPRODUCED,
+        status=StoryStatus.READY,
+        reading_time=160,
+        word_count=207,
+        page_count=5,
+        illustrations=[],
+        interaction_points=[],
+        quality_score=8.5,
+        safety_score=9.0,
+        educational_value_score=8.8,
+        story_metadata={},
+        created_at=datetime.now(),
+        updated_at=datetime.now()
+    )
+
 @router.post("/generate", response_model=StoryResponse)
 @rate_limit(requests=10, per_minutes=60)  # 每小时10个故事生成请求
 async def generate_story(
@@ -220,7 +344,22 @@ async def get_story(
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    """获取单个故事"""
+    """获取单个故事（需要认证）"""
+    story = db.query(Story).filter(Story.id == story_id).first()
+    if not story:
+        raise HTTPException(status_code=404, detail="Story not found")
+    return story
+
+@router.get("/public/{story_id}", response_model=StoryDetailResponse)
+async def get_story_public(
+    story_id: str,
+    db: Session = Depends(get_db)
+):
+    """获取单个故事（公开端点，用于演示）"""
+    # 如果是模拟故事ID，返回模拟数据
+    if story_id.startswith('mock-') or story_id == 'test-story-id':
+        return get_mock_story(story_id)
+    
     story = db.query(Story).filter(Story.id == story_id).first()
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
