@@ -11,6 +11,7 @@ from agents.psychology.expert import PsychologyExpert, EducationalFramework
 from agents.story_creation.expert import ChildrenLiteratureExpert, StoryContent
 from agents.quality_control.expert import QualityController, QualityControlReport
 from utils.cost_tracker import CostTracker
+from core.cost_control import EnhancedCostController, with_cost_control, BudgetExceededException
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,7 @@ class AIOrchestrator:
     def __init__(self):
         self.redis_client = redis.Redis.from_url(config.redis_url)
         self.cost_tracker = CostTracker(self.redis_client)
+        self.cost_controller = EnhancedCostController(self.redis_client)
         
         # 初始化各个Agent
         self.psychology_expert = PsychologyExpert()
@@ -57,6 +59,7 @@ class AIOrchestrator:
             self._emergency_content
         ]
 
+    @with_cost_control
     async def generate_story(self, request: StoryGenerationRequest) -> StoryGenerationResponse:
         """
         生成故事 - 主入口点

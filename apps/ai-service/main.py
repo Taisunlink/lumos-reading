@@ -8,6 +8,7 @@ from datetime import datetime
 
 from config import config
 from orchestrator import AIOrchestrator, StoryGenerationRequest, StoryGenerationResponse
+from core.cost_control import EnhancedCostController, BudgetExceededException
 
 class RhythmAnalysisRequest(BaseModel):
     story_text: str
@@ -34,8 +35,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 初始化AI编排器
+# 初始化AI编排器和成本控制器
 orchestrator = AIOrchestrator()
+redis_client = redis.Redis.from_url(config.redis_url)
+cost_controller = EnhancedCostController(redis_client)
 
 @app.get("/")
 def read_root():
@@ -229,6 +232,132 @@ async def analyze_rhythm(request: RhythmAnalysisRequest):
     except Exception as e:
         logger.error(f"Rhythm analysis failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Rhythm analysis failed: {str(e)}")
+
+# ==================== 成本控制API端点 ====================
+
+@app.post("/cost/budget-check")
+async def budget_check(
+    user_id: str,
+    request_details: Dict[str, Any]
+):
+    """
+    预算检查 - 请求前检查预算充足性
+    """
+    try:
+        can_proceed, decision_info = await cost_controller.pre_request_budget_check(
+            user_id, request_details
+        )
+        return {
+            "can_proceed": can_proceed,
+            "decision_info": decision_info
+        }
+        
+    except Exception as e:
+        logger.error(f"Budget check failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Budget check failed: {str(e)}")
+
+@app.get("/cost/budget-info/{user_id}")
+async def get_budget_info(user_id: str):
+    """
+    获取用户预算信息
+    """
+    try:
+        budget_info = await cost_controller._get_budget_info(user_id)
+        return {
+            "daily_limit": budget_info.daily_limit,
+            "monthly_limit": budget_info.monthly_limit,
+            "current_daily_usage": budget_info.current_daily_usage,
+            "current_monthly_usage": budget_info.current_monthly_usage,
+            "remaining_daily": budget_info.remaining_daily,
+            "remaining_monthly": budget_info.remaining_monthly,
+            "status": budget_info.status.value
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get budget info: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get budget info: {str(e)}")
+
+@app.post("/cost/estimate")
+async def estimate_cost(request_details: Dict[str, Any]):
+    """
+    成本估算
+    """
+    try:
+        cost_estimate = cost_controller._estimate_request_cost(request_details)
+        return {
+            "total_tokens": cost_estimate.total_tokens,
+            "estimated_cost": cost_estimate.estimated_cost,
+            "processing_time": cost_estimate.processing_time,
+            "confidence": cost_estimate.confidence,
+            "breakdown": cost_estimate.breakdown
+        }
+        
+    except Exception as e:
+        logger.error(f"Cost estimation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Cost estimation failed: {str(e)}")
+
+@app.get("/cost/analytics/{user_id}")
+async def get_cost_analytics(user_id: str):
+    """
+    获取成本分析报告
+    """
+    try:
+        analytics = await cost_controller.get_cost_analytics(user_id)
+        return analytics
+        
+    except Exception as e:
+        logger.error(f"Failed to get cost analytics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get cost analytics: {str(e)}")
+
+@app.post("/cost/record")
+async def record_cost(
+    user_id: str,
+    request_details: Dict[str, Any],
+    actual_cost: float
+):
+    """
+    记录实际成本
+    """
+    try:
+        await cost_controller.record_actual_cost(user_id, request_details, actual_cost)
+        return {"status": "success", "message": "Cost recorded successfully"}
+        
+    except Exception as e:
+        logger.error(f"Failed to record cost: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to record cost: {str(e)}")
+
+@app.post("/cost/alternatives")
+async def get_alternatives(
+    user_id: str,
+    request_details: Dict[str, Any]
+):
+    """
+    获取替代方案
+    """
+    try:
+        budget_info = await cost_controller._get_budget_info(user_id)
+        alternatives = await cost_controller._generate_alternatives(request_details, budget_info)
+        return {
+            "alternatives": alternatives,
+            "budget_status": budget_info.status.value
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get alternatives: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get alternatives: {str(e)}")
+
+@app.post("/cost/optimization-suggestions")
+async def get_optimization_suggestions(request_details: Dict[str, Any]):
+    """
+    获取成本优化建议
+    """
+    try:
+        suggestions = await cost_controller._suggest_cost_optimization(request_details)
+        return suggestions
+        
+    except Exception as e:
+        logger.error(f"Failed to get optimization suggestions: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get optimization suggestions: {str(e)}")
 
 async def cache_story_response(response: StoryGenerationResponse):
     """缓存故事响应"""
