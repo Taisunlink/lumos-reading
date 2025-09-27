@@ -2,40 +2,53 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:15
+    image: postgres:15-alpine
     environment:
-      POSTGRES_DB: lumos_dev
+      POSTGRES_DB: lumosreading
       POSTGRES_USER: lumos
-      POSTGRES_PASSWORD: password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./infrastructure/docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+      POSTGRES_PASSWORD: lumos_dev_2024
     ports:
       - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./apps/api/migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U lumos -d lumos_dev"]
+      test: ["CMD-SHELL", "pg_isready -U lumos -d lumosreading"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    command: redis-server --maxmemory 512mb --maxmemory-policy lru
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
   api:
     build: 
       context: ./apps/api
       dockerfile: Dockerfile
     environment:
-      - DATABASE_URL=postgresql://lumos:password@postgres:5432/lumos_dev
-      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://lumos:lumos_dev_2024@postgres:5432/lumosreading
+      - REDIS_URL=redis://redis:6379
       - AI_ORCHESTRATOR_ENABLED=true
       - FEATURE_FLAGS_ENABLED=true
     volumes:
@@ -91,8 +104,8 @@ services:
       context: ./apps/api
     command: celery -A app.core.celery worker --loglevel=info
     environment:
-      - DATABASE_URL=postgresql://lumos:password@postgres:5432/lumos_dev
-      - REDIS_URL=redis://redis:6379/0
+      - DATABASE_URL=postgresql://lumos:lumos_dev_2024@postgres:5432/lumosreading
+      - REDIS_URL=redis://redis:6379
     depends_on:
       redis:
         condition: service_healthy
@@ -124,4 +137,6 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:
+  minio_data:
   grafana_data:
