@@ -15,6 +15,21 @@ from app.models.child_profile import ChildProfile
 from app.schemas.story import StoryRequest
 from app.services.ai_orchestrator import AIOrchestrator
 
+# ✅ P2-2: 导入质量验证器
+import sys
+import os
+# 添加ai-service路径
+ai_service_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'ai-service')
+if ai_service_path not in sys.path:
+    sys.path.insert(0, ai_service_path)
+
+try:
+    from agents.quality_control.complexity_validator import ComplexityValidator
+    VALIDATOR_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"ComplexityValidator not available: {e}")
+    VALIDATOR_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 class StoryGenerationService:
@@ -23,6 +38,8 @@ class StoryGenerationService:
     def __init__(self, db: Session):
         self.db = db
         self.ai_orchestrator = None
+        # ✅ P2-2: 初始化质量验证器
+        self.validator = ComplexityValidator() if VALIDATOR_AVAILABLE else None
     
     async def initialize_ai_orchestrator(self):
         """初始化AI编排器"""
@@ -67,28 +84,92 @@ class StoryGenerationService:
             story_result = await self.ai_orchestrator.generate_story_with_fallback(
                 child_data, story_request_data
             )
-            
+
+            # ✅ P2-2: 质量验证
+            validation_report = None
+            if self.validator and story_result.get("content"):
+                try:
+                    # 从story_result提取framework用于验证
+                    framework = story_result.get("framework", {})
+
+                    validation_report = self.validator.validate_story_complexity(
+                        story_content=story_result.get("content", {}),
+                        target_framework=framework
+                    )
+
+                    logger.info(
+                        f"Story {story_id} validation: "
+                        f"pass={validation_report.overall_pass}, "
+                        f"score={validation_report.overall_score:.2f}"
+                    )
+
+                    # 如果验证不通过，修改状态
+                    if not validation_report.overall_pass:
+                        logger.warning(
+                            f"Story {story_id} failed validation with "
+                            f"{len(validation_report.issues)} issues"
+                        )
+
+                except Exception as ve:
+                    logger.error(f"Validation failed for {story_id}: {str(ve)}")
+
             # 更新故事记录
             story.title = story_result.get("title", "生成的故事")
             story.content = story_result.get("content", {})
             story.generation_type = GenerationType.REALTIME
-            story.status = StoryStatus.READY
+
+            # 根据验证结果设置状态
+            if validation_report and not validation_report.overall_pass:
+                story.status = StoryStatus.NEEDS_REVISION
+                logger.info(f"Story {story_id} marked as NEEDS_REVISION")
+            else:
+                story.status = StoryStatus.READY
+
             story.quality_score = story_result.get("quality_score", 0.0)
             story.safety_score = story_result.get("safety_score", 0.0)
             story.educational_value_score = story_result.get("educational_value_score", 0.0)
+
+            # 使用验证器的overall_score作为quality_score（如果可用）
+            if validation_report:
+                story.quality_score = validation_report.overall_score
+
             story.word_count = self._calculate_word_count(story.content)
             story.page_count = len(story.content.get("pages", []))
             story.reading_time = self._calculate_reading_time(story.content)
             story.updated_at = datetime.utcnow()
-            
+
             # 添加生成元数据
-            story.metadata = {
+            metadata = {
                 **story.metadata,
                 "generation_completed_at": datetime.utcnow().isoformat(),
                 "ai_model_used": story_result.get("ai_model", "unknown"),
                 "generation_time_seconds": story_result.get("generation_time", 0),
                 "fallback_used": story_result.get("fallback_reason") is not None
             }
+
+            # 添加验证结果到元数据
+            if validation_report:
+                metadata["validation"] = {
+                    "overall_pass": validation_report.overall_pass,
+                    "overall_score": validation_report.overall_score,
+                    "content_structure_score": validation_report.content_structure_score,
+                    "language_complexity_score": validation_report.language_complexity_score,
+                    "plot_complexity_score": validation_report.plot_complexity_score,
+                    "issues_count": len(validation_report.issues),
+                    "issues": [
+                        {
+                            "severity": issue.severity,
+                            "category": issue.category,
+                            "message": issue.message,
+                            "suggestion": issue.suggestion
+                        }
+                        for issue in validation_report.issues
+                    ],
+                    "suggestions": validation_report.suggestions,
+                    "statistics": self.validator.get_summary_statistics(story_result.get("content", {}))
+                }
+
+            story.metadata = metadata
             
             self.db.commit()
             logger.info(f"Story {story_id} generated successfully")

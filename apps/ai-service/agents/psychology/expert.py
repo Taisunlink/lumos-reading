@@ -130,93 +130,324 @@ class PsychologyExpert:
             # 返回基础框架作为后备
             return await self._get_fallback_framework(child_profile)
 
+    # ========== 辅助方法：用于构建详细的心理学prompt ==========
+
+    def _explain_plot_structure(self, structure_type: str) -> str:
+        """解释情节结构类型"""
+        explanations = {
+            "single_linear": "单一主线，按时间顺序发展，因果关系直接明显",
+            "dual_thread_simple": "两条故事线，简单交织，最后汇合",
+            "multi_thread_complex": "多条故事线并行发展，复杂交织，多层伏笔"
+        }
+        return explanations.get(structure_type, structure_type)
+
+    def _explain_time_structure(self, time_type: str) -> str:
+        """解释时间结构"""
+        explanations = {
+            "linear_only": "纯线性时间，从头到尾顺序讲述",
+            "linear_with_flashback": "主要线性，可以有1-2处简短回忆",
+            "nonlinear_allowed": "允许倒叙、插叙、时间跳跃、多时空并行"
+        }
+        return explanations.get(time_type, time_type)
+
+    def _explain_cause_effect(self, pattern: str) -> str:
+        """解释因果关系模式"""
+        explanations = {
+            "immediate": "因果直接相连，A导致B立即发生",
+            "delayed_single_step": "因果之间可以延迟一个事件，A→C→B",
+            "complex_chain": "复杂因果链，多因多果，长链条因果关系"
+        }
+        return explanations.get(pattern, pattern)
+
+    def _format_vocabulary_enrichment(self, enrichment: Dict) -> str:
+        """格式化词汇丰富策略"""
+        if not enrichment:
+            return ""
+
+        parts = []
+        if 'new_words_per_story' in enrichment:
+            nw = enrichment['new_words_per_story']
+            parts.append(f"- 新词引入: 每个故事{nw.get('min', 0)}-{nw.get('max', 0)}个")
+        if 'idioms_per_story' in enrichment:
+            idioms = enrichment['idioms_per_story']
+            if isinstance(idioms, dict):
+                parts.append(f"- 成语使用: {idioms.get('min', 0)}-{idioms.get('max', 0)}个")
+            elif idioms > 0:
+                parts.append(f"- 成语使用: {idioms}个")
+        if enrichment.get('metaphor_usage'):
+            parts.append(f"- 比喻手法: {enrichment['metaphor_usage']}")
+
+        return "\n".join(parts)
+
+    def _format_moral_dilemma(self, dilemma_type: str) -> str:
+        """格式化道德困境指导"""
+        if dilemma_type == "simple_binary":
+            return "\n- **道德选择**: 简单的对错判断(如: 诚实vs撒谎)"
+        elif dilemma_type == "complex_gradient":
+            return "\n- **道德困境**: 复杂的渐变判断，没有绝对对错，需权衡多方利益"
+        return ""
+
+    def _format_critical_thinking(self, critical: Dict) -> str:
+        """格式化批判性思维要求"""
+        if not critical:
+            return ""
+
+        parts = ["\n### 六、批判性思维培养"]
+        if critical.get('perspective_taking'):
+            parts.append("- 引导多视角思考: 从不同角色立场理解事件")
+        if critical.get('cause_analysis') == 'multi_factor':
+            parts.append("- 多因素分析: 探讨事件的多重原因")
+        if critical.get('prediction_questions'):
+            parts.append("- 预测性提问: 鼓励推测后续发展")
+        if critical.get('ethical_discussion'):
+            parts.append("- 伦理讨论: 探讨价值观和道德选择")
+
+        return "\n".join(parts)
+
+    def _get_common_char_threshold(self, percentage: int) -> int:
+        """根据百分比返回常用字数量"""
+        if percentage >= 95:
+            return 500
+        elif percentage >= 80:
+            return 1500
+        else:
+            return 3000
+
+    # ========== 重写的Psychology Prompt构建方法 ==========
+
     async def _build_psychology_prompt(
         self,
         child_profile: Dict[str, Any],
         story_request: Dict[str, Any]
     ) -> str:
-        """构建专业心理学提示词"""
+        """构建科学细致的心理学提示词 - 基于年龄参数"""
 
         age = child_profile.get('age', 5)
+
+        # 导入年龄参数
+        from agents.psychology.age_parameters import AgeGroupParameters
+        params = AgeGroupParameters.get_parameters(age)
+
         neuro_profile = child_profile.get('neuro_profile', {})
         preferences = child_profile.get('preferences', {})
         theme = story_request.get('theme', '友谊')
 
-        base_prompt = f"""
-你是世界顶级的儿童发展心理学专家，拥有哈佛大学心理学博士学位，专精于以下领域：
-- 皮亚杰认知发展理论的现代应用
-- 维果茨基最近发展区理论
-- 神经多样性儿童的个性化支持
-- 对话式阅读法(CROWD-PEER)的实施
+        prompt = f"""
+你是哈佛大学儿童发展心理学教授，专精皮亚杰和维果茨基理论，拥有20年临床经验。
 
-儿童档案分析：
-年龄: {age}岁
-认知发展阶段: {self._determine_cognitive_stage(age)}
-神经多样性特征: {json.dumps(neuro_profile, ensure_ascii=False)}
-阅读偏好: {json.dumps(preferences, ensure_ascii=False)}
+## 儿童认知档案
+- **年龄**: {age}岁
+- **认知阶段**: {params['cognitive_stage']}
+- **皮亚杰特征**: {', '.join(params['piaget_characteristics'])}
+- **神经多样性**: {json.dumps(neuro_profile, ensure_ascii=False) if neuro_profile else '无特殊需求'}
+- **阅读偏好**: {json.dumps(preferences, ensure_ascii=False) if preferences else '暂无数据'}
 
-故事主题: {theme}
+## 故事主题
+{theme}
 
-请基于以上信息，设计一个科学严谨的教育心理学框架，包含：
+## 你的任务
+基于 **{params['age_range']}** 儿童的认知发展水平，设计精确的教育心理学框架。
 
-1. 认知适配策略 (基于皮亚杰理论)
-2. 注意力管理机制 (考虑注意力发展特点)
-3. CROWD对话式阅读嵌入 (5种提示类型的具体应用)
-4. 神经多样性适配 (如有相关特征)
-5. 情绪调节支持
-6. 文化敏感性考虑
-7. 家长指导要点
+---
 
-请以JSON格式输出，确保每个建议都有心理学理论依据：
+### 一、内容结构设计 (精确到数字！)
 
+**页数规划**:
+- 最少: {params['page_count']['min']}页
+- 最多: {params['page_count']['max']}页
+- **推荐**: {params['page_count']['recommended']}页 ← 必须采用此值！
+
+**每页字数**:
+- 最少: {params['words_per_page']['min']}字
+- 最多: {params['words_per_page']['max']}字
+- **推荐**: {params['words_per_page']['recommended']}字 ← 必须采用此值！
+
+**总字数**: 约 {params['total_story_length']['recommended']}字
+
+---
+
+### 二、语言复杂度设计 (句句必符合！)
+
+#### 句式结构分布 (严格百分比):
+```
+简单句 (主谓宾/主系表): {params['sentence_structure']['simple_sentences']}%
+复合句 (因果/转折/并列): {params['sentence_structure']['compound_sentences']}%
+复杂句 (多层从句/倒装): {params['sentence_structure']['complex_sentences']}%
+```
+
+#### 句子长度控制:
+- 平均每句: {params['sentence_length']['avg']}字
+- 最短: {params['sentence_length']['min']}字
+- 最长: {params['sentence_length']['max']}字
+
+#### 词汇难度分布:
+```
+常用字 (前{self._get_common_char_threshold(params['vocabulary_level']['common_chars'])}字表): {params['vocabulary_level']['common_chars']}%
+进阶词 (成语/多义词/书面语): {params['vocabulary_level']['intermediate_chars']}%
+高级词 (抽象概念/专业术语): {params['vocabulary_level']['advanced_chars']}%
+```
+
+{self._format_vocabulary_enrichment(params.get('vocabulary_enrichment', {}))}
+
+---
+
+### 三、情节复杂度设计 (结构清晰！)
+
+**叙事结构**: {params['plot_structure']}
+→ {self._explain_plot_structure(params['plot_structure'])}
+
+**情节点数量**: {params['plot_points']['min']}-{params['plot_points']['max']}个关键转折
+
+**角色设计**:
+- 角色总数: {params['character_count']['min']}-{params['character_count']['max']}个
+- 主角: 1个 (必须有成长弧线)
+- 配角: {params['character_count']['min']-1}-{params['character_count']['max']-1}个
+
+**时间结构**: {params['time_structure']}
+→ {self._explain_time_structure(params['time_structure'])}
+
+**因果关系**: {params['cause_effect_directness']}
+→ {self._explain_cause_effect(params['cause_effect_directness'])}
+
+**冲突类型**: {', '.join(params['conflict_types'])}
+
+---
+
+### 四、主题深度设计 (触及心灵！)
+
+**复杂度级别**: {params['theme_complexity']}
+
+**适合主题**: {', '.join(params['suitable_themes'][:5])} (可从中选择)
+
+**情绪调色板**: {', '.join(params['emotion_types'])}
+→ 故事必须自然展现这些情绪，通过情节和对话体现
+
+{self._format_moral_dilemma(params.get('moral_dilemma', ''))}
+
+---
+
+### 五、CROWD对话式阅读策略 (互动设计！)
+
+**互动频率**: {params['crowd_frequency']}
+
+**类型分布**:
+- Completion (完成句子): {params['crowd_types_distribution']['Completion']}%
+- Recall (回忆问题): {params['crowd_types_distribution']['Recall']}%
+- Open-ended (开放讨论): {params['crowd_types_distribution']['Open_ended']}%
+- Wh-questions (为什么/怎么): {params['crowd_types_distribution']['Wh_questions']}%
+- Distancing (联系生活): {params['crowd_types_distribution']['Distancing']}%
+
+**示例参考**:
+{json.dumps(params.get('interaction_examples', {}), ensure_ascii=False, indent=2)}
+
+{self._format_critical_thinking(params.get('critical_thinking', {}))}
+
+---
+
+## 输出格式 (严格JSON)
+
+请输出完整的教育框架JSON，所有数值必须严格遵守上述标准！
+
+```json
 {{
-    "cognitive_stage": "具体认知发展阶段",
-    "attention_span_target": "推荐注意力时长(分钟)",
-    "learning_objectives": ["基于认知发展的学习目标"],
+    "age_group": "{params['age_range']}",
+    "cognitive_stage": "{params['cognitive_stage']}",
+    "attention_span_target": {max(3, age)},
+
+    "content_structure": {{
+        "page_count": {params['page_count']['recommended']},
+        "words_per_page": {params['words_per_page']['recommended']},
+        "total_words": {params['total_story_length']['recommended']}
+    }},
+
+    "language_specifications": {{
+        "sentence_structure": {json.dumps(params['sentence_structure'])},
+        "sentence_length": {json.dumps(params['sentence_length'])},
+        "vocabulary_level": {json.dumps(params['vocabulary_level'])},
+        "vocabulary_enrichment": {json.dumps(params.get('vocabulary_enrichment', {}))},
+        "example_sentences": [
+            "示例1: 符合句式和长度要求的句子",
+            "示例2: ...",
+            "示例3: ..."
+        ]
+    }},
+
+    "plot_specifications": {{
+        "structure_type": "{params['plot_structure']}",
+        "plot_points": {(params['plot_points']['min'] + params['plot_points']['max']) // 2},
+        "character_count": {(params['character_count']['min'] + params['character_count']['max']) // 2},
+        "time_structure": "{params['time_structure']}",
+        "cause_effect_pattern": "{params['cause_effect_directness']}",
+        "conflict_types": {json.dumps(params.get('conflict_types', []))}
+    }},
+
+    "theme_specifications": {{
+        "complexity_level": "{params['theme_complexity']}",
+        "recommended_theme": "基于'{theme}'具体化的主题描述",
+        "emotion_palette": {json.dumps(params['emotion_types'])},
+        "educational_goals": ["具体学习目标1", "具体学习目标2", "具体学习目标3"]
+    }},
+
     "crowd_strategy": {{
-        "completion_prompts": ["完成句子类互动"],
-        "recall_questions": ["回忆性问题"],
-        "open_ended_prompts": ["开放性讨论"],
-        "wh_questions": ["5W1H问题设计"],
-        "distancing_connections": ["联系现实经验"]
+        "frequency": "{params['crowd_frequency']}",
+        "distribution": {json.dumps(params['crowd_types_distribution'])},
+        "completion_prompts": ["具体互动提示5-8个"],
+        "recall_questions": ["具体回忆问题5-8个"],
+        "open_ended_prompts": ["开放性讨论5-8个"],
+        "wh_questions": ["为什么/怎么问题5-8个"],
+        "distancing_connections": ["联系生活的引导5-8个"]
     }},
+
     "neuro_adaptations": {{
-        "attention_supports": {{"注意力支持策略"}},
-        "sensory_adjustments": {{"感官调节建议"}},
-        "interaction_modifications": {{"互动方式调整"}},
-        "cognitive_scaffolding": {{"认知支架策略"}}
+        "attention_supports": {{}},
+        "sensory_adjustments": {{}},
+        "interaction_modifications": {{}},
+        "cognitive_scaffolding": {{}}
     }},
-    "interaction_density": "互动密度等级(low/medium/high)",
-    "safety_considerations": ["心理安全要点"],
-    "cultural_adaptations": ["文化适应建议"],
-    "parent_guidance": ["家长指导要点"]
+
+    "safety_considerations": [
+        "心理安全要点1",
+        "心理安全要点2"
+    ],
+
+    "parent_guidance": [
+        "家长引导建议1",
+        "家长引导建议2"
+    ]
 }}
-        """
+```
 
-        # 根据神经多样性特征添加专门指导
+**关键提醒**:
+1. 页数、字数必须是推荐值，不要偏离！
+2. 句式结构百分比必须精确匹配！
+3. 所有CROWD互动必须给出5-8个具体示例！
+4. 示例句子必须符合该年龄段的句长和复杂度要求！
+
+现在开始设计框架！
+"""
+
+        # 神经多样性额外指导
         if neuro_profile.get('adhd_indicators'):
-            base_prompt += """
+            prompt += """
 
-ADHD适配专项指导：
-- 应用执行功能支持理论
-- 实施注意力调节策略
-- 设计即时反馈机制
-- 考虑多感官学习通道
-- 提供结构化预期
-            """
+## ADHD专项适配
+- 每3-5页设置一个明显的"里程碑"奖励点
+- 使用视觉锚点(图标/颜色)标记重要内容
+- 句子短小精悍，避免长难句
+- 提供明确的进度指示
+"""
 
         if neuro_profile.get('autism_indicators'):
-            base_prompt += """
+            prompt += """
 
-自闭谱系适配专项指导：
-- 应用社交认知理论
-- 实施感官处理支持
-- 设计明确情绪标注
-- 提供社交脚本指导
-- 确保预测性结构
-            """
+## 自闭谱系专项适配
+- 保持视觉风格高度一致
+- 情绪变化需要明确标注("小明感到开心")
+- 提供可预测的故事结构(开始-中间-结束明确)
+- 避免突然的场景转换，需要过渡提示
+"""
 
-        return base_prompt
+        return prompt
 
     def _determine_cognitive_stage(self, age: int) -> str:
         """基于年龄确定认知发展阶段"""

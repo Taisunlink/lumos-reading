@@ -229,6 +229,7 @@ async def story_generation_stream(
 ):
     """
     WebSocket端点 - 实时推送故事生成进度
+    包含文本和插图同步生成
     """
     await websocket.accept()
 
@@ -245,45 +246,91 @@ async def story_generation_stream(
         existing_pages = story.content.get('pages', [])
         target_pages = story.story_metadata.get('total_pages', 8)
 
+        # ✅ 构建角色圣经
+        character_bible = {
+            "characters": story.content.get("characters", [])
+        }
+
         # 初始化AI服务
         ai_orchestrator = AIOrchestrator()
         await ai_orchestrator.initialize()
 
+        # ✅ 初始化插图服务
+        from app.services.illustration_service import MultiAIIllustrationService
+        illustration_service = MultiAIIllustrationService(db)
+
         # 逐页生成剩余页面
         for page_num in range(len(existing_pages) + 1, target_pages + 1):
             try:
-                # 生成新页面
+                # 1. 生成文本页面
                 new_page = await ai_orchestrator.story_creator.create_next_page(
                     framework=framework,
                     existing_pages=existing_pages,
                     page_number=page_num
                 )
 
-                # 更新故事内容
-                existing_pages.append(new_page)
-                story.content = {'pages': existing_pages}
+                # 2. ✅ 立即生成对应插图
+                illustration_result = None
+                illustration_error = None
 
-                # 计算进度
+                try:
+                    logger.info(f"Generating illustration for story {story_id}, page {page_num}")
+                    illustration_result = await illustration_service.generate_story_illustration(
+                        story_id=str(story_id),
+                        page_number=page_num,
+                        illustration_prompt=new_page.get('illustration_prompt', ''),
+                        character_bible=character_bible
+                    )
+
+                    # 3. ✅ 将插图URL添加到页面数据
+                    new_page['illustration_url'] = illustration_result['url']
+                    new_page['illustration_id'] = illustration_result.get('illustration_id')
+
+                    logger.info(f"Illustration generated successfully: {illustration_result['url']}")
+
+                except Exception as e:
+                    logger.error(f"Illustration generation failed for page {page_num}: {e}")
+                    illustration_error = str(e)
+                    # ✅ 使用fallback图像
+                    new_page['illustration_url'] = '/api/static/illustrations/fallback.png'
+                    new_page['illustration_error'] = illustration_error
+
+                # 4. 更新故事内容
+                existing_pages.append(new_page)
+                story.content = {
+                    'pages': existing_pages,
+                    'characters': character_bible.get('characters', [])
+                }
+
+                # 5. 计算进度
                 progress = (page_num / target_pages) * 100
 
-                # 发送进度更新
+                # 6. ✅ 发送完整进度更新(文本+插图)
                 await websocket.send_json({
                     "type": "page_generated",
                     "page_number": page_num,
                     "page_content": new_page,
+                    "illustration": {
+                        "url": new_page.get('illustration_url'),
+                        "id": new_page.get('illustration_id'),
+                        "error": illustration_error,
+                        "provider": illustration_result.get('provider') if illustration_result else None
+                    } if illustration_result or illustration_error else None,
                     "progress_percentage": progress,
                     "total_pages": target_pages
                 })
 
-                # 更新数据库
+                # 7. 更新数据库
                 db.commit()
 
-                # 添加延迟以避免过快推送
-                await asyncio.sleep(2)
+                # 8. ✅ 适当延迟避免过快推送（考虑图像生成时间）
+                await asyncio.sleep(1.5)
 
             except Exception as e:
+                logger.error(f"Page {page_num} generation failed: {e}")
                 await websocket.send_json({
                     "type": "error",
+                    "page_number": page_num,
                     "message": f"Page {page_num} generation failed: {str(e)}"
                 })
 
@@ -296,17 +343,22 @@ async def story_generation_stream(
 
         db.commit()
 
+        # ✅ 统计插图数量
+        total_illustrations = len([p for p in existing_pages if p.get('illustration_url')])
+
         # 发送完成通知
         await websocket.send_json({
             "type": "generation_complete",
             "story_id": str(story.id),
             "quality_score": quality_score,
-            "total_pages": len(existing_pages)
+            "total_pages": len(existing_pages),
+            "total_illustrations": total_illustrations
         })
 
     except WebSocketDisconnect:
         logger.info(f"WebSocket disconnected for story {story_id}")
     except Exception as e:
+        logger.error(f"Story generation stream failed: {e}")
         await websocket.send_json({
             "type": "error",
             "message": f"Generation failed: {str(e)}"
