@@ -1,12 +1,13 @@
 "use client";
 
-import type { StoryPackageManifestV1 } from "@lumosreading/contracts";
+import type { CaregiverDashboardV1 } from "@lumosreading/contracts";
 import { formatDurationMinutes } from "@/lib/format";
-import { useStoryPackageCatalog } from "@/lib/hooks/use-story-package-catalog";
+import { resolveFeaturedPackage } from "@/lib/page-models";
 
 type ConnectedPackagePanelProps = {
-  initialFeaturedPackage: StoryPackageManifestV1;
-  initialPackageQueue: StoryPackageManifestV1[];
+  dashboard: CaregiverDashboardV1;
+  status: "loading" | "live" | "fallback";
+  error: string | null;
 };
 
 function renderStatusBadge(status: "loading" | "live" | "fallback") {
@@ -22,12 +23,11 @@ function renderStatusBadge(status: "loading" | "live" | "fallback") {
 }
 
 export function ConnectedPackagePanel({
-  initialFeaturedPackage,
-  initialPackageQueue,
+  dashboard,
+  status,
+  error,
 }: ConnectedPackagePanelProps) {
-  const packageIds = initialPackageQueue.map((item) => item.package_id);
-  const { packages, packagesById, status, error } = useStoryPackageCatalog(packageIds, initialPackageQueue);
-  const featuredPackage = packagesById[initialFeaturedPackage.package_id] ?? initialFeaturedPackage;
+  const featuredPackage = resolveFeaturedPackage(dashboard);
 
   return (
     <article className="panel-card">
@@ -70,7 +70,7 @@ export function ConnectedPackagePanel({
       {error ? <div className="note-card">{error}</div> : null}
 
       <div className="stack-list">
-        {packages.map((item) => (
+        {dashboard.package_queue.map((item) => (
           <article key={item.package_id} className="list-row">
             <p className="list-row__title">{item.title}</p>
             <div className="list-row__meta">

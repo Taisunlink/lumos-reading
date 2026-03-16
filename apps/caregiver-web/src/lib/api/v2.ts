@@ -7,6 +7,7 @@ export const apiClient = createLumosApiClient({
   baseUrl: API_BASE_URL,
 });
 
+export const getCaregiverDashboard = apiClient.getCaregiverDashboard;
 export const getStoryPackage = apiClient.getStoryPackage;
 export const createReadingSession = apiClient.createReadingSession;
 export const ingestReadingEvents = apiClient.ingestReadingEvents;

@@ -4,12 +4,15 @@
 
 ## 当前权威 schema
 
+- `caregiver-dashboard.v1.schema.json`
 - `story-package.v1.schema.json`
 - `reading-event.v1.schema.json`
 - `safety-audit.v1.schema.json`
 
 ## 适用范围
 
+- `CaregiverDashboard v1`
+  用于 caregiver surface 的家庭聚合读模型，承载包队列、儿童摘要、计划、事件与进展指标。
 - `StoryPackage v1`
   用于儿童端运行时内容包分发和缓存。
 - `ReadingEvent v1`

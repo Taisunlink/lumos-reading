@@ -1,8 +1,12 @@
 "use client";
 
 import { formatDurationMinutes } from "@/lib/format";
-import { useStoryPackageCatalog } from "@/lib/hooks/use-story-package-catalog";
-import { dashboardModel, weeklyPlan } from "@/lib/page-models";
+import { useCaregiverDashboard } from "@/lib/hooks/use-caregiver-dashboard";
+import {
+  demoHouseholdId,
+  fallbackCaregiverDashboard,
+  resolveWeeklyPlan,
+} from "@/lib/page-models";
 
 const planningGuardrails = [
   "Mix one anchor package with one low-stimulation fallback instead of flooding the queue.",
@@ -11,13 +15,12 @@ const planningGuardrails = [
 ];
 
 export default function PlansPage() {
-  const packageIds = dashboardModel.packageQueue.map((item) => item.package_id);
-  const { packagesById, status, error } = useStoryPackageCatalog(packageIds, dashboardModel.packageQueue);
-  const resolvedPlan = weeklyPlan.map((item) => ({
-    ...item,
-    package: packagesById[item.package.package_id] ?? item.package,
-  }));
-  const totalPlannedMinutes = weeklyPlan.reduce(
+  const { dashboard, status, error } = useCaregiverDashboard(
+    demoHouseholdId,
+    fallbackCaregiverDashboard,
+  );
+  const resolvedPlan = resolveWeeklyPlan(dashboard);
+  const totalPlannedMinutes = resolvedPlan.reduce(
     (sum, item) => sum + Math.round(item.package.estimated_duration_sec / 60),
     0,
   );
@@ -33,14 +36,14 @@ export default function PlansPage() {
         </p>
         <div className="badge-row">
           <span className={`badge ${status === "live" ? "is-green" : status === "loading" ? "is-sky" : "is-warm"}`}>
-            {status === "live" ? "live api packages" : status === "loading" ? "syncing packages" : "fallback packages"}
+            {status === "live" ? "live dashboard" : status === "loading" ? "syncing dashboard" : "fallback dashboard"}
           </span>
         </div>
         {error ? <div className="note-card">{error}</div> : null}
         <div className="metrics-grid">
           <article className="metric-card">
             <div className="metric-card__label">Weekly sessions</div>
-            <div className="metric-card__value">{weeklyPlan.length}</div>
+            <div className="metric-card__value">{resolvedPlan.length}</div>
             <div className="metric-card__meta">Scheduled moments already mapped into the plan.</div>
           </article>
           <article className="metric-card">
@@ -50,7 +53,7 @@ export default function PlansPage() {
           </article>
           <article className="metric-card">
             <div className="metric-card__label">Queue coverage</div>
-            <div className="metric-card__value">{dashboardModel.packageQueue.length}</div>
+            <div className="metric-card__value">{dashboard.package_queue.length}</div>
             <div className="metric-card__meta">Packages currently available for rotation or escalation.</div>
           </article>
         </div>
@@ -96,26 +99,16 @@ export default function PlansPage() {
             <span className="panel-card__eyebrow">What distribution can safely deliver</span>
           </div>
           <div className="stack-list">
-            {packageIds.map((packageId) => {
-              const item =
-                packagesById[packageId] ??
-                dashboardModel.packageQueue.find((candidate) => candidate.package_id === packageId);
-
-              if (!item) {
-                return null;
-              }
-
-              return (
-                <article key={item.package_id} className="list-row">
-                  <p className="list-row__title">{item.title}</p>
-                  <div className="list-row__meta">
-                    <span>{item.language_mode}</span>
-                    <span>{item.difficulty_level}</span>
-                    <span>{formatDurationMinutes(item.estimated_duration_sec)}</span>
-                  </div>
-                </article>
-              );
-            })}
+            {dashboard.package_queue.map((item) => (
+              <article key={item.package_id} className="list-row">
+                <p className="list-row__title">{item.title}</p>
+                <div className="list-row__meta">
+                  <span>{item.language_mode}</span>
+                  <span>{item.difficulty_level}</span>
+                  <span>{formatDurationMinutes(item.estimated_duration_sec)}</span>
+                </div>
+              </article>
+            ))}
           </div>
         </article>
 

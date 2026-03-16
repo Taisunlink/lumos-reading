@@ -1,33 +1,22 @@
 import {
+  CAREGIVER_DASHBOARD_SCHEMA_VERSION,
   READING_EVENT_SCHEMA_VERSION,
   STORY_PACKAGE_SCHEMA_VERSION,
+  type CaregiverChildSummaryV1,
+  type CaregiverDashboardV1,
+  type CaregiverWeeklyPlanItemV1,
   type ReadingEventV1,
   type StoryPackageManifestV1,
 } from "@lumosreading/contracts";
 
-export type ChildSnapshot = {
-  id: string;
-  name: string;
-  ageLabel: string;
-  focus: string;
-  weeklyGoal: string;
+export const demoHouseholdId = "44444444-4444-4444-4444-444444444444";
+
+export type ResolvedChildSnapshot = CaregiverChildSummaryV1 & {
   currentPackage: StoryPackageManifestV1;
 };
 
-export type WeeklyPlanItem = {
-  day: string;
-  mode: string;
+export type ResolvedWeeklyPlanItem = CaregiverWeeklyPlanItemV1 & {
   package: StoryPackageManifestV1;
-  objective: string;
-};
-
-export type DashboardModel = {
-  householdName: string;
-  featuredPackage: StoryPackageManifestV1;
-  packageQueue: StoryPackageManifestV1[];
-  recentEvents: ReadingEventV1[];
-  children: ChildSnapshot[];
-  weeklyPlan: WeeklyPlanItem[];
 };
 
 function buildPackage(args: {
@@ -114,7 +103,7 @@ function buildEvent(args: {
   };
 }
 
-export const packageLibrary = {
+const packageLibrary = {
   friendshipTrail: buildPackage({
     packageId: "33333333-3333-3333-3333-333333333333",
     storyMasterId: "11111111-1111-1111-1111-111111111111",
@@ -162,7 +151,7 @@ export const packageLibrary = {
   }),
 };
 
-export const recentEvents: ReadingEventV1[] = [
+const recentEvents: ReadingEventV1[] = [
   buildEvent({
     eventId: "c1d3a8c0-05f3-45bd-9a56-72a911200001",
     type: "session_completed",
@@ -203,54 +192,94 @@ export const recentEvents: ReadingEventV1[] = [
   }),
 ];
 
-export const children: ChildSnapshot[] = [
-  {
-    id: "55555555-5555-5555-5555-555555555555",
-    name: "Mina",
-    ageLabel: "Age 5",
-    focus: "Shared reading and early vocabulary",
-    weeklyGoal: "4 completed sessions",
-    currentPackage: packageLibrary.friendshipTrail,
+export const fallbackCaregiverDashboard: CaregiverDashboardV1 = {
+  schema_version: CAREGIVER_DASHBOARD_SCHEMA_VERSION,
+  household_id: demoHouseholdId,
+  household_name: "The Rivera household",
+  featured_package_id: packageLibrary.friendshipTrail.package_id,
+  package_queue: [packageLibrary.friendshipTrail, packageLibrary.moonGarden, packageLibrary.bridgeWords],
+  recent_events: recentEvents,
+  children: [
+    {
+      child_id: "55555555-5555-5555-5555-555555555555",
+      name: "Mina",
+      age_label: "Age 5",
+      focus: "Shared reading and early vocabulary",
+      weekly_goal: "4 completed sessions",
+      current_package_id: packageLibrary.friendshipTrail.package_id,
+    },
+    {
+      child_id: "12121212-1212-1212-1212-121212121212",
+      name: "Leo",
+      age_label: "Age 7",
+      focus: "Bilingual assist with predictable pacing",
+      weekly_goal: "3 sessions plus 2 calm replays",
+      current_package_id: packageLibrary.bridgeWords.package_id,
+    },
+  ],
+  weekly_plan: [
+    {
+      day: "Monday",
+      mode: "Co-reading",
+      package_id: packageLibrary.friendshipTrail.package_id,
+      objective: "Warm start for the week with one caregiver prompt per page.",
+    },
+    {
+      day: "Wednesday",
+      mode: "Wind-down",
+      package_id: packageLibrary.moonGarden.package_id,
+      objective: "Use read-to-me mode with low stimulation and a slower page cadence.",
+    },
+    {
+      day: "Saturday",
+      mode: "Bilingual assist",
+      package_id: packageLibrary.bridgeWords.package_id,
+      objective: "Reveal only three translation words and track the replay count.",
+    },
+  ],
+  progress_metrics: {
+    completed_sessions: recentEvents.filter((event) => event.event_type === "session_completed").length,
+    translation_reveals: recentEvents.filter((event) => event.event_type === "word_revealed_translation").length,
+    audio_replays: recentEvents.filter((event) => event.event_type === "page_replayed_audio").length,
   },
-  {
-    id: "12121212-1212-1212-1212-121212121212",
-    name: "Leo",
-    ageLabel: "Age 7",
-    focus: "Bilingual assist with predictable pacing",
-    weeklyGoal: "3 sessions plus 2 calm replays",
-    currentPackage: packageLibrary.bridgeWords,
-  },
-];
-
-export const weeklyPlan: WeeklyPlanItem[] = [
-  {
-    day: "Monday",
-    mode: "Co-reading",
-    package: packageLibrary.friendshipTrail,
-    objective: "Warm start for the week with one caregiver prompt per page.",
-  },
-  {
-    day: "Wednesday",
-    mode: "Wind-down",
-    package: packageLibrary.moonGarden,
-    objective: "Use read-to-me mode with low stimulation and a slower page cadence.",
-  },
-  {
-    day: "Saturday",
-    mode: "Bilingual assist",
-    package: packageLibrary.bridgeWords,
-    objective: "Reveal only three translation words and track the replay count.",
-  },
-];
-
-export const dashboardModel: DashboardModel = {
-  householdName: "The Rivera household",
-  featuredPackage: packageLibrary.friendshipTrail,
-  packageQueue: [packageLibrary.friendshipTrail, packageLibrary.moonGarden, packageLibrary.bridgeWords],
-  recentEvents,
-  children,
-  weeklyPlan,
+  generated_at: "2026-03-17T12:00:00Z",
 };
+
+export function buildPackageMap(dashboard: CaregiverDashboardV1): Record<string, StoryPackageManifestV1> {
+  return dashboard.package_queue.reduce<Record<string, StoryPackageManifestV1>>((accumulator, item) => {
+    accumulator[item.package_id] = item;
+    return accumulator;
+  }, {});
+}
+
+export function resolveFeaturedPackage(dashboard: CaregiverDashboardV1): StoryPackageManifestV1 {
+  const packageMap = buildPackageMap(dashboard);
+  return packageMap[dashboard.featured_package_id] ?? dashboard.package_queue[0];
+}
+
+export function resolveChildren(dashboard: CaregiverDashboardV1): ResolvedChildSnapshot[] {
+  const packageMap = buildPackageMap(dashboard);
+
+  return dashboard.children.map((child) => ({
+    ...child,
+    currentPackage:
+      packageMap[child.current_package_id] ??
+      dashboard.package_queue.find((item) => item.package_id === child.current_package_id) ??
+      dashboard.package_queue[0],
+  }));
+}
+
+export function resolveWeeklyPlan(dashboard: CaregiverDashboardV1): ResolvedWeeklyPlanItem[] {
+  const packageMap = buildPackageMap(dashboard);
+
+  return dashboard.weekly_plan.map((item) => ({
+    ...item,
+    package:
+      packageMap[item.package_id] ??
+      dashboard.package_queue.find((candidate) => candidate.package_id === item.package_id) ??
+      dashboard.package_queue[0],
+  }));
+}
 
 export const startupOrder = [
   "docs/v2/01-strategy-review-and-references.md",
@@ -259,9 +288,3 @@ export const startupOrder = [
   "apps/README.md",
   "packages/contracts/README.md",
 ];
-
-export const progressMetrics = {
-  completedSessions: recentEvents.filter((event) => event.event_type === "session_completed").length,
-  translationReveals: recentEvents.filter((event) => event.event_type === "word_revealed_translation").length,
-  audioReplays: recentEvents.filter((event) => event.event_type === "page_replayed_audio").length,
-};

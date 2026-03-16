@@ -10,6 +10,7 @@ Shared V2 API client package for LumosReading.
 
 ## Current API surface
 
+- `getCaregiverDashboard`
 - `getStoryPackage`
 - `createReadingSession`
 - `ingestReadingEvents`

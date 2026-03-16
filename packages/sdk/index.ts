@@ -1,4 +1,5 @@
 import type {
+  CaregiverDashboardV1,
   ReadingEventBatchRequestV2,
   ReadingEventIngestedResponseV2,
   ReadingSessionCreateV2,
@@ -77,6 +78,14 @@ export function createLumosApiClient(options: LumosApiClientOptions = {}) {
 
   return {
     baseUrl,
+    async getCaregiverDashboard(householdId: string): Promise<CaregiverDashboardV1> {
+      return request<CaregiverDashboardV1>(
+        fetchImpl,
+        baseUrl,
+        `/caregiver/households/${householdId}/dashboard`,
+        options.headers,
+      );
+    },
     async getStoryPackage(packageId: string): Promise<StoryPackageManifestV1> {
       return request<StoryPackageManifestV1>(
         fetchImpl,

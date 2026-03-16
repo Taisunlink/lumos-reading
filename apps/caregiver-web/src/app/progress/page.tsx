@@ -1,6 +1,14 @@
+"use client";
+
 import type { ReadingEventV1 } from "@lumosreading/contracts";
 import { formatDateTime, formatEventType, formatMinutesFromMs } from "@/lib/format";
-import { children, dashboardModel, recentEvents } from "@/lib/page-models";
+import { useCaregiverDashboard } from "@/lib/hooks/use-caregiver-dashboard";
+import {
+  buildPackageMap,
+  demoHouseholdId,
+  fallbackCaregiverDashboard,
+  resolveChildren,
+} from "@/lib/page-models";
 
 function getNumericPayloadField(event: ReadingEventV1, field: string): number | null {
   const value = event.payload[field];
@@ -38,15 +46,22 @@ function describeEvent(event: ReadingEventV1): string {
 }
 
 export default function ProgressPage() {
-  const childNameById = new Map(children.map((child) => [child.id, child.name]));
-  const packageTitleById = new Map(dashboardModel.packageQueue.map((pkg) => [pkg.package_id, pkg.title]));
-  const uniqueSessions = new Set(recentEvents.map((event) => event.session_id)).size;
-  const totalDwellMs = recentEvents.reduce(
+  const { dashboard, status, error } = useCaregiverDashboard(
+    demoHouseholdId,
+    fallbackCaregiverDashboard,
+  );
+  const resolvedChildren = resolveChildren(dashboard);
+  const childNameById = new Map(resolvedChildren.map((child) => [child.child_id, child.name]));
+  const packageTitleById = new Map(
+    Object.values(buildPackageMap(dashboard)).map((pkg) => [pkg.package_id, pkg.title]),
+  );
+  const uniqueSessions = new Set(dashboard.recent_events.map((event) => event.session_id)).size;
+  const totalDwellMs = dashboard.recent_events.reduce(
     (sum, event) => sum + (getNumericPayloadField(event, "dwell_ms") ?? 0),
     0,
   );
 
-  const eventTypeCounts = recentEvents.reduce<Record<string, number>>((accumulator, event) => {
+  const eventTypeCounts = dashboard.recent_events.reduce<Record<string, number>>((accumulator, event) => {
     accumulator[event.event_type] = (accumulator[event.event_type] ?? 0) + 1;
     return accumulator;
   }, {});
@@ -62,10 +77,16 @@ export default function ProgressPage() {
           This page is the first caregiver-facing proof that <code>ReadingEventV1</code> can support completion,
           replay, translation, and assist-mode insights without relying on ad hoc frontend state.
         </p>
+        <div className="badge-row">
+          <span className={`badge ${status === "live" ? "is-green" : status === "loading" ? "is-sky" : "is-warm"}`}>
+            {status === "live" ? "live dashboard" : status === "loading" ? "syncing dashboard" : "fallback dashboard"}
+          </span>
+        </div>
+        {error ? <div className="note-card">{error}</div> : null}
         <div className="metrics-grid">
           <article className="metric-card">
             <div className="metric-card__label">Tracked events</div>
-            <div className="metric-card__value">{recentEvents.length}</div>
+            <div className="metric-card__value">{dashboard.recent_events.length}</div>
             <div className="metric-card__meta">Recent instrumentation entries ready for caregiver reporting.</div>
           </article>
           <article className="metric-card">
@@ -88,7 +109,7 @@ export default function ProgressPage() {
             <span className="panel-card__eyebrow">Derived from shared contract payloads</span>
           </div>
           <div className="timeline">
-            {recentEvents.map((event) => (
+            {dashboard.recent_events.map((event) => (
               <article key={event.event_id} className="timeline-item">
                 <div className="panel-card__header">
                   <span className="timeline-item__title">{formatEventType(event.event_type)}</span>
@@ -130,4 +151,3 @@ export default function ProgressPage() {
     </main>
   );
 }
-

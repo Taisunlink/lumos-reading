@@ -8,6 +8,7 @@
 
 当前纳入治理的第一批契约：
 
+- `CaregiverDashboard v1`
 - `StoryPackage v1`
 - `ReadingEvent v1`
 - `SafetyAudit v1`
@@ -37,6 +38,7 @@
 
 ## 当前文件
 
+- `schemas/caregiver-dashboard.v1.schema.json`
 - `schemas/story-package.v1.schema.json`
 - `schemas/reading-event.v1.schema.json`
 - `schemas/safety-audit.v1.schema.json`

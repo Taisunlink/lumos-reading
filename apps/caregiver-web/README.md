@@ -14,6 +14,7 @@
 - 路由包括 `Home`、`Children`、`Plans`、`Progress`、`Settings`
 - 直接消费 `@lumosreading/contracts` 中的 schema 常量与 TypeScript 类型
 - 通过 `@lumosreading/sdk` 访问 `/api/v2`
+- 当前优先消费 `/api/v2/caregiver/households/{householdId}/dashboard` 聚合读模型
 - 内置一个面向 `/api/v2` 的最小 API workbench，用于手动验证 story package 与 reading session
 
 ## 当前工作边界

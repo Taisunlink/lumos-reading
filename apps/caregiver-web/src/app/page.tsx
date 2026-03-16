@@ -1,16 +1,30 @@
+"use client";
+
 import {
+  CAREGIVER_DASHBOARD_SCHEMA_VERSION,
   READING_EVENT_SCHEMA_VERSION,
   SAFETY_AUDIT_SCHEMA_VERSION,
   STORY_PACKAGE_SCHEMA_VERSION,
+  caregiverDashboardV1Schema,
   readingEventV1Schema,
   safetyAuditV1Schema,
   storyPackageV1Schema,
 } from "@lumosreading/contracts";
 import { ApiWorkbench } from "@/components/api-workbench";
 import { ConnectedPackagePanel } from "@/components/connected-package-panel";
-import { dashboardModel, progressMetrics, startupOrder } from "@/lib/page-models";
+import { useCaregiverDashboard } from "@/lib/hooks/use-caregiver-dashboard";
+import { demoHouseholdId, fallbackCaregiverDashboard, startupOrder } from "@/lib/page-models";
 
 const contractCards = [
+  {
+    name: "Caregiver Dashboard",
+    version: CAREGIVER_DASHBOARD_SCHEMA_VERSION,
+    title: String(caregiverDashboardV1Schema.title ?? ""),
+    requiredCount: Array.isArray(caregiverDashboardV1Schema.required)
+      ? caregiverDashboardV1Schema.required.length
+      : 0,
+    tone: "soft-card--sky",
+  },
   {
     name: "Story Package",
     version: STORY_PACKAGE_SCHEMA_VERSION,
@@ -62,7 +76,10 @@ const operatingLanes = [
 ];
 
 export default function CaregiverHomePage() {
-  const featuredPackage = dashboardModel.featuredPackage;
+  const { dashboard, status, error } = useCaregiverDashboard(
+    demoHouseholdId,
+    fallbackCaregiverDashboard,
+  );
 
   return (
     <main className="page-stack">
@@ -78,26 +95,30 @@ export default function CaregiverHomePage() {
           <span className="badge is-warm">desktop first</span>
           <span className="badge is-green">ipad child app next</span>
           <span className="badge is-sky">distribution over live generation</span>
+          <span className={`badge ${status === "live" ? "is-green" : status === "loading" ? "is-sky" : "is-warm"}`}>
+            {status === "live" ? "live dashboard" : status === "loading" ? "syncing dashboard" : "fallback dashboard"}
+          </span>
         </div>
+        {error ? <div className="note-card">{error}</div> : null}
         <div className="metrics-grid">
           <article className="metric-card">
             <div className="metric-card__label">Children in household</div>
-            <div className="metric-card__value">{dashboardModel.children.length}</div>
+            <div className="metric-card__value">{dashboard.children.length}</div>
             <div className="metric-card__meta">Profiles already tied to a current package assignment.</div>
           </article>
           <article className="metric-card">
             <div className="metric-card__label">Package queue</div>
-            <div className="metric-card__value">{dashboardModel.packageQueue.length}</div>
+            <div className="metric-card__value">{dashboard.package_queue.length}</div>
             <div className="metric-card__meta">Versioned packages staged for plan construction and distribution.</div>
           </article>
           <article className="metric-card">
             <div className="metric-card__label">Completed sessions</div>
-            <div className="metric-card__value">{progressMetrics.completedSessions}</div>
+            <div className="metric-card__value">{dashboard.progress_metrics.completed_sessions}</div>
             <div className="metric-card__meta">Reading outcomes sourced from typed event payloads.</div>
           </article>
           <article className="metric-card">
             <div className="metric-card__label">Translation reveals</div>
-            <div className="metric-card__value">{progressMetrics.translationReveals}</div>
+            <div className="metric-card__value">{dashboard.progress_metrics.translation_reveals}</div>
             <div className="metric-card__meta">A quick proxy for bilingual assistance demand.</div>
           </article>
         </div>
@@ -116,10 +137,7 @@ export default function CaregiverHomePage() {
       </section>
 
       <section className="split-grid">
-        <ConnectedPackagePanel
-          initialFeaturedPackage={featuredPackage}
-          initialPackageQueue={dashboardModel.packageQueue}
-        />
+        <ConnectedPackagePanel dashboard={dashboard} status={status} error={error} />
 
         <article className="panel-card">
           <div className="panel-card__header">

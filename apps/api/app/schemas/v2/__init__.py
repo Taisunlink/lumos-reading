@@ -1,5 +1,11 @@
 """V2 API schemas."""
 
+from .caregiver import (
+    CaregiverChildSummaryV1,
+    CaregiverDashboardV1,
+    CaregiverProgressMetricsV1,
+    CaregiverWeeklyPlanItemV1,
+)
 from .reading import (
     ReadingEventBatchRequest,
     ReadingEventIngestedResponse,
@@ -11,6 +17,10 @@ from .safety_audit import SafetyAuditV1
 from .story_package import StoryPackageManifestV1
 
 __all__ = [
+    "CaregiverChildSummaryV1",
+    "CaregiverDashboardV1",
+    "CaregiverProgressMetricsV1",
+    "CaregiverWeeklyPlanItemV1",
     "ReadingEventBatchRequest",
     "ReadingEventIngestedResponse",
     "ReadingEventV1",

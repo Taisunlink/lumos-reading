@@ -15,6 +15,7 @@ from app.core.config import settings
 from app.core.database import Base, engine
 from app.middleware.rate_limiting import RateLimitMiddleware
 from app.middleware.security import SecurityMiddleware
+from app.routers.v2 import caregiver as v2_caregiver
 from app.routers.v2 import reading as v2_reading
 from app.routers.v2 import story_packages as v2_story_packages
 
@@ -145,6 +146,7 @@ async def health_check():
 
 
 app.include_router(v2_story_packages.router, prefix="/api/v2/story-packages", tags=["v2-story-packages"])
+app.include_router(v2_caregiver.router, prefix="/api/v2/caregiver", tags=["v2-caregiver"])
 app.include_router(v2_reading.router, prefix="/api/v2", tags=["v2-reading"])
 
 if settings.enable_legacy_v1_routers:
