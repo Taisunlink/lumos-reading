@@ -1,4 +1,7 @@
+"use client";
+
 import { formatDurationMinutes } from "@/lib/format";
+import { useStoryPackageCatalog } from "@/lib/hooks/use-story-package-catalog";
 import { dashboardModel, weeklyPlan } from "@/lib/page-models";
 
 const planningGuardrails = [
@@ -8,6 +11,12 @@ const planningGuardrails = [
 ];
 
 export default function PlansPage() {
+  const packageIds = dashboardModel.packageQueue.map((item) => item.package_id);
+  const { packagesById, status, error } = useStoryPackageCatalog(packageIds, dashboardModel.packageQueue);
+  const resolvedPlan = weeklyPlan.map((item) => ({
+    ...item,
+    package: packagesById[item.package.package_id] ?? item.package,
+  }));
   const totalPlannedMinutes = weeklyPlan.reduce(
     (sum, item) => sum + Math.round(item.package.estimated_duration_sec / 60),
     0,
@@ -22,6 +31,12 @@ export default function PlansPage() {
           The caregiver surface needs to turn package inventory into a steady household cadence, with clear purpose
           for each session and minimal cognitive load for the parent.
         </p>
+        <div className="badge-row">
+          <span className={`badge ${status === "live" ? "is-green" : status === "loading" ? "is-sky" : "is-warm"}`}>
+            {status === "live" ? "live api packages" : status === "loading" ? "syncing packages" : "fallback packages"}
+          </span>
+        </div>
+        {error ? <div className="note-card">{error}</div> : null}
         <div className="metrics-grid">
           <article className="metric-card">
             <div className="metric-card__label">Weekly sessions</div>
@@ -42,7 +57,7 @@ export default function PlansPage() {
       </section>
 
       <section className="card-grid">
-        {weeklyPlan.map((item) => (
+        {resolvedPlan.map((item) => (
           <article key={`${item.day}-${item.package.package_id}`} className="panel-card">
             <div className="panel-card__header">
               <div>
@@ -81,16 +96,26 @@ export default function PlansPage() {
             <span className="panel-card__eyebrow">What distribution can safely deliver</span>
           </div>
           <div className="stack-list">
-            {dashboardModel.packageQueue.map((item) => (
-              <article key={item.package_id} className="list-row">
-                <p className="list-row__title">{item.title}</p>
-                <div className="list-row__meta">
-                  <span>{item.language_mode}</span>
-                  <span>{item.difficulty_level}</span>
-                  <span>{formatDurationMinutes(item.estimated_duration_sec)}</span>
-                </div>
-              </article>
-            ))}
+            {packageIds.map((packageId) => {
+              const item =
+                packagesById[packageId] ??
+                dashboardModel.packageQueue.find((candidate) => candidate.package_id === packageId);
+
+              if (!item) {
+                return null;
+              }
+
+              return (
+                <article key={item.package_id} className="list-row">
+                  <p className="list-row__title">{item.title}</p>
+                  <div className="list-row__meta">
+                    <span>{item.language_mode}</span>
+                    <span>{item.difficulty_level}</span>
+                    <span>{formatDurationMinutes(item.estimated_duration_sec)}</span>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </article>
 
@@ -109,4 +134,3 @@ export default function PlansPage() {
     </main>
   );
 }
-

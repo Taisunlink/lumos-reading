@@ -13,6 +13,7 @@
 - Next.js App Router 多路由最小壳
 - 路由包括 `Home`、`Children`、`Plans`、`Progress`、`Settings`
 - 直接消费 `@lumosreading/contracts` 中的 schema 常量与 TypeScript 类型
+- 通过 `@lumosreading/sdk` 访问 `/api/v2`
 - 内置一个面向 `/api/v2` 的最小 API workbench，用于手动验证 story package 与 reading session
 
 ## 当前工作边界

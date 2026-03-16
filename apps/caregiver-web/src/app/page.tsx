@@ -7,7 +7,7 @@ import {
   storyPackageV1Schema,
 } from "@lumosreading/contracts";
 import { ApiWorkbench } from "@/components/api-workbench";
-import { formatDurationMinutes } from "@/lib/format";
+import { ConnectedPackagePanel } from "@/components/connected-package-panel";
 import { dashboardModel, progressMetrics, startupOrder } from "@/lib/page-models";
 
 const contractCards = [
@@ -116,53 +116,10 @@ export default function CaregiverHomePage() {
       </section>
 
       <section className="split-grid">
-        <article className="panel-card">
-          <div className="panel-card__header">
-            <h2>Featured package</h2>
-            <span className="panel-card__eyebrow mono">{featuredPackage.package_id}</span>
-          </div>
-          <p>{featuredPackage.subtitle}</p>
-          <div className="badge-row">
-            {featuredPackage.tags?.map((tag) => (
-              <span key={tag} className="badge">
-                {tag}
-              </span>
-            ))}
-          </div>
-          <div className="meta-pairs">
-            <div className="meta-pair">
-              <span className="meta-pair__label">Language</span>
-              <span className="meta-pair__value">{featuredPackage.language_mode}</span>
-            </div>
-            <div className="meta-pair">
-              <span className="meta-pair__label">Age band</span>
-              <span className="meta-pair__value">{featuredPackage.age_band}</span>
-            </div>
-            <div className="meta-pair">
-              <span className="meta-pair__label">Duration</span>
-              <span className="meta-pair__value">
-                {formatDurationMinutes(featuredPackage.estimated_duration_sec)}
-              </span>
-            </div>
-            <div className="meta-pair">
-              <span className="meta-pair__label">Safety</span>
-              <span className="meta-pair__value">{featuredPackage.safety.review_status}</span>
-            </div>
-          </div>
-
-          <div className="stack-list">
-            {dashboardModel.packageQueue.map((item) => (
-              <article key={item.package_id} className="list-row">
-                <p className="list-row__title">{item.title}</p>
-                <div className="list-row__meta">
-                  <span>{item.language_mode}</span>
-                  <span>{item.difficulty_level}</span>
-                  <span>{formatDurationMinutes(item.estimated_duration_sec)}</span>
-                </div>
-              </article>
-            ))}
-          </div>
-        </article>
+        <ConnectedPackagePanel
+          initialFeaturedPackage={featuredPackage}
+          initialPackageQueue={dashboardModel.packageQueue}
+        />
 
         <article className="panel-card">
           <div className="panel-card__header">
@@ -216,4 +173,3 @@ export default function CaregiverHomePage() {
     </main>
   );
 }
-

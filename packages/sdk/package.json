@@ -1,0 +1,21 @@
+{
+  "name": "@lumosreading/sdk",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Shared V2 API client for LumosReading",
+  "type": "module",
+  "license": "MIT",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "files": [
+    "index.ts",
+    "tsconfig.json",
+    "README.md"
+  ],
+  "dependencies": {
+    "@lumosreading/contracts": "file:../contracts"
+  }
+}

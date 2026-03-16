@@ -1,5 +1,8 @@
+"use client";
+
 import { formatDurationMinutes } from "@/lib/format";
-import { children, weeklyPlan } from "@/lib/page-models";
+import { useStoryPackageCatalog } from "@/lib/hooks/use-story-package-catalog";
+import { children, dashboardModel, weeklyPlan } from "@/lib/page-models";
 
 const supportPatterns = [
   "Keep the primary reading language stable and reveal translation support only on demand.",
@@ -8,7 +11,15 @@ const supportPatterns = [
 ];
 
 export default function ChildrenPage() {
-  const bilingualAssignments = children.filter((child) => child.currentPackage.tags?.includes("bilingual-assist"));
+  const packageIds = dashboardModel.packageQueue.map((item) => item.package_id);
+  const { packagesById, status, error } = useStoryPackageCatalog(packageIds, dashboardModel.packageQueue);
+  const resolvedChildren = children.map((child) => ({
+    ...child,
+    currentPackage: packagesById[child.currentPackage.package_id] ?? child.currentPackage,
+  }));
+  const bilingualAssignments = resolvedChildren.filter((child) =>
+    child.currentPackage.tags?.includes("bilingual-assist"),
+  );
 
   return (
     <main className="page-stack">
@@ -19,6 +30,12 @@ export default function ChildrenPage() {
           Each child card reflects the current package assignment, support focus, and the weekly target that the
           caregiver surface should help manage.
         </p>
+        <div className="badge-row">
+          <span className={`badge ${status === "live" ? "is-green" : status === "loading" ? "is-sky" : "is-warm"}`}>
+            {status === "live" ? "live api packages" : status === "loading" ? "syncing packages" : "fallback packages"}
+          </span>
+        </div>
+        {error ? <div className="note-card">{error}</div> : null}
         <div className="metrics-grid">
           <article className="metric-card">
             <div className="metric-card__label">Active children</div>
@@ -39,7 +56,7 @@ export default function ChildrenPage() {
       </section>
 
       <section className="card-grid">
-        {children.map((child) => (
+        {resolvedChildren.map((child) => (
           <article key={child.id} className="panel-card">
             <div className="panel-card__header">
               <div>
@@ -102,7 +119,7 @@ export default function ChildrenPage() {
             <span className="panel-card__eyebrow">What the caregiver should monitor</span>
           </div>
           <div className="stack-list">
-            {children.map((child) => (
+            {resolvedChildren.map((child) => (
               <article key={child.id} className="list-row">
                 <p className="list-row__title">{child.name}</p>
                 <div className="list-row__meta">
@@ -121,4 +138,3 @@ export default function ChildrenPage() {
     </main>
   );
 }
-

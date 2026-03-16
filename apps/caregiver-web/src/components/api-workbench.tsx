@@ -6,7 +6,9 @@ import type {
   ReadingSessionResponseV2,
   StoryPackageManifestV1,
 } from "@lumosreading/contracts";
-import { API_BASE_URL, createReadingSession, getStoryPackage } from "@/lib/api/v2";
+import { API_BASE_URL } from "@/lib/api/v2";
+import { useReadingSessionMutation } from "@/lib/hooks/use-reading-session-mutation";
+import { useStoryPackageLookup } from "@/lib/hooks/use-story-package-lookup";
 
 const defaultPackageId = "33333333-3333-3333-3333-333333333333";
 const defaultChildId = "55555555-5555-5555-5555-555555555555";
@@ -25,9 +27,9 @@ type ResultState = PackageResult | SessionResult | null;
 
 export function ApiWorkbench() {
   const [packageId, setPackageId] = useState(defaultPackageId);
-  const [result, setResult] = useState<ResultState>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState<"package" | "session" | null>(null);
+  const [resultKind, setResultKind] = useState<"package" | "session" | null>(null);
+  const packageLookup = useStoryPackageLookup();
+  const readingSessionMutation = useReadingSessionMutation();
 
   const demoSessionPayload = useMemo<ReadingSessionCreateV2>(
     () => ({
@@ -42,32 +44,38 @@ export function ApiWorkbench() {
   );
 
   async function loadPackage() {
-    setLoading("package");
-    setError(null);
+    setResultKind("package");
     try {
-      const payload = await getStoryPackage(packageId);
-      setResult({ kind: "package", payload });
-    } catch (caught) {
-      setResult(null);
-      setError(caught instanceof Error ? caught.message : "Failed to load story package.");
-    } finally {
-      setLoading(null);
+      await packageLookup.lookup(packageId);
+    } catch {
+      return;
     }
   }
 
   async function startSession() {
-    setLoading("session");
-    setError(null);
+    setResultKind("session");
     try {
-      const payload = await createReadingSession(demoSessionPayload);
-      setResult({ kind: "session", payload });
-    } catch (caught) {
-      setResult(null);
-      setError(caught instanceof Error ? caught.message : "Failed to create reading session.");
-    } finally {
-      setLoading(null);
+      await readingSessionMutation.mutate(demoSessionPayload);
+    } catch {
+      return;
     }
   }
+
+  const result: ResultState =
+    resultKind === "package" && packageLookup.data
+      ? { kind: "package", payload: packageLookup.data }
+      : resultKind === "session" && readingSessionMutation.data
+        ? { kind: "session", payload: readingSessionMutation.data }
+        : null;
+
+  const loading =
+    packageLookup.status === "pending"
+      ? "package"
+      : readingSessionMutation.status === "pending"
+        ? "session"
+        : null;
+
+  const error = packageLookup.error ?? readingSessionMutation.error;
 
   const renderedResult = result
     ? JSON.stringify(result.payload, null, 2)
@@ -80,6 +88,10 @@ export function ApiWorkbench() {
         <div className="list-row__meta">
           <span>Base URL</span>
           <code>{API_BASE_URL}</code>
+        </div>
+        <div className="badge-row">
+          <span className="badge is-green">shared sdk</span>
+          <span className="badge is-sky">hooked queries</span>
         </div>
         <div className="api-workbench__controls">
           <input
