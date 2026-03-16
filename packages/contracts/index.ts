@@ -94,6 +94,34 @@ export interface ReadingEventV1 {
   payload: Record<string, unknown>;
 }
 
+export interface ReadingSessionCreateV2 {
+  child_id: string;
+  package_id: string;
+  started_at: string;
+  mode: string;
+  language_mode: LanguageTag;
+  assist_mode: string[];
+}
+
+export interface ReadingSessionResponseV2 {
+  session_id: string;
+  status: "accepted";
+  accepted_at: string;
+  child_id: string;
+  package_id: string;
+}
+
+export interface ReadingEventBatchRequestV2 {
+  events: ReadingEventV1[];
+}
+
+export interface ReadingEventIngestedResponseV2 {
+  status: "accepted";
+  accepted_count: number;
+  accepted_at: string;
+  session_ids: string[];
+}
+
 export type SafetyAuditTargetType =
   | "story_master"
   | "story_variant"
