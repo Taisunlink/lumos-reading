@@ -1,5 +1,4 @@
-import type { CaregiverDashboardV1, StoryPackageManifestV1 } from "@lumosreading/contracts";
-import { buildPackageMap } from "@/lib/page-models";
+import type { CaregiverHouseholdV1, StoryPackageManifestV1 } from "@lumosreading/contracts";
 
 export type HouseholdOverview = {
   householdId: string;
@@ -14,20 +13,17 @@ export type HouseholdOverview = {
   generatedAt: string;
 };
 
-export function buildHouseholdOverview(dashboard: CaregiverDashboardV1): HouseholdOverview {
-  const packageMap = buildPackageMap(dashboard);
-  const featuredPackage = packageMap[dashboard.featured_package_id] ?? dashboard.package_queue[0];
-
+export function buildHouseholdOverview(household: CaregiverHouseholdV1): HouseholdOverview {
   return {
-    householdId: dashboard.household_id,
-    householdName: dashboard.household_name,
-    featuredPackageId: dashboard.featured_package_id,
-    featuredPackage,
-    packageQueue: dashboard.package_queue,
-    childCount: dashboard.children.length,
-    packageCount: dashboard.package_queue.length,
-    completedSessions: dashboard.progress_metrics.completed_sessions,
-    translationReveals: dashboard.progress_metrics.translation_reveals,
-    generatedAt: dashboard.generated_at,
+    householdId: household.household_id,
+    householdName: household.household_name,
+    featuredPackageId: household.featured_package_id,
+    featuredPackage: household.featured_package,
+    packageQueue: household.package_queue,
+    childCount: household.child_count,
+    packageCount: household.package_queue.length,
+    completedSessions: household.progress_metrics.completed_sessions,
+    translationReveals: household.progress_metrics.translation_reveals,
+    generatedAt: household.generated_at,
   };
 }

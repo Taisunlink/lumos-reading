@@ -1,5 +1,9 @@
 import type {
+  CaregiverChildrenV1,
   CaregiverDashboardV1,
+  CaregiverHouseholdV1,
+  CaregiverPlanV1,
+  CaregiverProgressV1,
   ReadingEventBatchRequestV2,
   ReadingEventIngestedResponseV2,
   ReadingSessionCreateV2,
@@ -78,6 +82,38 @@ export function createLumosApiClient(options: LumosApiClientOptions = {}) {
 
   return {
     baseUrl,
+    async getCaregiverHousehold(householdId: string): Promise<CaregiverHouseholdV1> {
+      return request<CaregiverHouseholdV1>(
+        fetchImpl,
+        baseUrl,
+        `/caregiver/households/${householdId}`,
+        options.headers,
+      );
+    },
+    async getCaregiverChildren(householdId: string): Promise<CaregiverChildrenV1> {
+      return request<CaregiverChildrenV1>(
+        fetchImpl,
+        baseUrl,
+        `/caregiver/households/${householdId}/children`,
+        options.headers,
+      );
+    },
+    async getCaregiverPlan(householdId: string): Promise<CaregiverPlanV1> {
+      return request<CaregiverPlanV1>(
+        fetchImpl,
+        baseUrl,
+        `/caregiver/households/${householdId}/plan`,
+        options.headers,
+      );
+    },
+    async getCaregiverProgress(householdId: string): Promise<CaregiverProgressV1> {
+      return request<CaregiverProgressV1>(
+        fetchImpl,
+        baseUrl,
+        `/caregiver/households/${householdId}/progress`,
+        options.headers,
+      );
+    },
     async getCaregiverDashboard(householdId: string): Promise<CaregiverDashboardV1> {
       return request<CaregiverDashboardV1>(
         fetchImpl,

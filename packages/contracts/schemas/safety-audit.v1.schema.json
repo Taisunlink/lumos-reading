@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lumosreading.local/safety-audit.v1.schema.json",
+  "title": "SafetyAuditV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "audit_id",
+    "target_type",
+    "target_id",
+    "audit_source",
+    "audit_status",
+    "severity",
+    "policy_version",
+    "findings",
+    "reviewer",
+    "created_at",
+    "resolution"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "safety-audit.v1"
+    },
+    "audit_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "target_type": {
+      "type": "string",
+      "enum": [
+        "story_master",
+        "story_variant",
+        "story_package",
+        "user_report"
+      ]
+    },
+    "target_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "audit_source": {
+      "type": "string",
+      "enum": [
+        "pre_release",
+        "post_release_report",
+        "scheduled_review",
+        "incident_response"
+      ]
+    },
+    "audit_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_review",
+        "approved",
+        "needs_revision",
+        "rejected",
+        "recalled",
+        "escalated"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ]
+    },
+    "policy_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/finding"
+      }
+    },
+    "reviewer": {
+      "$ref": "#/$defs/reviewer"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reviewed_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "resolution": {
+      "$ref": "#/$defs/resolution"
+    }
+  },
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "title",
+        "description",
+        "severity",
+        "action_required"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ]
+        },
+        "page_index": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "action_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "reviewer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reviewer_type"
+      ],
+      "properties": {
+        "reviewer_type": {
+          "type": "string",
+          "enum": [
+            "system",
+            "human",
+            "hybrid"
+          ]
+        },
+        "reviewer_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action"
+      ],
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": [
+            "none",
+            "revise",
+            "block",
+            "release",
+            "recall",
+            "escalate"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        },
+        "resolved_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    }
+  }
+}

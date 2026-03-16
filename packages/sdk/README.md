@@ -10,6 +10,10 @@ Shared V2 API client package for LumosReading.
 
 ## Current API surface
 
+- `getCaregiverHousehold`
+- `getCaregiverChildren`
+- `getCaregiverPlan`
+- `getCaregiverProgress`
 - `getCaregiverDashboard`
 - `getStoryPackage`
 - `createReadingSession`

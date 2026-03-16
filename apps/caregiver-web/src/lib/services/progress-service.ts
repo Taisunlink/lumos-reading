@@ -1,6 +1,5 @@
-import type { CaregiverDashboardV1, ReadingEventV1 } from "@lumosreading/contracts";
+import type { CaregiverProgressV1, ReadingEventV1 } from "@lumosreading/contracts";
 import { formatMinutesFromMs } from "@/lib/format";
-import { buildPackageMap } from "@/lib/page-models";
 
 export type ProgressTimelineEntry = {
   eventId: string;
@@ -55,31 +54,27 @@ function describeEvent(event: ReadingEventV1): string {
   return "Typed reading event recorded.";
 }
 
-export function buildProgressDomainView(dashboard: CaregiverDashboardV1): ProgressDomainView {
-  const childNameById = new Map(dashboard.children.map((child) => [child.child_id, child.name]));
-  const packageTitleById = new Map(
-    Object.values(buildPackageMap(dashboard)).map((storyPackage) => [storyPackage.package_id, storyPackage.title]),
-  );
-  const eventTypeCounts = dashboard.recent_events.reduce<Record<string, number>>((accumulator, event) => {
-    accumulator[event.event_type] = (accumulator[event.event_type] ?? 0) + 1;
+export function buildProgressDomainView(progressResource: CaregiverProgressV1): ProgressDomainView {
+  const eventTypeCounts = progressResource.recent_events.reduce<Record<string, number>>((accumulator, entry) => {
+    accumulator[entry.event.event_type] = (accumulator[entry.event.event_type] ?? 0) + 1;
     return accumulator;
   }, {});
 
   return {
-    trackedEvents: dashboard.recent_events.length,
-    uniqueSessions: new Set(dashboard.recent_events.map((event) => event.session_id)).size,
-    totalDwellMs: dashboard.recent_events.reduce(
-      (sum, event) => sum + (getNumericPayloadField(event, "dwell_ms") ?? 0),
+    trackedEvents: progressResource.recent_events.length,
+    uniqueSessions: new Set(progressResource.recent_events.map((entry) => entry.event.session_id)).size,
+    totalDwellMs: progressResource.recent_events.reduce(
+      (sum, entry) => sum + (getNumericPayloadField(entry.event, "dwell_ms") ?? 0),
       0,
     ),
-    timeline: dashboard.recent_events.map((event) => ({
-      eventId: event.event_id,
-      eventType: event.event_type,
-      occurredAt: event.occurred_at,
-      childName: childNameById.get(event.child_id) ?? event.child_id,
-      packageTitle: packageTitleById.get(event.package_id) ?? event.package_id,
-      surface: event.surface,
-      description: describeEvent(event),
+    timeline: progressResource.recent_events.map((entry) => ({
+      eventId: entry.event.event_id,
+      eventType: entry.event.event_type,
+      occurredAt: entry.event.occurred_at,
+      childName: entry.child_name,
+      packageTitle: entry.package_title,
+      surface: entry.event.surface,
+      description: describeEvent(entry.event),
     })),
     eventCoverage: Object.entries(eventTypeCounts)
       .sort((left, right) => right[1] - left[1])

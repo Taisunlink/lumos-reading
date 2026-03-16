@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { CaregiverShell } from "@/components/caregiver-shell";
-import { CaregiverDashboardProvider } from "@/lib/caregiver-dashboard-context";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,9 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <CaregiverDashboardProvider>
-          <CaregiverShell>{children}</CaregiverShell>
-        </CaregiverDashboardProvider>
+        <CaregiverShell>{children}</CaregiverShell>
       </body>
     </html>
   );

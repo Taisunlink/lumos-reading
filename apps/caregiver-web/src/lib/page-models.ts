@@ -1,9 +1,20 @@
 import {
+  CAREGIVER_CHILDREN_SCHEMA_VERSION,
   CAREGIVER_DASHBOARD_SCHEMA_VERSION,
+  CAREGIVER_HOUSEHOLD_SCHEMA_VERSION,
+  CAREGIVER_PLAN_SCHEMA_VERSION,
+  CAREGIVER_PROGRESS_SCHEMA_VERSION,
   READING_EVENT_SCHEMA_VERSION,
   STORY_PACKAGE_SCHEMA_VERSION,
+  type CaregiverChildAssignmentV1,
   type CaregiverChildSummaryV1,
+  type CaregiverChildrenV1,
   type CaregiverDashboardV1,
+  type CaregiverHouseholdV1,
+  type CaregiverPlanV1,
+  type CaregiverPlannedSessionV1,
+  type CaregiverProgressEventV1,
+  type CaregiverProgressV1,
   type CaregiverWeeklyPlanItemV1,
   type ReadingEventV1,
   type StoryPackageManifestV1,
@@ -247,6 +258,63 @@ export const fallbackCaregiverDashboard: CaregiverDashboardV1 = {
     audio_replays: recentEvents.filter((event) => event.event_type === "page_replayed_audio").length,
   },
   generated_at: "2026-03-17T12:00:00Z",
+};
+
+export const fallbackCaregiverHousehold: CaregiverHouseholdV1 = {
+  schema_version: CAREGIVER_HOUSEHOLD_SCHEMA_VERSION,
+  household_id: fallbackCaregiverDashboard.household_id,
+  household_name: fallbackCaregiverDashboard.household_name,
+  featured_package_id: fallbackCaregiverDashboard.featured_package_id,
+  featured_package: resolveFeaturedPackage(fallbackCaregiverDashboard),
+  package_queue: fallbackCaregiverDashboard.package_queue,
+  child_count: fallbackCaregiverDashboard.children.length,
+  progress_metrics: fallbackCaregiverDashboard.progress_metrics,
+  generated_at: fallbackCaregiverDashboard.generated_at,
+};
+
+export const fallbackCaregiverChildren: CaregiverChildrenV1 = {
+  schema_version: CAREGIVER_CHILDREN_SCHEMA_VERSION,
+  household_id: fallbackCaregiverDashboard.household_id,
+  children: resolveChildren(fallbackCaregiverDashboard).map<CaregiverChildAssignmentV1>((child) => ({
+    child_id: child.child_id,
+    name: child.name,
+    age_label: child.age_label,
+    focus: child.focus,
+    weekly_goal: child.weekly_goal,
+    current_package_id: child.current_package_id,
+    current_package: child.currentPackage,
+  })),
+  planned_session_count: fallbackCaregiverDashboard.weekly_plan.length,
+  generated_at: fallbackCaregiverDashboard.generated_at,
+};
+
+export const fallbackCaregiverPlan: CaregiverPlanV1 = {
+  schema_version: CAREGIVER_PLAN_SCHEMA_VERSION,
+  household_id: fallbackCaregiverDashboard.household_id,
+  package_queue: fallbackCaregiverDashboard.package_queue,
+  weekly_plan: resolveWeeklyPlan(fallbackCaregiverDashboard).map<CaregiverPlannedSessionV1>((item) => ({
+    day: item.day,
+    mode: item.mode,
+    package_id: item.package_id,
+    objective: item.objective,
+    package: item.package,
+  })),
+  generated_at: fallbackCaregiverDashboard.generated_at,
+};
+
+export const fallbackCaregiverProgress: CaregiverProgressV1 = {
+  schema_version: CAREGIVER_PROGRESS_SCHEMA_VERSION,
+  household_id: fallbackCaregiverDashboard.household_id,
+  recent_events: fallbackCaregiverDashboard.recent_events.map<CaregiverProgressEventV1>((event) => ({
+    event,
+    child_name:
+      fallbackCaregiverDashboard.children.find((child) => child.child_id === event.child_id)?.name ?? event.child_id,
+    package_title:
+      fallbackCaregiverDashboard.package_queue.find((storyPackage) => storyPackage.package_id === event.package_id)
+        ?.title ?? event.package_id,
+  })),
+  progress_metrics: fallbackCaregiverDashboard.progress_metrics,
+  generated_at: fallbackCaregiverDashboard.generated_at,
 };
 
 export function buildPackageMap(dashboard: CaregiverDashboardV1): Record<string, StoryPackageManifestV1> {

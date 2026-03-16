@@ -1,14 +1,26 @@
 import caregiverDashboardSchema from "./schemas/caregiver-dashboard.v1.schema.json";
+import caregiverChildrenSchema from "./schemas/caregiver-children.v1.schema.json";
+import caregiverHouseholdSchema from "./schemas/caregiver-household.v1.schema.json";
+import caregiverPlanSchema from "./schemas/caregiver-plan.v1.schema.json";
+import caregiverProgressSchema from "./schemas/caregiver-progress.v1.schema.json";
 import readingEventSchema from "./schemas/reading-event.v1.schema.json";
 import safetyAuditSchema from "./schemas/safety-audit.v1.schema.json";
 import storyPackageSchema from "./schemas/story-package.v1.schema.json";
 
 export const CAREGIVER_DASHBOARD_SCHEMA_VERSION = "caregiver-dashboard.v1" as const;
+export const CAREGIVER_HOUSEHOLD_SCHEMA_VERSION = "caregiver-household.v1" as const;
+export const CAREGIVER_CHILDREN_SCHEMA_VERSION = "caregiver-children.v1" as const;
+export const CAREGIVER_PLAN_SCHEMA_VERSION = "caregiver-plan.v1" as const;
+export const CAREGIVER_PROGRESS_SCHEMA_VERSION = "caregiver-progress.v1" as const;
 export const STORY_PACKAGE_SCHEMA_VERSION = "story-package.v1" as const;
 export const READING_EVENT_SCHEMA_VERSION = "reading-event.v1" as const;
 export const SAFETY_AUDIT_SCHEMA_VERSION = "safety-audit.v1" as const;
 
 export const caregiverDashboardV1Schema = caregiverDashboardSchema;
+export const caregiverHouseholdV1Schema = caregiverHouseholdSchema;
+export const caregiverChildrenV1Schema = caregiverChildrenSchema;
+export const caregiverPlanV1Schema = caregiverPlanSchema;
+export const caregiverProgressV1Schema = caregiverProgressSchema;
 export const storyPackageV1Schema = storyPackageSchema;
 export const readingEventV1Schema = readingEventSchema;
 export const safetyAuditV1Schema = safetyAuditSchema;
@@ -117,6 +129,56 @@ export interface CaregiverProgressMetricsV1 {
   completed_sessions: number;
   translation_reveals: number;
   audio_replays: number;
+}
+
+export interface CaregiverChildAssignmentV1 extends CaregiverChildSummaryV1 {
+  current_package: StoryPackageManifestV1;
+}
+
+export interface CaregiverPlannedSessionV1 extends CaregiverWeeklyPlanItemV1 {
+  package: StoryPackageManifestV1;
+}
+
+export interface CaregiverProgressEventV1 {
+  event: ReadingEventV1;
+  child_name: string;
+  package_title: string;
+}
+
+export interface CaregiverHouseholdV1 {
+  schema_version: typeof CAREGIVER_HOUSEHOLD_SCHEMA_VERSION;
+  household_id: string;
+  household_name: string;
+  featured_package_id: string;
+  featured_package: StoryPackageManifestV1;
+  package_queue: StoryPackageManifestV1[];
+  child_count: number;
+  progress_metrics: CaregiverProgressMetricsV1;
+  generated_at: string;
+}
+
+export interface CaregiverChildrenV1 {
+  schema_version: typeof CAREGIVER_CHILDREN_SCHEMA_VERSION;
+  household_id: string;
+  children: CaregiverChildAssignmentV1[];
+  planned_session_count: number;
+  generated_at: string;
+}
+
+export interface CaregiverPlanV1 {
+  schema_version: typeof CAREGIVER_PLAN_SCHEMA_VERSION;
+  household_id: string;
+  package_queue: StoryPackageManifestV1[];
+  weekly_plan: CaregiverPlannedSessionV1[];
+  generated_at: string;
+}
+
+export interface CaregiverProgressV1 {
+  schema_version: typeof CAREGIVER_PROGRESS_SCHEMA_VERSION;
+  household_id: string;
+  recent_events: CaregiverProgressEventV1[];
+  progress_metrics: CaregiverProgressMetricsV1;
+  generated_at: string;
 }
 
 export interface CaregiverDashboardV1 {

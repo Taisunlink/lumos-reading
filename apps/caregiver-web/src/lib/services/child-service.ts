@@ -1,5 +1,4 @@
-import type { CaregiverDashboardV1, StoryPackageManifestV1 } from "@lumosreading/contracts";
-import { buildPackageMap } from "@/lib/page-models";
+import type { CaregiverChildrenV1, StoryPackageManifestV1 } from "@lumosreading/contracts";
 
 export type ChildAssignment = {
   childId: string;
@@ -27,25 +26,16 @@ export type ChildDomainView = {
   plannedSessions: number;
 };
 
-export function buildChildDomainView(dashboard: CaregiverDashboardV1): ChildDomainView {
-  const packageMap = buildPackageMap(dashboard);
-
-  const children = dashboard.children.map((child) => {
-    const currentPackage =
-      packageMap[child.current_package_id] ??
-      dashboard.package_queue.find((item) => item.package_id === child.current_package_id) ??
-      dashboard.package_queue[0];
-
-    return {
-      childId: child.child_id,
-      name: child.name,
-      ageLabel: child.age_label,
-      focus: child.focus,
-      weeklyGoal: child.weekly_goal,
-      currentPackageId: child.current_package_id,
-      currentPackage,
-    };
-  });
+export function buildChildDomainView(childrenResource: CaregiverChildrenV1): ChildDomainView {
+  const children = childrenResource.children.map((child) => ({
+    childId: child.child_id,
+    name: child.name,
+    ageLabel: child.age_label,
+    focus: child.focus,
+    weeklyGoal: child.weekly_goal,
+    currentPackageId: child.current_package_id,
+    currentPackage: child.current_package,
+  }));
 
   return {
     children,
@@ -58,6 +48,6 @@ export function buildChildDomainView(dashboard: CaregiverDashboardV1): ChildDoma
       reviewStatus: child.currentPackage.safety.review_status,
     })),
     bilingualAssignments: children.filter((child) => child.currentPackage.tags?.includes("bilingual-assist")).length,
-    plannedSessions: dashboard.weekly_plan.length,
+    plannedSessions: childrenResource.planned_session_count,
   };
 }

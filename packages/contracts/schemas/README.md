@@ -4,6 +4,10 @@
 
 ## 当前权威 schema
 
+- `caregiver-household.v1.schema.json`
+- `caregiver-children.v1.schema.json`
+- `caregiver-plan.v1.schema.json`
+- `caregiver-progress.v1.schema.json`
 - `caregiver-dashboard.v1.schema.json`
 - `story-package.v1.schema.json`
 - `reading-event.v1.schema.json`
@@ -11,6 +15,14 @@
 
 ## 适用范围
 
+- `CaregiverHousehold v1`
+  Read model for the household operating surface, featured package selection, queue visibility, and top-level caregiver metrics.
+- `CaregiverChildren v1`
+  Read model for caregiver child assignments with embedded current package context.
+- `CaregiverPlan v1`
+  Read model for caregiver weekly plan entries with embedded package payloads.
+- `CaregiverProgress v1`
+  Read model for caregiver progress review with typed events plus child and package labels.
 - `CaregiverDashboard v1`
   用于 caregiver surface 的家庭聚合读模型，承载包队列、儿童摘要、计划、事件与进展指标。
 - `StoryPackage v1`
