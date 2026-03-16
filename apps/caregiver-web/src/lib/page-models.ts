@@ -19,6 +19,10 @@ export type ResolvedWeeklyPlanItem = CaregiverWeeklyPlanItemV1 & {
   package: StoryPackageManifestV1;
 };
 
+function buildPlaceholderAssetUrl(objectKey: string): string {
+  return `https://oss-placeholder.lumosreading.local/${objectKey}`;
+}
+
 function buildPackage(args: {
   packageId: string;
   storyMasterId: string;
@@ -116,8 +120,8 @@ const packageLibrary = {
     durationSec: 480,
     tags: ["friendship", "shared-reading", "comfort"],
     vocabulary: ["lantern", "promise", "return"],
-    imageUrl: "https://cdn.lumosreading.local/story-packages/demo/lantern-cover.png",
-    audioUrl: "https://cdn.lumosreading.local/story-packages/demo/lantern-page-0.mp3",
+    imageUrl: buildPlaceholderAssetUrl("story-packages/demo/lantern/cover.png"),
+    audioUrl: buildPlaceholderAssetUrl("story-packages/demo/lantern/pages/0/audio.mp3"),
   }),
   moonGarden: buildPackage({
     packageId: "66666666-6666-6666-6666-666666666666",
@@ -131,8 +135,8 @@ const packageLibrary = {
     durationSec: 360,
     tags: ["calm", "predictable", "wind-down"],
     vocabulary: ["garden", "breathing", "glow"],
-    imageUrl: "https://cdn.lumosreading.local/story-packages/demo/moon-cover.png",
-    audioUrl: "https://cdn.lumosreading.local/story-packages/demo/moon-page-0.mp3",
+    imageUrl: buildPlaceholderAssetUrl("story-packages/demo/moon-garden/cover.png"),
+    audioUrl: buildPlaceholderAssetUrl("story-packages/demo/moon-garden/pages/0/audio.mp3"),
   }),
   bridgeWords: buildPackage({
     packageId: "99999999-9999-9999-9999-999999999999",
@@ -146,8 +150,8 @@ const packageLibrary = {
     durationSec: 540,
     tags: ["bilingual-assist", "vocabulary", "bridge"],
     vocabulary: ["bridge", "echo", "spark"],
-    imageUrl: "https://cdn.lumosreading.local/story-packages/demo/bridge-cover.png",
-    audioUrl: "https://cdn.lumosreading.local/story-packages/demo/bridge-page-0.mp3",
+    imageUrl: buildPlaceholderAssetUrl("story-packages/demo/bridge-words/cover.png"),
+    audioUrl: buildPlaceholderAssetUrl("story-packages/demo/bridge-words/pages/0/audio.mp3"),
   }),
 };
 

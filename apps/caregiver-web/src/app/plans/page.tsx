@@ -1,12 +1,7 @@
 "use client";
 
 import { formatDurationMinutes } from "@/lib/format";
-import { useCaregiverDashboard } from "@/lib/hooks/use-caregiver-dashboard";
-import {
-  demoHouseholdId,
-  fallbackCaregiverDashboard,
-  resolveWeeklyPlan,
-} from "@/lib/page-models";
+import { usePlanDomain } from "@/lib/hooks/use-plan-domain";
 
 const planningGuardrails = [
   "Mix one anchor package with one low-stimulation fallback instead of flooding the queue.",
@@ -15,15 +10,8 @@ const planningGuardrails = [
 ];
 
 export default function PlansPage() {
-  const { dashboard, status, error } = useCaregiverDashboard(
-    demoHouseholdId,
-    fallbackCaregiverDashboard,
-  );
-  const resolvedPlan = resolveWeeklyPlan(dashboard);
-  const totalPlannedMinutes = resolvedPlan.reduce(
-    (sum, item) => sum + Math.round(item.package.estimated_duration_sec / 60),
-    0,
-  );
+  const { planDomain, status, error } = usePlanDomain();
+  const { sessions, packageQueue, weeklySessions, totalPlannedMinutes, scheduledPackageCoverage } = planDomain;
 
   return (
     <main className="page-stack">
@@ -36,14 +24,14 @@ export default function PlansPage() {
         </p>
         <div className="badge-row">
           <span className={`badge ${status === "live" ? "is-green" : status === "loading" ? "is-sky" : "is-warm"}`}>
-            {status === "live" ? "live dashboard" : status === "loading" ? "syncing dashboard" : "fallback dashboard"}
+            {status === "live" ? "live plan service" : status === "loading" ? "syncing plan service" : "fallback plan service"}
           </span>
         </div>
         {error ? <div className="note-card">{error}</div> : null}
         <div className="metrics-grid">
           <article className="metric-card">
             <div className="metric-card__label">Weekly sessions</div>
-            <div className="metric-card__value">{resolvedPlan.length}</div>
+            <div className="metric-card__value">{weeklySessions}</div>
             <div className="metric-card__meta">Scheduled moments already mapped into the plan.</div>
           </article>
           <article className="metric-card">
@@ -52,15 +40,15 @@ export default function PlansPage() {
             <div className="metric-card__meta">A lightweight target that can later sync to reminders and subscriptions.</div>
           </article>
           <article className="metric-card">
-            <div className="metric-card__label">Queue coverage</div>
-            <div className="metric-card__value">{dashboard.package_queue.length}</div>
-            <div className="metric-card__meta">Packages currently available for rotation or escalation.</div>
+            <div className="metric-card__label">Scheduled package coverage</div>
+            <div className="metric-card__value">{scheduledPackageCoverage}</div>
+            <div className="metric-card__meta">Distinct packages already represented in this week&apos;s cadence.</div>
           </article>
         </div>
       </section>
 
       <section className="card-grid">
-        {resolvedPlan.map((item) => (
+        {sessions.map((item) => (
           <article key={`${item.day}-${item.package.package_id}`} className="panel-card">
             <div className="panel-card__header">
               <div>
@@ -99,7 +87,7 @@ export default function PlansPage() {
             <span className="panel-card__eyebrow">What distribution can safely deliver</span>
           </div>
           <div className="stack-list">
-            {dashboard.package_queue.map((item) => (
+            {packageQueue.map((item) => (
               <article key={item.package_id} className="list-row">
                 <p className="list-row__title">{item.title}</p>
                 <div className="list-row__meta">

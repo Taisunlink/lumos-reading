@@ -1,8 +1,8 @@
 export const caregiverNavItems = [
   {
-    href: "/",
-    label: "Home",
-    description: "Household snapshot, featured package, and API workbench.",
+    href: "/household",
+    label: "Household",
+    description: "Household snapshot, featured package, and the contracts-first operating entrypoint.",
   },
   {
     href: "/children",

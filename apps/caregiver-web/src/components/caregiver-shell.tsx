@@ -7,9 +7,7 @@ import { caregiverNavItems } from "@/lib/navigation";
 
 export function CaregiverShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const activeItem = caregiverNavItems.find((item) =>
-    item.href === "/" ? pathname === "/" : pathname.startsWith(item.href),
-  );
+  const activeItem = caregiverNavItems.find((item) => pathname.startsWith(item.href));
 
   return (
     <div className="shell">
@@ -31,7 +29,7 @@ export function CaregiverShell({ children }: { children: ReactNode }) {
 
           <nav className="nav-list" aria-label="Primary">
             {caregiverNavItems.map((item) => {
-              const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+              const isActive = pathname.startsWith(item.href);
               return (
                 <Link
                   key={item.href}

@@ -1,13 +1,7 @@
 "use client";
 
 import { formatDurationMinutes } from "@/lib/format";
-import { useCaregiverDashboard } from "@/lib/hooks/use-caregiver-dashboard";
-import {
-  demoHouseholdId,
-  fallbackCaregiverDashboard,
-  resolveChildren,
-  resolveWeeklyPlan,
-} from "@/lib/page-models";
+import { useChildDomain } from "@/lib/hooks/use-child-domain";
 
 const supportPatterns = [
   "Keep the primary reading language stable and reveal translation support only on demand.",
@@ -16,15 +10,8 @@ const supportPatterns = [
 ];
 
 export default function ChildrenPage() {
-  const { dashboard, status, error } = useCaregiverDashboard(
-    demoHouseholdId,
-    fallbackCaregiverDashboard,
-  );
-  const resolvedChildren = resolveChildren(dashboard);
-  const resolvedWeeklyPlan = resolveWeeklyPlan(dashboard);
-  const bilingualAssignments = resolvedChildren.filter((child) =>
-    child.currentPackage.tags?.includes("bilingual-assist"),
-  );
+  const { childDomain, status, error } = useChildDomain();
+  const { children, supportSignals, bilingualAssignments, plannedSessions } = childDomain;
 
   return (
     <main className="page-stack">
@@ -37,36 +24,36 @@ export default function ChildrenPage() {
         </p>
         <div className="badge-row">
           <span className={`badge ${status === "live" ? "is-green" : status === "loading" ? "is-sky" : "is-warm"}`}>
-            {status === "live" ? "live dashboard" : status === "loading" ? "syncing dashboard" : "fallback dashboard"}
+            {status === "live" ? "live child service" : status === "loading" ? "syncing child service" : "fallback child service"}
           </span>
         </div>
         {error ? <div className="note-card">{error}</div> : null}
         <div className="metrics-grid">
           <article className="metric-card">
             <div className="metric-card__label">Active children</div>
-            <div className="metric-card__value">{resolvedChildren.length}</div>
+            <div className="metric-card__value">{children.length}</div>
             <div className="metric-card__meta">Profiles with an assigned package and weekly goal.</div>
           </article>
           <article className="metric-card">
             <div className="metric-card__label">Bilingual assignments</div>
-            <div className="metric-card__value">{bilingualAssignments.length}</div>
+            <div className="metric-card__value">{bilingualAssignments}</div>
             <div className="metric-card__meta">Profiles currently using a package tagged for translation assistance.</div>
           </article>
           <article className="metric-card">
             <div className="metric-card__label">Planned sessions</div>
-            <div className="metric-card__value">{resolvedWeeklyPlan.length}</div>
+            <div className="metric-card__value">{plannedSessions}</div>
             <div className="metric-card__meta">Weekly plan entries already mapped to household needs.</div>
           </article>
         </div>
       </section>
 
       <section className="card-grid">
-        {resolvedChildren.map((child) => (
-          <article key={child.child_id} className="panel-card">
+        {children.map((child) => (
+          <article key={child.childId} className="panel-card">
             <div className="panel-card__header">
               <div>
                 <h2>{child.name}</h2>
-                <p className="panel-card__eyebrow">{child.age_label}</p>
+                <p className="panel-card__eyebrow">{child.ageLabel}</p>
               </div>
               <span className="badge is-green">{child.currentPackage.language_mode}</span>
             </div>
@@ -84,7 +71,7 @@ export default function ChildrenPage() {
             <div className="meta-pairs">
               <div className="meta-pair">
                 <span className="meta-pair__label">Weekly goal</span>
-                <span className="meta-pair__value">{child.weekly_goal}</span>
+                <span className="meta-pair__value">{child.weeklyGoal}</span>
               </div>
               <div className="meta-pair">
                 <span className="meta-pair__label">Package</span>
@@ -124,16 +111,16 @@ export default function ChildrenPage() {
             <span className="panel-card__eyebrow">What the caregiver should monitor</span>
           </div>
           <div className="stack-list">
-            {resolvedChildren.map((child) => (
-              <article key={child.child_id} className="list-row">
-                <p className="list-row__title">{child.name}</p>
+            {supportSignals.map((signal) => (
+              <article key={signal.childId} className="list-row">
+                <p className="list-row__title">{signal.name}</p>
                 <div className="list-row__meta">
-                  <span>{child.focus}</span>
+                  <span>{signal.focus}</span>
                 </div>
                 <div className="badge-row">
-                  <span className="badge is-sky">{child.currentPackage.age_band}</span>
-                  <span className="badge">{child.currentPackage.release_channel}</span>
-                  <span className="badge is-green">{child.currentPackage.safety.review_status}</span>
+                  <span className="badge is-sky">{signal.ageBand}</span>
+                  <span className="badge">{signal.releaseChannel}</span>
+                  <span className="badge is-green">{signal.reviewStatus}</span>
                 </div>
               </article>
             ))}

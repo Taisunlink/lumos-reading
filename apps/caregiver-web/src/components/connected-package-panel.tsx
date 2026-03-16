@@ -1,11 +1,10 @@
 "use client";
 
-import type { CaregiverDashboardV1 } from "@lumosreading/contracts";
 import { formatDurationMinutes } from "@/lib/format";
-import { resolveFeaturedPackage } from "@/lib/page-models";
+import type { HouseholdOverview } from "@/lib/services/household-service";
 
 type ConnectedPackagePanelProps = {
-  dashboard: CaregiverDashboardV1;
+  overview: HouseholdOverview;
   status: "loading" | "live" | "fallback";
   error: string | null;
 };
@@ -23,11 +22,11 @@ function renderStatusBadge(status: "loading" | "live" | "fallback") {
 }
 
 export function ConnectedPackagePanel({
-  dashboard,
+  overview,
   status,
   error,
 }: ConnectedPackagePanelProps) {
-  const featuredPackage = resolveFeaturedPackage(dashboard);
+  const { featuredPackage, packageQueue } = overview;
 
   return (
     <article className="panel-card">
@@ -70,7 +69,7 @@ export function ConnectedPackagePanel({
       {error ? <div className="note-card">{error}</div> : null}
 
       <div className="stack-list">
-        {dashboard.package_queue.map((item) => (
+        {packageQueue.map((item) => (
           <article key={item.package_id} className="list-row">
             <p className="list-row__title">{item.title}</p>
             <div className="list-row__meta">
