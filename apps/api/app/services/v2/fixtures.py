@@ -22,12 +22,12 @@ class StoryPackageFixture:
     difficulty_level: str
     age_band: str
     estimated_duration_sec: int
-    cover_image_url: str
+    cover_image_object_key: str
     tags: tuple[str, ...]
     text: str
     tts_timing: tuple[int, ...]
-    image_url: str
-    audio_url: str
+    page_image_object_key: str
+    page_audio_object_key: str
     vocabulary: tuple[str, ...]
     caregiver_prompt_ids: tuple[str, ...]
 
@@ -79,12 +79,12 @@ PACKAGE_FIXTURES: dict[UUID, StoryPackageFixture] = {
         difficulty_level="L2",
         age_band="4-6",
         estimated_duration_sec=480,
-        cover_image_url="https://cdn.lumosreading.local/story-packages/demo/lantern-cover.png",
+        cover_image_object_key="story-packages/demo/lantern/cover.png",
         tags=("friendship", "shared-reading", "comfort"),
         text="灯笼沿着小路摇晃，小伙伴们约好一起出发，也一起回家。",
         tts_timing=(0, 420, 910),
-        image_url="https://cdn.lumosreading.local/story-packages/demo/lantern-page-0.png",
-        audio_url="https://cdn.lumosreading.local/story-packages/demo/lantern-page-0.mp3",
+        page_image_object_key="story-packages/demo/lantern/pages/0/image.png",
+        page_audio_object_key="story-packages/demo/lantern/pages/0/audio.mp3",
         vocabulary=("灯笼", "约定", "回来"),
         caregiver_prompt_ids=("prompt-friendship-1", "prompt-friendship-2"),
     ),
@@ -97,12 +97,12 @@ PACKAGE_FIXTURES: dict[UUID, StoryPackageFixture] = {
         difficulty_level="L1",
         age_band="4-6",
         estimated_duration_sec=360,
-        cover_image_url="https://cdn.lumosreading.local/story-packages/demo/moon-cover.png",
+        cover_image_object_key="story-packages/demo/moon-garden/cover.png",
         tags=("calm", "predictable", "wind-down"),
         text="Moonlight settles over the garden, and every breath makes the silver leaves glow a little more.",
         tts_timing=(0, 390, 870),
-        image_url="https://cdn.lumosreading.local/story-packages/demo/moon-page-0.png",
-        audio_url="https://cdn.lumosreading.local/story-packages/demo/moon-page-0.mp3",
+        page_image_object_key="story-packages/demo/moon-garden/pages/0/image.png",
+        page_audio_object_key="story-packages/demo/moon-garden/pages/0/audio.mp3",
         vocabulary=("moonlight", "garden", "breathing"),
         caregiver_prompt_ids=("prompt-calm-1",),
     ),
@@ -115,12 +115,12 @@ PACKAGE_FIXTURES: dict[UUID, StoryPackageFixture] = {
         difficulty_level="L3",
         age_band="6-8",
         estimated_duration_sec=540,
-        cover_image_url="https://cdn.lumosreading.local/story-packages/demo/bridge-cover.png",
+        cover_image_object_key="story-packages/demo/bridge-words/cover.png",
         tags=("bilingual-assist", "vocabulary", "bridge"),
         text="At the bridge, Mina hears one story in English and unlocks just a few helper words in Chinese.",
         tts_timing=(0, 360, 790),
-        image_url="https://cdn.lumosreading.local/story-packages/demo/bridge-page-0.png",
-        audio_url="https://cdn.lumosreading.local/story-packages/demo/bridge-page-0.mp3",
+        page_image_object_key="story-packages/demo/bridge-words/pages/0/image.png",
+        page_audio_object_key="story-packages/demo/bridge-words/pages/0/audio.mp3",
         vocabulary=("bridge", "echo", "spark"),
         caregiver_prompt_ids=("prompt-bridge-1", "prompt-bridge-2"),
     ),
@@ -135,12 +135,12 @@ DEFAULT_STORY_PACKAGE_FIXTURE = StoryPackageFixture(
     difficulty_level="L2",
     age_band="4-6",
     estimated_duration_sec=480,
-    cover_image_url="https://cdn.lumosreading.local/story-packages/demo/cover.png",
+    cover_image_object_key="story-packages/demo/default/cover.png",
     tags=("friendship", "shared-reading", "bilingual-assist"),
     text="从前有一只小兔子，它喜欢和朋友一起探险。",
     tts_timing=(0, 450, 980),
-    image_url="https://cdn.lumosreading.local/story-packages/demo/page-0.png",
-    audio_url="https://cdn.lumosreading.local/story-packages/demo/page-0.mp3",
+    page_image_object_key="story-packages/demo/default/pages/0/image.png",
+    page_audio_object_key="story-packages/demo/default/pages/0/audio.mp3",
     vocabulary=("探险", "朋友"),
     caregiver_prompt_ids=("prompt-friendship-1",),
 )

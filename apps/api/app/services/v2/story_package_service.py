@@ -16,6 +16,10 @@ from app.services.v2.fixtures import (
     PACKAGE_FIXTURES,
     StoryPackageFixture,
 )
+from app.services.v2.object_storage_service import (
+    ObjectStorageService,
+    PlaceholderOssStorageService,
+)
 
 
 class StoryPackageService(Protocol):
@@ -29,6 +33,7 @@ class StoryPackageService(Protocol):
 def _build_story_package(
     package_id: UUID,
     fixture: StoryPackageFixture,
+    storage_service: ObjectStorageService,
 ) -> StoryPackageManifestV1:
     return StoryPackageManifestV1(
         package_id=package_id,
@@ -41,7 +46,7 @@ def _build_story_package(
         age_band=fixture.age_band,
         estimated_duration_sec=fixture.estimated_duration_sec,
         release_channel="pilot",
-        cover_image_url=fixture.cover_image_url,
+        cover_image_url=storage_service.get_public_url(fixture.cover_image_object_key),
         tags=list(fixture.tags),
         safety=StoryPackageSafetyV1(
             review_status="approved",
@@ -59,8 +64,8 @@ def _build_story_package(
                     )
                 ],
                 media=StoryPackageMediaV1(
-                    image_url=fixture.image_url,
-                    audio_url=fixture.audio_url,
+                    image_url=storage_service.get_public_url(fixture.page_image_object_key),
+                    audio_url=storage_service.get_public_url(fixture.page_audio_object_key),
                 ),
                 overlays=StoryPackageOverlayV1(
                     vocabulary=list(fixture.vocabulary),
@@ -72,9 +77,12 @@ def _build_story_package(
 
 
 class DemoStoryPackageService:
+    def __init__(self, storage_service: ObjectStorageService | None = None):
+        self.storage_service = storage_service or PlaceholderOssStorageService()
+
     def get_story_package(self, package_id: UUID) -> StoryPackageManifestV1:
         fixture = PACKAGE_FIXTURES.get(package_id, DEFAULT_STORY_PACKAGE_FIXTURE)
-        return _build_story_package(package_id, fixture)
+        return _build_story_package(package_id, fixture, self.storage_service)
 
     def list_story_packages(self, package_ids: Iterable[UUID]) -> list[StoryPackageManifestV1]:
         return [self.get_story_package(package_id) for package_id in package_ids]

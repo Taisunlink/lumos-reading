@@ -87,6 +87,7 @@ class Settings(BaseSettings):
     oss_access_key_secret: Optional[str] = Field(default=None, env="OSS_ACCESS_KEY_SECRET")
     oss_endpoint: Optional[str] = Field(default=None, env="OSS_ENDPOINT")
     oss_bucket_name: Optional[str] = Field(default=None, env="OSS_BUCKET_NAME")
+    oss_public_base_url: Optional[str] = Field(default=None, env="OSS_PUBLIC_BASE_URL")
 
     # AI图像生成配置
     image_provider: str = Field(default="qwen", env="IMAGE_PROVIDER")  # qwen, vertex, openai
