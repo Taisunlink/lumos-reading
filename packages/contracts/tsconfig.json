@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "baseUrl": "."
+  },
+  "include": [
+    "index.ts",
+    "schemas/**/*.json"
+  ]
+}

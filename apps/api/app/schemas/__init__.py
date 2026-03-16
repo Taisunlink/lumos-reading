@@ -1,29 +1,7 @@
-# 导入所有schemas
-from .user import UserCreate, UserResponse, UserUpdate
-from .child_profile import ChildProfileCreate, ChildProfileResponse, ChildProfileUpdate
-from .story import StoryCreate, StoryResponse, StoryUpdate
-from .series_bible import SeriesBibleCreate, SeriesBibleResponse, SeriesBibleUpdate
-from .reading_session import ReadingSessionCreate, ReadingSessionResponse
-from .reading_achievement import ReadingAchievementResponse
-from .illustration import (
-    IllustrationCreate, IllustrationResponse, IllustrationUpdate,
-    BatchIllustrationRequest, BatchIllustrationResponse, IllustrationStatusResponse
-)
+"""Schema package entrypoint.
 
-__all__ = [
-    "UserCreate",
-    "UserResponse", 
-    "UserUpdate",
-    "ChildProfileCreate",
-    "ChildProfileResponse",
-    "ChildProfileUpdate",
-    "StoryCreate",
-    "StoryResponse",
-    "StoryUpdate",
-    "SeriesBibleCreate",
-    "SeriesBibleResponse",
-    "SeriesBibleUpdate",
-    "ReadingSessionCreate",
-    "ReadingSessionResponse",
-    "ReadingAchievementResponse",
-]
+This module intentionally avoids eager imports so that V2 schemas can be used
+without pulling in legacy model-dependent schema modules during the migration.
+"""
+
+__all__: list[str] = []

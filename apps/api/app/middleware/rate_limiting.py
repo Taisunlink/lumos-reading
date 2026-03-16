@@ -20,7 +20,11 @@ class RateLimitMiddleware:
     
     def __init__(self, app):
         self.app = app
-        self.redis_client = redis.from_url(settings.redis_url)
+        self.redis_client = redis.from_url(
+            settings.redis_url,
+            socket_connect_timeout=settings.rate_limit_backend_timeout_seconds,
+            socket_timeout=settings.rate_limit_backend_timeout_seconds,
+        )
     
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":

@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     version: str = "1.0.0"
     debug: bool = Field(default=False, env="DEBUG")
     environment: str = Field(default="development", env="ENVIRONMENT")
+    enable_legacy_v1_routers: bool = Field(default=False, env="ENABLE_LEGACY_V1_ROUTERS")
     
     # 服务器配置
     host: str = Field(default="0.0.0.0", env="HOST")
@@ -59,6 +60,10 @@ class Settings(BaseSettings):
     # 限流配置
     rate_limit_requests: int = Field(default=100, env="RATE_LIMIT_REQUESTS")
     rate_limit_window: int = Field(default=60, env="RATE_LIMIT_WINDOW")  # 秒
+    rate_limit_backend_timeout_seconds: float = Field(
+        default=0.5,
+        env="RATE_LIMIT_BACKEND_TIMEOUT_SECONDS"
+    )
     
     # 日志配置
     log_level: str = Field(default="INFO", env="LOG_LEVEL")
