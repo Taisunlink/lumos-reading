@@ -9,7 +9,11 @@ router = APIRouter()
 story_package_service = DemoStoryPackageService()
 
 
-@router.get("/{package_id}", response_model=StoryPackageManifestV1)
+@router.get(
+    "/{package_id}",
+    response_model=StoryPackageManifestV1,
+    response_model_exclude_none=True,
+)
 async def get_story_package(package_id: UUID) -> StoryPackageManifestV1:
     """Return the V2 runtime content package skeleton for a story."""
     return story_package_service.get_story_package(package_id)

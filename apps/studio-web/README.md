@@ -1,11 +1,22 @@
 # studio-web
 
-V2 Studio / CMS / Ops Web 预留目录。
+Minimal V2 Studio / CMS / Ops Web shell.
 
-目标：
+## Current goal
 
-- 选题、变体、审校、发布、回滚
-- 安全审核与实验配置
-- 内容供应链可视化管理
+- Prove that a second surface outside `caregiver-web` can consume shared subdomain read models
+- Directly consume `CaregiverPlanV1` and `CaregiverProgressV1`
+- Keep the shell lightweight while the full Studio domain is still being designed
 
-当前阶段：目录占位，等待按 V2 内容流水线设计正式搭建。
+## Current implementation
+
+- Next.js App Router minimal shell
+- Consumes `@lumosreading/contracts` and `@lumosreading/sdk`
+- Calls `/api/v2/caregiver/households/{householdId}/plan`
+- Calls `/api/v2/caregiver/households/{householdId}/progress`
+
+## Later scope
+
+- Topic, variant, audit, publish, rollback
+- Safety review and experiment configuration
+- Content supply chain visibility

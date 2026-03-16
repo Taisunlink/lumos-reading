@@ -62,31 +62,51 @@ progress_read_service = CaregiverProgressReadService(
 )
 
 
-@router.get("/households/{household_id}", response_model=CaregiverHouseholdV1)
+@router.get(
+    "/households/{household_id}",
+    response_model=CaregiverHouseholdV1,
+    response_model_exclude_none=True,
+)
 async def get_caregiver_household(household_id: UUID) -> CaregiverHouseholdV1:
     """Return the V2 caregiver household read model."""
     return household_read_service.get_household(household_id)
 
 
-@router.get("/households/{household_id}/children", response_model=CaregiverChildrenV1)
+@router.get(
+    "/households/{household_id}/children",
+    response_model=CaregiverChildrenV1,
+    response_model_exclude_none=True,
+)
 async def get_caregiver_children(household_id: UUID) -> CaregiverChildrenV1:
     """Return the V2 caregiver child assignment read model."""
     return children_read_service.get_children(household_id)
 
 
-@router.get("/households/{household_id}/plan", response_model=CaregiverPlanV1)
+@router.get(
+    "/households/{household_id}/plan",
+    response_model=CaregiverPlanV1,
+    response_model_exclude_none=True,
+)
 async def get_caregiver_plan(household_id: UUID) -> CaregiverPlanV1:
     """Return the V2 caregiver weekly plan read model."""
     return plan_read_service.get_plan(household_id)
 
 
-@router.get("/households/{household_id}/progress", response_model=CaregiverProgressV1)
+@router.get(
+    "/households/{household_id}/progress",
+    response_model=CaregiverProgressV1,
+    response_model_exclude_none=True,
+)
 async def get_caregiver_progress(household_id: UUID) -> CaregiverProgressV1:
     """Return the V2 caregiver progress read model."""
     return progress_read_service.get_progress(household_id)
 
 
-@router.get("/households/{household_id}/dashboard", response_model=CaregiverDashboardV1)
+@router.get(
+    "/households/{household_id}/dashboard",
+    response_model=CaregiverDashboardV1,
+    response_model_exclude_none=True,
+)
 async def get_caregiver_dashboard(household_id: UUID) -> CaregiverDashboardV1:
     """Return the V2 caregiver household dashboard aggregate."""
     return dashboard_service.get_dashboard(household_id)
