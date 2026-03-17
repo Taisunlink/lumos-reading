@@ -16,6 +16,10 @@
     "./schemas/caregiver-dashboard.v1": "./schemas/caregiver-dashboard.v1.schema.json",
     "./schemas/story-package.v1": "./schemas/story-package.v1.schema.json",
     "./schemas/reading-event.v1": "./schemas/reading-event.v1.schema.json",
+    "./schemas/reading-session-create.v2": "./schemas/reading-session-create.v2.schema.json",
+    "./schemas/reading-session-response.v2": "./schemas/reading-session-response.v2.schema.json",
+    "./schemas/reading-event-batch.v2": "./schemas/reading-event-batch.v2.schema.json",
+    "./schemas/reading-event-ingested-response.v2": "./schemas/reading-event-ingested-response.v2.schema.json",
     "./schemas/safety-audit.v1": "./schemas/safety-audit.v1.schema.json"
   },
   "files": [

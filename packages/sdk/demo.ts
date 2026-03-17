@@ -17,8 +17,10 @@ import {
   type CaregiverProgressV1,
   type CaregiverWeeklyPlanItemV1,
   type ReadingEventBatchRequestV2,
+  type ReadingEventIngestedResponseV2,
   type ReadingEventV1,
   type ReadingSessionCreateV2,
+  type ReadingSessionResponseV2,
   type StoryPackageManifestV1,
 } from "@lumosreading/contracts";
 import {
@@ -33,6 +35,7 @@ export const demoHouseholdId = "44444444-4444-4444-4444-444444444444";
 export const demoChildId = "55555555-5555-5555-5555-555555555555";
 export const demoSecondaryChildId = "12121212-1212-1212-1212-121212121212";
 export const demoReadingSessionId = "d1d3a8c0-05f3-45bd-9a56-72a911200099";
+export const demoAcceptedAt = "2026-03-17T20:00:30Z";
 
 export type ResolvedChildSnapshot = CaregiverChildSummaryV1 & {
   currentPackage: StoryPackageManifestV1;
@@ -440,6 +443,25 @@ export function buildDemoReadingSessionPayload(
   };
 }
 
+export type DemoReadingSessionResponseOptions = {
+  sessionId?: string;
+  childId?: string;
+  packageId?: string;
+  acceptedAt?: string;
+};
+
+export function buildDemoReadingSessionResponse(
+  options: DemoReadingSessionResponseOptions = {},
+): ReadingSessionResponseV2 {
+  return {
+    session_id: options.sessionId ?? demoReadingSessionId,
+    status: "accepted",
+    accepted_at: options.acceptedAt ?? demoAcceptedAt,
+    child_id: options.childId ?? demoChildId,
+    package_id: options.packageId ?? demoStoryPackageId,
+  };
+}
+
 export type DemoReadingEventBatchRequestOptions = {
   childId?: string;
   packageId?: string;
@@ -497,5 +519,22 @@ export function buildDemoReadingEventBatchRequest(
         },
       },
     ],
+  };
+}
+
+export type DemoReadingEventIngestedResponseOptions = {
+  acceptedAt?: string;
+  acceptedCount?: number;
+  sessionIds?: string[];
+};
+
+export function buildDemoReadingEventIngestedResponse(
+  options: DemoReadingEventIngestedResponseOptions = {},
+): ReadingEventIngestedResponseV2 {
+  return {
+    status: "accepted",
+    accepted_count: options.acceptedCount ?? 2,
+    accepted_at: options.acceptedAt ?? demoAcceptedAt,
+    session_ids: options.sessionIds ?? [demoReadingSessionId],
   };
 }

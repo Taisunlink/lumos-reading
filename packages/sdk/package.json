@@ -7,6 +7,9 @@
   "license": "MIT",
   "main": "./index.ts",
   "types": "./index.ts",
+  "scripts": {
+    "test:contracts": "tsx ./self-check.ts"
+  },
   "exports": {
     ".": "./index.ts"
   },
@@ -21,5 +24,10 @@
   ],
   "dependencies": {
     "@lumosreading/contracts": "file:../contracts"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "tsx": "^4.20.6"
   }
 }

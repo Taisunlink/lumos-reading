@@ -41,9 +41,15 @@ Shared V2 API client package for LumosReading.
 
 - `createReadingApplicationServices`
 - `buildDemoReadingSessionPayload`
+- `buildDemoReadingSessionResponse`
 - `buildDemoReadingEventBatchRequest`
+- `buildDemoReadingEventIngestedResponse`
 - `demoStoryPackageId`
 - `demoChildId`
 - `demoReadingSessionId`
+
+## Self-check
+
+Run `npm run test:contracts --workspace @lumosreading/sdk` to validate SDK demo builders and fallback models against the shared JSON Schemas.
 
 `@lumosreading/contracts` remains the authority for schemas and domain payload types.
