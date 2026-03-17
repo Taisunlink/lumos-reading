@@ -55,3 +55,15 @@ These files are the authoritative shared schemas for LumosReading V2.
 
 - `docs/v2/01-strategy-review-and-references.md`
 - `docs/v2/02-v2-architecture-and-migration-blueprint.md`
+- `docs/v2/03-activity-log.md`
+
+## Required read order
+
+Before changing schemas or any contract-consuming surface, read in this order:
+
+1. `docs/v2/01-strategy-review-and-references.md`
+2. `docs/v2/02-v2-architecture-and-migration-blueprint.md`
+3. `docs/v2/03-activity-log.md`
+4. This file
+5. `apps/README.md`
+6. `packages/contracts/README.md`

@@ -1,16 +1,31 @@
 # V2 Active Docs
 
-本目录是 LumosReading 当前唯一活跃文档区。
+This directory is the single active documentation set for LumosReading V2.
 
-## 当前文档
+## Active files
 
 - `01-strategy-review-and-references.md`
-  V2 的战略判断、市场研究、当前代码成熟度判断与参考资料。
+  Strategy review, research synthesis, product positioning, market assumptions, and external references.
 - `02-v2-architecture-and-migration-blueprint.md`
-  V2 的目标架构、领域模型、契约草案、迁移蓝图与 6 个月路线图。
+  Target architecture, domain model, API and event blueprint, migration plan, and delivery roadmap.
+- `03-activity-log.md`
+  Current execution log, repo baseline, recent milestones, operating decisions, verification history, and next slices.
 
-## 与 schema 的关系
+## Required read order
 
-- 文档定义业务语义和架构边界
-- `packages/contracts/schemas/` 定义正式共享字段契约
-- 二者冲突时，先修文档，再修 schema，再修实现
+Before starting work, read in this order:
+
+1. `01-strategy-review-and-references.md`
+2. `02-v2-architecture-and-migration-blueprint.md`
+3. `03-activity-log.md`
+4. `packages/contracts/schemas/README.md`
+5. `apps/README.md`
+6. `packages/contracts/README.md`
+
+## Governance rules
+
+- `01-*` defines why the product exists, who it is for, and which research-backed principles matter.
+- `02-*` defines how the system should be shaped and how the monorepo should evolve.
+- `03-*` records what has actually been built, what is currently in flight, and what should happen next.
+- Update `03-activity-log.md` before and after every meaningful development session.
+- If docs and schema drift apart, update docs first, then schema, then implementation.

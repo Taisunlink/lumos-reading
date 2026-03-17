@@ -32,14 +32,16 @@ Before starting V2 work, read in this order:
 
 1. `docs/v2/01-strategy-review-and-references.md`
 2. `docs/v2/02-v2-architecture-and-migration-blueprint.md`
-3. `packages/contracts/schemas/README.md`
-4. `apps/README.md`
-5. This file
+3. `docs/v2/03-activity-log.md`
+4. `packages/contracts/schemas/README.md`
+5. `apps/README.md`
+6. This file
 
 ## Change rules
 
 - If business meaning changes, update `docs/v2/01-*` first.
 - If architecture, domain model, API, or event semantics change, update `docs/v2/02-*` first.
+- Update `docs/v2/03-activity-log.md` before and after each meaningful development session.
 - If contract fields change, update the matching schema in the same change.
 - Runtime objects must not bypass the schema package with silent field additions.
 - Existing schema versions must not be silently mutated when the change is breaking.

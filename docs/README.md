@@ -1,39 +1,34 @@
-# 文档治理
+# Documentation Governance
 
-本仓库从现在开始采用“权威文档 + 契约优先 + 档案隔离”的文档治理机制。
+This repository now follows a V2 active-docs governance model.
 
-## 权威文档
+## Authority model
 
-以下内容是当前唯一权威入口：
+- `docs/v2/` is the only active product and architecture authority.
+- `packages/contracts/schemas/` is the formal shared contract authority.
+- `docs/archive/` stores legacy PoC, historical planning, and non-authoritative reference material.
 
-1. `docs/v2/01-strategy-review-and-references.md`
-2. `docs/v2/02-v2-architecture-and-migration-blueprint.md`
-3. `packages/contracts/schemas/`
-4. `apps/README.md`
-5. `packages/contracts/README.md`
+## Required session start order
 
-## 规则
-
-- 战略、市场、用户定义变化：更新 `docs/v2/01-*`
-- 架构、领域模型、接口、事件和迁移变化：更新 `docs/v2/02-*`
-- 字段与运行时对象变化：更新 `packages/contracts/schemas/*`
-- 旧文档不再作为实现依据，统一归档到 `docs/archive/`
-
-## 档案策略
-
-- `docs/archive/legacy-docs/`
-  归档旧的产品、方法学、实施与概念文档。
-- `docs/archive/root-docs/`
-  归档原本位于仓库根目录的阶段性报告、PoC 指南与临时说明。
-
-## 开工顺序
-
-以后每次开工都按下面顺序读取：
+Before starting any development session, read in this order:
 
 1. `docs/v2/01-strategy-review-and-references.md`
 2. `docs/v2/02-v2-architecture-and-migration-blueprint.md`
-3. `packages/contracts/schemas/README.md`
-4. `apps/README.md`
-5. `packages/contracts/README.md`
+3. `docs/v2/03-activity-log.md`
+4. `packages/contracts/schemas/README.md`
+5. `apps/README.md`
+6. `packages/contracts/README.md`
 
-不按这个顺序建立上下文，后续讨论很容易又退回到 PoC 语境。
+## Required session close workflow
+
+- Update `docs/v2/03-activity-log.md` after each meaningful development session.
+- If product strategy, target user, market position, or research assumptions change, update `docs/v2/01-*` first.
+- If architecture, domain model, API semantics, event semantics, or migration rules change, update `docs/v2/02-*` first.
+- If shared fields or payload shapes change, update the matching files in `packages/contracts/schemas/` in the same change.
+- Do not use archived PoC documents as implementation authority.
+
+## Archive policy
+
+- `docs/archive/legacy-docs/` keeps historical concept, product, methodology, and implementation documents.
+- `docs/archive/root-docs/` keeps legacy root-level reports, phase summaries, and temporary execution guides.
+- Archived files can be mined for ideas or migration clues, but they do not define V2 behavior.

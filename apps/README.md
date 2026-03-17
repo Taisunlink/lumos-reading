@@ -1,42 +1,41 @@
 # Apps
 
-本目录同时包含两类内容：
+This directory contains both remaining legacy PoC apps and the V2 target surfaces.
 
-- 当前遗留的 PoC 应用
-- V2 目标架构的目录骨架
+## Current V2 surfaces
 
-## 当前遗留应用
-
-- `web/`
-  现有前端 PoC。当前更接近 demo 阅读端，不再视为 V2 儿童主应用基线。
-- `api/`
-  现有 FastAPI PoC。保留为迁移参考，不直接视为 V2 最终服务边界。
-- `ai-service/`
-  现有 AI 编排与质量规则 PoC。保留其方法论和部分规则逻辑，逐步迁入 V2 内容供应链。
-
-## V2 目标目录骨架
-
-- `child-app/`
-  未来的 iPad-first 儿童端 App。
 - `caregiver-web/`
-  未来的家长端 Web。
+  Active caregiver-facing web surface. It already consumes `@lumosreading/contracts` and `@lumosreading/sdk`.
 - `studio-web/`
-  未来的内容编辑、审核、运营端 Web。
+  Active minimal studio and operations shell. It already consumes shared contracts and shared application services.
+- `child-app/`
+  Planned iPad-first child runtime surface. Not bootstrapped yet.
 - `workers/`
-  未来的异步任务与打包、审核、TTS、生成 worker。
+  Planned async jobs boundary for packaging, TTS, safety review, release, and other offline workflows.
 
-## 开工顺序
+## Current bootstrap and legacy surfaces
 
-以后每次开工先按下面顺序建立上下文：
+- `api/`
+  Current FastAPI bootstrap layer used for contract coverage and migration scaffolding. It is not yet the final V2 modular monolith.
+- `web/`
+  Legacy demo reader. It should be treated as a migration reference, not as the V2 target app.
+- `ai-service/`
+  Legacy AI orchestration and experimentation area. Keep useful supply-chain logic and quality ideas, but do not treat it as child runtime authority.
+
+## Required read order
+
+Before starting any app work, read in this order:
 
 1. `docs/v2/01-strategy-review-and-references.md`
 2. `docs/v2/02-v2-architecture-and-migration-blueprint.md`
-3. `packages/contracts/schemas/`
-4. 本文件
-5. `packages/contracts/README.md`
+3. `docs/v2/03-activity-log.md`
+4. `packages/contracts/schemas/README.md`
+5. This file
+6. `packages/contracts/README.md`
 
-## 工作原则
+## Working rules
 
-- 先更新 schema，再写实现
-- 新能力优先落到 V2 目标目录，不继续扩展 legacy 主链路
-- legacy 目录中的代码只能作为迁移参考，不能默认当作最终设计依据
+- New business capabilities should land in V2 surfaces or shared packages.
+- Shared payloads and versioned schemas belong in `packages/contracts`.
+- Shared API access and application/service composition belong in `packages/sdk` unless a more specific shared package is introduced.
+- Legacy app code may inform migration, but it must not define the target design.
