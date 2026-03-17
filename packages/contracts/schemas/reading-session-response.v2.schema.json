@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lumosreading.local/reading-session-response.v2.schema.json",
+  "title": "ReadingSessionResponseV2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "session_id",
+    "status",
+    "accepted_at",
+    "child_id",
+    "package_id"
+  ],
+  "properties": {
+    "session_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "status": {
+      "const": "accepted"
+    },
+    "accepted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "child_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "package_id": {
+      "$ref": "#/$defs/uuid"
+    }
+  },
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid"
+    }
+  }
+}

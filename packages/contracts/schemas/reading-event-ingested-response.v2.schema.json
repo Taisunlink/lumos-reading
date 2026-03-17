@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lumosreading.local/reading-event-ingested-response.v2.schema.json",
+  "title": "ReadingEventIngestedResponseV2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "accepted_count",
+    "accepted_at",
+    "session_ids"
+  ],
+  "properties": {
+    "status": {
+      "const": "accepted"
+    },
+    "accepted_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "accepted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "session_ids": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/uuid"
+      }
+    }
+  },
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid"
+    }
+  }
+}

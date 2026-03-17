@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lumosreading.local/reading-event-batch.v2.schema.json",
+  "title": "ReadingEventBatchRequestV2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "events"
+  ],
+  "properties": {
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/readingEvent"
+      }
+    }
+  },
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "languageTag": {
+      "type": "string",
+      "pattern": "^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$"
+    },
+    "readingEvent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "event_id",
+        "event_type",
+        "occurred_at",
+        "session_id",
+        "child_id",
+        "package_id",
+        "platform",
+        "surface",
+        "app_version",
+        "payload"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "reading-event.v1"
+        },
+        "event_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "event_type": {
+          "type": "string",
+          "enum": [
+            "session_started",
+            "session_completed",
+            "page_viewed",
+            "page_replayed_audio",
+            "word_revealed_translation",
+            "caregiver_prompt_opened",
+            "caregiver_prompt_completed",
+            "mode_changed",
+            "assist_mode_enabled",
+            "content_reported"
+          ]
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "session_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "child_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "package_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "page_index": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "platform": {
+          "type": "string",
+          "enum": [
+            "ipadOS",
+            "ios",
+            "android",
+            "web",
+            "desktop-web",
+            "unknown"
+          ]
+        },
+        "surface": {
+          "type": "string",
+          "enum": [
+            "child-app",
+            "caregiver-web",
+            "studio-web"
+          ]
+        },
+        "app_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "language_mode": {
+          "$ref": "#/$defs/languageTag"
+        },
+        "payload": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

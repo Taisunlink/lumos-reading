@@ -1,8 +1,8 @@
 # V2 Schemas
 
-这些 schema 是 LumosReading V2 的正式共享契约。
+These files are the authoritative shared schemas for LumosReading V2.
 
-## 当前权威 schema
+## Current schema set
 
 - `caregiver-household.v1.schema.json`
 - `caregiver-children.v1.schema.json`
@@ -11,9 +11,13 @@
 - `caregiver-dashboard.v1.schema.json`
 - `story-package.v1.schema.json`
 - `reading-event.v1.schema.json`
+- `reading-session-create.v2.schema.json`
+- `reading-session-response.v2.schema.json`
+- `reading-event-batch.v2.schema.json`
+- `reading-event-ingested-response.v2.schema.json`
 - `safety-audit.v1.schema.json`
 
-## 适用范围
+## Scope
 
 - `CaregiverHousehold v1`
   Read model for the household operating surface, featured package selection, queue visibility, and top-level caregiver metrics.
@@ -24,22 +28,30 @@
 - `CaregiverProgress v1`
   Read model for caregiver progress review with typed events plus child and package labels.
 - `CaregiverDashboard v1`
-  用于 caregiver surface 的家庭聚合读模型，承载包队列、儿童摘要、计划、事件与进展指标。
+  Aggregate compatibility view for the caregiver surface.
 - `StoryPackage v1`
-  用于儿童端运行时内容包分发和缓存。
+  Runtime distribution and cache contract for child-facing story packages.
 - `ReadingEvent v1`
-  用于儿童端阅读事件采集、分析和后续推荐输入。
+  Typed reading event contract for analytics, progress, and recommendation inputs.
+- `ReadingSessionCreate v2`
+  Write contract for creating a reading session receipt.
+- `ReadingSessionResponse v2`
+  Response contract for accepted reading session creation.
+- `ReadingEventBatch v2`
+  Write contract for batched reading event ingestion.
+- `ReadingEventIngestedResponse v2`
+  Response contract for accepted reading event ingestion.
 - `SafetyAudit v1`
-  用于内容审核、复审、下架、追踪和治理审计。
+  Audit and governance contract for review, recall, and compliance workflows.
 
-## 设计原则
+## Design rules
 
-- schema 优先于前后端临时类型
-- schema 优先于 agent 输出格式
-- 破坏性变更必须升版本
-- 运行时只消费审核通过、可版本化的内容对象
+- Schemas are authoritative over temporary frontend or backend types.
+- Schemas are authoritative over ad hoc agent output formats.
+- Breaking changes require a new versioned schema.
+- Runtime surfaces should only consume approved, versioned content and request contracts.
 
-## 关联文档
+## Related docs
 
 - `docs/v2/01-strategy-review-and-references.md`
 - `docs/v2/02-v2-architecture-and-migration-blueprint.md`

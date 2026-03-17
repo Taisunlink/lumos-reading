@@ -3,7 +3,11 @@ import caregiverChildrenSchema from "./schemas/caregiver-children.v1.schema.json
 import caregiverHouseholdSchema from "./schemas/caregiver-household.v1.schema.json";
 import caregiverPlanSchema from "./schemas/caregiver-plan.v1.schema.json";
 import caregiverProgressSchema from "./schemas/caregiver-progress.v1.schema.json";
+import readingEventBatchSchema from "./schemas/reading-event-batch.v2.schema.json";
+import readingEventIngestedResponseSchema from "./schemas/reading-event-ingested-response.v2.schema.json";
 import readingEventSchema from "./schemas/reading-event.v1.schema.json";
+import readingSessionCreateSchema from "./schemas/reading-session-create.v2.schema.json";
+import readingSessionResponseSchema from "./schemas/reading-session-response.v2.schema.json";
 import safetyAuditSchema from "./schemas/safety-audit.v1.schema.json";
 import storyPackageSchema from "./schemas/story-package.v1.schema.json";
 
@@ -14,6 +18,11 @@ export const CAREGIVER_PLAN_SCHEMA_VERSION = "caregiver-plan.v1" as const;
 export const CAREGIVER_PROGRESS_SCHEMA_VERSION = "caregiver-progress.v1" as const;
 export const STORY_PACKAGE_SCHEMA_VERSION = "story-package.v1" as const;
 export const READING_EVENT_SCHEMA_VERSION = "reading-event.v1" as const;
+export const READING_SESSION_CREATE_SCHEMA_VERSION = "reading-session-create.v2" as const;
+export const READING_SESSION_RESPONSE_SCHEMA_VERSION = "reading-session-response.v2" as const;
+export const READING_EVENT_BATCH_SCHEMA_VERSION = "reading-event-batch.v2" as const;
+export const READING_EVENT_INGESTED_RESPONSE_SCHEMA_VERSION =
+  "reading-event-ingested-response.v2" as const;
 export const SAFETY_AUDIT_SCHEMA_VERSION = "safety-audit.v1" as const;
 
 export const caregiverDashboardV1Schema = caregiverDashboardSchema;
@@ -23,6 +32,10 @@ export const caregiverPlanV1Schema = caregiverPlanSchema;
 export const caregiverProgressV1Schema = caregiverProgressSchema;
 export const storyPackageV1Schema = storyPackageSchema;
 export const readingEventV1Schema = readingEventSchema;
+export const readingSessionCreateV2Schema = readingSessionCreateSchema;
+export const readingSessionResponseV2Schema = readingSessionResponseSchema;
+export const readingEventBatchV2Schema = readingEventBatchSchema;
+export const readingEventIngestedResponseV2Schema = readingEventIngestedResponseSchema;
 export const safetyAuditV1Schema = safetyAuditSchema;
 
 export type LanguageTag = string;

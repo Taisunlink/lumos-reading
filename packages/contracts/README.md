@@ -1,12 +1,12 @@
 # `@lumosreading/contracts`
 
-这是 LumosReading V2 的共享契约包。
+Shared contract package for LumosReading V2.
 
-## 目的
+## Purpose
 
-该包承载跨端、跨服务共享的正式契约，优先级高于任何临时 prompt、mock 或页面数据结构。
+This package carries the formal shared contracts used across apps and services. It has higher authority than temporary prompts, mocks, or page-local data shapes.
 
-当前纳入治理的第一批契约：
+## Governed contracts
 
 - `CaregiverDashboard v1`
 - `CaregiverHousehold v1`
@@ -15,32 +15,36 @@
 - `CaregiverProgress v1`
 - `StoryPackage v1`
 - `ReadingEvent v1`
+- `ReadingSessionCreate v2`
+- `ReadingSessionResponse v2`
+- `ReadingEventBatch v2`
+- `ReadingEventIngestedResponse v2`
 - `SafetyAudit v1`
 
-当前包同时导出：
+## Package outputs
 
-- 原始 JSON Schema
-- 对应的 TypeScript 类型与常量
+- Raw JSON Schema files
+- Matching TypeScript types and schema constants
 
-## 读取顺序
+## Read order
 
-在开始任何 V2 开发之前，先按下面顺序阅读：
+Before starting V2 work, read in this order:
 
 1. `docs/v2/01-strategy-review-and-references.md`
 2. `docs/v2/02-v2-architecture-and-migration-blueprint.md`
 3. `packages/contracts/schemas/README.md`
 4. `apps/README.md`
-5. 本文件
+5. This file
 
-## 变更规则
+## Change rules
 
-- 业务语义变化：先更新 `docs/v2/01-*`
-- 架构、领域模型、接口或事件变化：先更新 `docs/v2/02-*`
-- 契约字段变化：必须同步更新对应 schema
-- 运行时对象禁止绕开 schema 直接新增字段
-- 旧版本契约不得静默修改；有破坏性变更时，新增版本号
+- If business meaning changes, update `docs/v2/01-*` first.
+- If architecture, domain model, API, or event semantics change, update `docs/v2/02-*` first.
+- If contract fields change, update the matching schema in the same change.
+- Runtime objects must not bypass the schema package with silent field additions.
+- Existing schema versions must not be silently mutated when the change is breaking.
 
-## 当前文件
+## Current schema files
 
 - `schemas/caregiver-household.v1.schema.json`
 - `schemas/caregiver-children.v1.schema.json`
@@ -49,4 +53,8 @@
 - `schemas/caregiver-dashboard.v1.schema.json`
 - `schemas/story-package.v1.schema.json`
 - `schemas/reading-event.v1.schema.json`
+- `schemas/reading-session-create.v2.schema.json`
+- `schemas/reading-session-response.v2.schema.json`
+- `schemas/reading-event-batch.v2.schema.json`
+- `schemas/reading-event-ingested-response.v2.schema.json`
 - `schemas/safety-audit.v1.schema.json`
