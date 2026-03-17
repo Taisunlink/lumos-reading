@@ -1,7 +1,7 @@
 "use client";
 
+import type { HouseholdOverview } from "@lumosreading/sdk";
 import { formatDurationMinutes } from "@/lib/format";
-import type { HouseholdOverview } from "@/lib/services/household-service";
 
 type ConnectedPackagePanelProps = {
   overview: HouseholdOverview;

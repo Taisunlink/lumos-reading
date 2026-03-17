@@ -11,9 +11,10 @@ Minimal V2 Studio / CMS / Ops Web shell.
 ## Current implementation
 
 - Next.js App Router minimal shell
-- Consumes `@lumosreading/contracts` and `@lumosreading/sdk`
+- Consumes `@lumosreading/contracts` and shared subdomain services from `@lumosreading/sdk`
 - Calls `/api/v2/caregiver/households/{householdId}/plan`
 - Calls `/api/v2/caregiver/households/{householdId}/progress`
+- Reuses the shared placeholder OSS contract instead of hardcoding asset URLs inside the app
 
 ## Later scope
 

@@ -1,20 +1,22 @@
 "use client";
 
-import { getCaregiverHousehold } from "@/lib/api/v2";
+import {
+  demoHouseholdId,
+  fallbackHouseholdOverview,
+} from "@lumosreading/sdk";
+import { caregiverSubdomainServices } from "@/lib/api/v2";
 import { useCaregiverResource } from "@/lib/hooks/use-caregiver-resource";
-import { demoHouseholdId, fallbackCaregiverHousehold } from "@/lib/page-models";
-import { buildHouseholdOverview } from "@/lib/services/household-service";
 
 export function useHouseholdOverview() {
   const { value, status, error } = useCaregiverResource(
     demoHouseholdId,
-    fallbackCaregiverHousehold,
-    getCaregiverHousehold,
+    fallbackHouseholdOverview,
+    caregiverSubdomainServices.household.getOverview,
     "Failed to hydrate caregiver household.",
   );
 
   return {
-    overview: buildHouseholdOverview(value),
+    overview: value,
     status,
     error,
   };

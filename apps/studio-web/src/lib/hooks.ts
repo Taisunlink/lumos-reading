@@ -1,13 +1,14 @@
 "use client";
 
 import { startTransition, useEffect, useState } from "react";
-import type { CaregiverPlanV1, CaregiverProgressV1 } from "@lumosreading/contracts";
-import { getCaregiverPlan, getCaregiverProgress } from "@/lib/api";
 import {
   demoHouseholdId,
-  fallbackCaregiverPlan,
-  fallbackCaregiverProgress,
-} from "@/lib/fallbacks";
+  fallbackPlanDomainView,
+  fallbackProgressDomainView,
+  type PlanDomainView,
+  type ProgressDomainView,
+} from "@lumosreading/sdk";
+import { caregiverSubdomainServices } from "@/lib/api";
 
 type ResourceStatus = "loading" | "live" | "fallback";
 
@@ -59,17 +60,17 @@ function useStudioResource<T>(
 }
 
 export function useStudioPlan() {
-  return useStudioResource<CaregiverPlanV1>(
-    fallbackCaregiverPlan,
-    getCaregiverPlan,
+  return useStudioResource<PlanDomainView>(
+    fallbackPlanDomainView,
+    caregiverSubdomainServices.plan.getWeeklyPlan,
     "Failed to hydrate studio plan preview.",
   );
 }
 
 export function useStudioProgress() {
-  return useStudioResource<CaregiverProgressV1>(
-    fallbackCaregiverProgress,
-    getCaregiverProgress,
+  return useStudioResource<ProgressDomainView>(
+    fallbackProgressDomainView,
+    caregiverSubdomainServices.progress.getInsights,
     "Failed to hydrate studio progress preview.",
   );
 }

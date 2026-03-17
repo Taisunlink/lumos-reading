@@ -12,6 +12,9 @@
   },
   "files": [
     "index.ts",
+    "caregiver.ts",
+    "demo.ts",
+    "object-storage.ts",
     "tsconfig.json",
     "README.md"
   ],

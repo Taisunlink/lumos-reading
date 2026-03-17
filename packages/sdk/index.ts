@@ -11,6 +11,10 @@ import type {
   StoryPackageManifestV1,
 } from "@lumosreading/contracts";
 
+export * from "./caregiver";
+export * from "./demo";
+export * from "./object-storage";
+
 export const DEFAULT_LUMOS_API_BASE_URL = "http://localhost:8000/api/v2";
 
 type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
