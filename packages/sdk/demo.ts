@@ -22,20 +22,20 @@ import {
   type ReadingSessionCreateV2,
   type ReadingSessionResponseV2,
   type StoryPackageManifestV1,
-} from "@lumosreading/contracts";
+} from '@lumosreading/contracts';
 import {
   buildChildDomainView,
   buildHouseholdOverview,
   buildPlanDomainView,
   buildProgressDomainView,
-} from "./caregiver";
-import { createPlaceholderOssStorageService } from "./object-storage";
+} from './caregiver';
+import { createPlaceholderOssStorageService } from './object-storage';
 
-export const demoHouseholdId = "44444444-4444-4444-4444-444444444444";
-export const demoChildId = "55555555-5555-5555-5555-555555555555";
-export const demoSecondaryChildId = "12121212-1212-1212-1212-121212121212";
-export const demoReadingSessionId = "d1d3a8c0-05f3-45bd-9a56-72a911200099";
-export const demoAcceptedAt = "2026-03-17T20:00:30Z";
+export const demoHouseholdId = '44444444-4444-4444-4444-444444444444';
+export const demoChildId = '55555555-5555-5555-5555-555555555555';
+export const demoSecondaryChildId = '12121212-1212-1212-1212-121212121212';
+export const demoReadingSessionId = 'd1d3a8c0-05f3-45bd-9a56-72a911200099';
+export const demoAcceptedAt = '2026-03-17T20:00:30Z';
 
 export type ResolvedChildSnapshot = CaregiverChildSummaryV1 & {
   currentPackage: StoryPackageManifestV1;
@@ -46,6 +46,15 @@ export type ResolvedWeeklyPlanItem = CaregiverWeeklyPlanItemV1 & {
 };
 
 const placeholderStorage = createPlaceholderOssStorageService();
+
+type DemoPackagePageInput = {
+  text: string;
+  vocabulary: string[];
+  imageObjectKey?: string;
+  audioObjectKey?: string;
+  caregiverPromptIds?: string[];
+  lang?: string;
+};
 
 function buildPackage(args: {
   packageId: string;
@@ -58,12 +67,42 @@ function buildPackage(args: {
   ageBand: string;
   durationSec: number;
   tags: string[];
-  vocabulary: string[];
   coverObjectKey: string;
   audioObjectKey: string;
+  pages?: DemoPackagePageInput[];
 }): StoryPackageManifestV1 {
   const coverImageUrl = placeholderStorage.getPublicUrl(args.coverObjectKey);
-  const audioUrl = placeholderStorage.getPublicUrl(args.audioObjectKey);
+  const pages = (
+    args.pages ?? [
+      {
+        text: args.subtitle,
+        vocabulary: [],
+      },
+    ]
+  ).map((page, pageIndex) => ({
+    page_index: pageIndex,
+    text_runs: [
+      {
+        text: page.text,
+        lang: page.lang ?? args.languageMode,
+        tts_timing: [0, 320, 840],
+      },
+    ],
+    media: {
+      image_url: placeholderStorage.getPublicUrl(
+        page.imageObjectKey ?? args.coverObjectKey
+      ),
+      audio_url: placeholderStorage.getPublicUrl(
+        page.audioObjectKey ?? args.audioObjectKey
+      ),
+    },
+    overlays: {
+      vocabulary: page.vocabulary,
+      caregiver_prompt_ids: page.caregiverPromptIds ?? [
+        `prompt-${pageIndex + 1}`,
+      ],
+    },
+  }));
 
   return {
     schema_version: STORY_PACKAGE_SCHEMA_VERSION,
@@ -76,45 +115,26 @@ function buildPackage(args: {
     difficulty_level: args.difficultyLevel,
     age_band: args.ageBand,
     estimated_duration_sec: args.durationSec,
-    release_channel: "pilot",
+    release_channel: 'pilot',
     cover_image_url: coverImageUrl,
     tags: args.tags,
     safety: {
-      review_status: "approved",
-      reviewed_at: "2026-03-17T12:00:00Z",
-      review_policy_version: "2026.03",
+      review_status: 'approved',
+      reviewed_at: '2026-03-17T12:00:00Z',
+      review_policy_version: '2026.03',
     },
-    pages: [
-      {
-        page_index: 0,
-        text_runs: [
-          {
-            text: args.subtitle,
-            lang: args.languageMode,
-            tts_timing: [0, 320, 840],
-          },
-        ],
-        media: {
-          image_url: coverImageUrl,
-          audio_url: audioUrl,
-        },
-        overlays: {
-          vocabulary: args.vocabulary,
-          caregiver_prompt_ids: ["prompt-1", "prompt-2"],
-        },
-      },
-    ],
+    pages,
   };
 }
 
 function buildEvent(args: {
   eventId: string;
-  type: ReadingEventV1["event_type"];
+  type: ReadingEventV1['event_type'];
   occurredAt: string;
   sessionId: string;
   childId: string;
   packageId: string;
-  payload: ReadingEventV1["payload"];
+  payload: ReadingEventV1['payload'];
   pageIndex?: number;
 }): ReadingEventV1 {
   return {
@@ -126,60 +146,110 @@ function buildEvent(args: {
     child_id: args.childId,
     package_id: args.packageId,
     page_index: args.pageIndex ?? null,
-    platform: "ipadOS",
-    surface: "child-app",
-    app_version: "2.0.0",
-    language_mode: "zh-CN",
+    platform: 'ipadOS',
+    surface: 'child-app',
+    app_version: '2.0.0',
+    language_mode: 'zh-CN',
     payload: args.payload,
   };
 }
 
 const packageLibrary = {
   friendshipTrail: buildPackage({
-    packageId: "33333333-3333-3333-3333-333333333333",
-    storyMasterId: "11111111-1111-1111-1111-111111111111",
-    storyVariantId: "22222222-2222-2222-2222-222222222222",
-    title: "The Lantern Trail",
-    subtitle: "A co-reading story about checking in, waiting, and returning together.",
-    languageMode: "zh-CN",
-    difficultyLevel: "L2",
-    ageBand: "4-6",
+    packageId: '33333333-3333-3333-3333-333333333333',
+    storyMasterId: '11111111-1111-1111-1111-111111111111',
+    storyVariantId: '22222222-2222-2222-2222-222222222222',
+    title: 'The Lantern Trail',
+    subtitle:
+      'A co-reading story about checking in, waiting, and returning together.',
+    languageMode: 'zh-CN',
+    difficultyLevel: 'L2',
+    ageBand: '4-6',
     durationSec: 480,
-    tags: ["friendship", "shared-reading", "comfort"],
-    vocabulary: ["lantern", "promise", "return"],
-    coverObjectKey: "story-packages/demo/lantern/cover.png",
-    audioObjectKey: "story-packages/demo/lantern/pages/0/audio.mp3",
+    tags: ['friendship', 'shared-reading', 'comfort'],
+    coverObjectKey: 'story-packages/demo/lantern/cover.png',
+    audioObjectKey: 'story-packages/demo/lantern/pages/0/audio.mp3',
+    pages: [
+      {
+        text: 'Mina lifted a lantern and waited while the path outside turned soft and quiet.',
+        vocabulary: ['lantern', 'quiet', 'path'],
+        audioObjectKey: 'story-packages/demo/lantern/pages/0/audio.mp3',
+      },
+      {
+        text: 'At the bridge, she whispered that waiting together can feel warm instead of lonely.',
+        vocabulary: ['bridge', 'waiting', 'warm'],
+        audioObjectKey: 'story-packages/demo/lantern/pages/1/audio.mp3',
+      },
+      {
+        text: 'When the last light blinked home, Mina smiled because every promise had found its way back.',
+        vocabulary: ['light', 'promise', 'return'],
+        audioObjectKey: 'story-packages/demo/lantern/pages/2/audio.mp3',
+      },
+    ],
   }),
   moonGarden: buildPackage({
-    packageId: "66666666-6666-6666-6666-666666666666",
-    storyMasterId: "77777777-7777-7777-7777-777777777777",
-    storyVariantId: "88888888-8888-8888-8888-888888888888",
-    title: "Moon Garden Breathing",
-    subtitle: "A calming package designed for predictable pacing and low stimulation.",
-    languageMode: "en-US",
-    difficultyLevel: "L1",
-    ageBand: "4-6",
+    packageId: '66666666-6666-6666-6666-666666666666',
+    storyMasterId: '77777777-7777-7777-7777-777777777777',
+    storyVariantId: '88888888-8888-8888-8888-888888888888',
+    title: 'Moon Garden Breathing',
+    subtitle:
+      'A calming package designed for predictable pacing and low stimulation.',
+    languageMode: 'en-US',
+    difficultyLevel: 'L1',
+    ageBand: '4-6',
     durationSec: 360,
-    tags: ["calm", "predictable", "wind-down"],
-    vocabulary: ["garden", "breathing", "glow"],
-    coverObjectKey: "story-packages/demo/moon-garden/cover.png",
-    audioObjectKey: "story-packages/demo/moon-garden/pages/0/audio.mp3",
+    tags: ['calm', 'predictable', 'wind-down'],
+    coverObjectKey: 'story-packages/demo/moon-garden/cover.png',
+    audioObjectKey: 'story-packages/demo/moon-garden/pages/0/audio.mp3',
+    pages: [
+      {
+        text: 'In the moon garden, Leo counted three silver leaves before he took his first slow breath.',
+        vocabulary: ['moon', 'garden', 'breath'],
+        audioObjectKey: 'story-packages/demo/moon-garden/pages/0/audio.mp3',
+      },
+      {
+        text: 'The fountain glowed once, then twice, and Leo let his shoulders grow quiet with the light.',
+        vocabulary: ['fountain', 'glow', 'quiet'],
+        audioObjectKey: 'story-packages/demo/moon-garden/pages/1/audio.mp3',
+      },
+      {
+        text: 'By the time the stars blinked goodnight, Leo knew exactly how to find the calm path home.',
+        vocabulary: ['stars', 'goodnight', 'calm'],
+        audioObjectKey: 'story-packages/demo/moon-garden/pages/2/audio.mp3',
+      },
+    ],
   }),
   bridgeWords: buildPackage({
-    packageId: "99999999-9999-9999-9999-999999999999",
-    storyMasterId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-    storyVariantId: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
-    title: "Bridge Words",
+    packageId: '99999999-9999-9999-9999-999999999999',
+    storyMasterId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+    storyVariantId: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
+    title: 'Bridge Words',
     subtitle:
-      "A bilingual-assist package with stable English narration and optional translation reveals.",
-    languageMode: "en-US",
-    difficultyLevel: "L3",
-    ageBand: "6-8",
+      'A bilingual-assist package with stable English narration and optional translation reveals.',
+    languageMode: 'en-US',
+    difficultyLevel: 'L3',
+    ageBand: '6-8',
     durationSec: 540,
-    tags: ["bilingual-assist", "vocabulary", "bridge"],
-    vocabulary: ["bridge", "echo", "spark"],
-    coverObjectKey: "story-packages/demo/bridge-words/cover.png",
-    audioObjectKey: "story-packages/demo/bridge-words/pages/0/audio.mp3",
+    tags: ['bilingual-assist', 'vocabulary', 'bridge'],
+    coverObjectKey: 'story-packages/demo/bridge-words/cover.png',
+    audioObjectKey: 'story-packages/demo/bridge-words/pages/0/audio.mp3',
+    pages: [
+      {
+        text: 'A bridge can hold two ideas at once, just like one story can carry two languages.',
+        vocabulary: ['bridge', 'languages', 'story'],
+        audioObjectKey: 'story-packages/demo/bridge-words/pages/0/audio.mp3',
+      },
+      {
+        text: 'When Mei heard an echo under the stones, she paused and asked what the new word might mean.',
+        vocabulary: ['echo', 'stones', 'mean'],
+        audioObjectKey: 'story-packages/demo/bridge-words/pages/1/audio.mp3',
+      },
+      {
+        text: 'One bright spark of translation was enough, because the main narration still stayed clear.',
+        vocabulary: ['spark', 'translation', 'clear'],
+        audioObjectKey: 'story-packages/demo/bridge-words/pages/2/audio.mp3',
+      },
+    ],
   }),
 };
 
@@ -193,49 +263,49 @@ export const demoPackageQueue = [
 
 const recentEvents: ReadingEventV1[] = [
   buildEvent({
-    eventId: "c1d3a8c0-05f3-45bd-9a56-72a911200001",
-    type: "session_completed",
-    occurredAt: "2026-03-16T19:42:00Z",
-    sessionId: "d1d3a8c0-05f3-45bd-9a56-72a911200001",
+    eventId: 'c1d3a8c0-05f3-45bd-9a56-72a911200001',
+    type: 'session_completed',
+    occurredAt: '2026-03-16T19:42:00Z',
+    sessionId: 'd1d3a8c0-05f3-45bd-9a56-72a911200001',
     childId: demoChildId,
     packageId: packageLibrary.friendshipTrail.package_id,
     payload: { dwell_ms: 402000 },
   }),
   buildEvent({
-    eventId: "c1d3a8c0-05f3-45bd-9a56-72a911200002",
-    type: "word_revealed_translation",
-    occurredAt: "2026-03-16T19:21:00Z",
-    sessionId: "d1d3a8c0-05f3-45bd-9a56-72a911200002",
+    eventId: 'c1d3a8c0-05f3-45bd-9a56-72a911200002',
+    type: 'word_revealed_translation',
+    occurredAt: '2026-03-16T19:21:00Z',
+    sessionId: 'd1d3a8c0-05f3-45bd-9a56-72a911200002',
     childId: demoChildId,
     packageId: packageLibrary.bridgeWords.package_id,
-    payload: { word: "bridge", reveal_count: 1 },
+    payload: { word: 'bridge', reveal_count: 1 },
     pageIndex: 0,
   }),
   buildEvent({
-    eventId: "c1d3a8c0-05f3-45bd-9a56-72a911200003",
-    type: "page_replayed_audio",
-    occurredAt: "2026-03-15T11:12:00Z",
-    sessionId: "d1d3a8c0-05f3-45bd-9a56-72a911200003",
+    eventId: 'c1d3a8c0-05f3-45bd-9a56-72a911200003',
+    type: 'page_replayed_audio',
+    occurredAt: '2026-03-15T11:12:00Z',
+    sessionId: 'd1d3a8c0-05f3-45bd-9a56-72a911200003',
     childId: demoSecondaryChildId,
     packageId: packageLibrary.moonGarden.package_id,
     payload: { replay_count: 2 },
     pageIndex: 0,
   }),
   buildEvent({
-    eventId: "c1d3a8c0-05f3-45bd-9a56-72a911200004",
-    type: "assist_mode_enabled",
-    occurredAt: "2026-03-14T20:08:00Z",
-    sessionId: "d1d3a8c0-05f3-45bd-9a56-72a911200004",
+    eventId: 'c1d3a8c0-05f3-45bd-9a56-72a911200004',
+    type: 'assist_mode_enabled',
+    occurredAt: '2026-03-14T20:08:00Z',
+    sessionId: 'd1d3a8c0-05f3-45bd-9a56-72a911200004',
     childId: demoSecondaryChildId,
     packageId: packageLibrary.moonGarden.package_id,
-    payload: { assist_mode: "focus_support" },
+    payload: { assist_mode: 'focus_support' },
   }),
 ];
 
 export const fallbackCaregiverDashboard: CaregiverDashboardV1 = {
   schema_version: CAREGIVER_DASHBOARD_SCHEMA_VERSION,
   household_id: demoHouseholdId,
-  household_name: "The Rivera household",
+  household_name: 'The Rivera household',
   featured_package_id: packageLibrary.friendshipTrail.package_id,
   package_queue: [
     packageLibrary.friendshipTrail,
@@ -246,98 +316,106 @@ export const fallbackCaregiverDashboard: CaregiverDashboardV1 = {
   children: [
     {
       child_id: demoChildId,
-      name: "Mina",
-      age_label: "Age 5",
-      focus: "Shared reading and early vocabulary",
-      weekly_goal: "4 completed sessions",
+      name: 'Mina',
+      age_label: 'Age 5',
+      focus: 'Shared reading and early vocabulary',
+      weekly_goal: '4 completed sessions',
       current_package_id: packageLibrary.friendshipTrail.package_id,
     },
     {
       child_id: demoSecondaryChildId,
-      name: "Leo",
-      age_label: "Age 7",
-      focus: "Bilingual assist with predictable pacing",
-      weekly_goal: "3 sessions plus 2 calm replays",
+      name: 'Leo',
+      age_label: 'Age 7',
+      focus: 'Bilingual assist with predictable pacing',
+      weekly_goal: '3 sessions plus 2 calm replays',
       current_package_id: packageLibrary.bridgeWords.package_id,
     },
   ],
   weekly_plan: [
     {
-      day: "Monday",
-      mode: "Co-reading",
+      day: 'Monday',
+      mode: 'Co-reading',
       package_id: packageLibrary.friendshipTrail.package_id,
-      objective: "Warm start for the week with one caregiver prompt per page.",
+      objective: 'Warm start for the week with one caregiver prompt per page.',
     },
     {
-      day: "Wednesday",
-      mode: "Wind-down",
+      day: 'Wednesday',
+      mode: 'Wind-down',
       package_id: packageLibrary.moonGarden.package_id,
-      objective: "Use read-to-me mode with low stimulation and a slower page cadence.",
+      objective:
+        'Use read-to-me mode with low stimulation and a slower page cadence.',
     },
     {
-      day: "Saturday",
-      mode: "Bilingual assist",
+      day: 'Saturday',
+      mode: 'Bilingual assist',
       package_id: packageLibrary.bridgeWords.package_id,
-      objective: "Reveal only three translation words and track the replay count.",
+      objective:
+        'Reveal only three translation words and track the replay count.',
     },
   ],
   progress_metrics: {
-    completed_sessions: recentEvents.filter((event) => event.event_type === "session_completed")
-      .length,
-    translation_reveals: recentEvents.filter(
-      (event) => event.event_type === "word_revealed_translation",
+    completed_sessions: recentEvents.filter(
+      event => event.event_type === 'session_completed'
     ).length,
-    audio_replays: recentEvents.filter((event) => event.event_type === "page_replayed_audio")
-      .length,
+    translation_reveals: recentEvents.filter(
+      event => event.event_type === 'word_revealed_translation'
+    ).length,
+    audio_replays: recentEvents.filter(
+      event => event.event_type === 'page_replayed_audio'
+    ).length,
   },
-  generated_at: "2026-03-17T12:00:00Z",
+  generated_at: '2026-03-17T12:00:00Z',
 };
 
 export function buildPackageMap(
-  dashboard: CaregiverDashboardV1,
+  dashboard: CaregiverDashboardV1
 ): Record<string, StoryPackageManifestV1> {
   return dashboard.package_queue.reduce<Record<string, StoryPackageManifestV1>>(
     (accumulator, item) => {
       accumulator[item.package_id] = item;
       return accumulator;
     },
-    {},
+    {}
   );
 }
 
 export function resolveFeaturedPackage(
-  dashboard: CaregiverDashboardV1,
+  dashboard: CaregiverDashboardV1
 ): StoryPackageManifestV1 {
   const packageMap = buildPackageMap(dashboard);
-  return packageMap[dashboard.featured_package_id] ?? dashboard.package_queue[0];
+  return (
+    packageMap[dashboard.featured_package_id] ?? dashboard.package_queue[0]
+  );
 }
 
 export function resolveChildren(
-  dashboard: CaregiverDashboardV1,
+  dashboard: CaregiverDashboardV1
 ): ResolvedChildSnapshot[] {
   const packageMap = buildPackageMap(dashboard);
 
-  return dashboard.children.map((child) => ({
+  return dashboard.children.map(child => ({
     ...child,
     currentPackage:
       packageMap[child.current_package_id] ??
       dashboard.package_queue.find(
-        (candidate) => candidate.package_id === child.current_package_id,
+        candidate => candidate.package_id === child.current_package_id
       ) ??
       dashboard.package_queue[0],
   }));
 }
 
 export function resolveWeeklyPlan(
-  dashboard: CaregiverDashboardV1,
+  dashboard: CaregiverDashboardV1
 ): ResolvedWeeklyPlanItem[] {
   const packageMap = buildPackageMap(dashboard);
 
-  return dashboard.weekly_plan.map((item) => ({
+  return dashboard.weekly_plan.map(item => ({
     ...item,
     package:
       packageMap[item.package_id] ??
-      dashboard.package_queue.find((candidate) => candidate.package_id === item.package_id) ??
+      dashboard.package_queue.find(
+        candidate => candidate.package_id === item.package_id
+      ) ??
       dashboard.package_queue[0],
   }));
 }
@@ -357,17 +435,17 @@ export const fallbackCaregiverHousehold: CaregiverHouseholdV1 = {
 export const fallbackCaregiverChildren: CaregiverChildrenV1 = {
   schema_version: CAREGIVER_CHILDREN_SCHEMA_VERSION,
   household_id: fallbackCaregiverDashboard.household_id,
-  children: resolveChildren(fallbackCaregiverDashboard).map<CaregiverChildAssignmentV1>(
-    (child) => ({
-      child_id: child.child_id,
-      name: child.name,
-      age_label: child.age_label,
-      focus: child.focus,
-      weekly_goal: child.weekly_goal,
-      current_package_id: child.current_package_id,
-      current_package: child.currentPackage,
-    }),
-  ),
+  children: resolveChildren(
+    fallbackCaregiverDashboard
+  ).map<CaregiverChildAssignmentV1>(child => ({
+    child_id: child.child_id,
+    name: child.name,
+    age_label: child.age_label,
+    focus: child.focus,
+    weekly_goal: child.weekly_goal,
+    current_package_id: child.current_package_id,
+    current_package: child.currentPackage,
+  })),
   planned_session_count: fallbackCaregiverDashboard.weekly_plan.length,
   generated_at: fallbackCaregiverDashboard.generated_at,
 };
@@ -376,49 +454,50 @@ export const fallbackCaregiverPlan: CaregiverPlanV1 = {
   schema_version: CAREGIVER_PLAN_SCHEMA_VERSION,
   household_id: fallbackCaregiverDashboard.household_id,
   package_queue: fallbackCaregiverDashboard.package_queue,
-  weekly_plan: resolveWeeklyPlan(fallbackCaregiverDashboard).map<CaregiverPlannedSessionV1>(
-    (item) => ({
-      day: item.day,
-      mode: item.mode,
-      package_id: item.package_id,
-      objective: item.objective,
-      package: item.package,
-    }),
-  ),
+  weekly_plan: resolveWeeklyPlan(
+    fallbackCaregiverDashboard
+  ).map<CaregiverPlannedSessionV1>(item => ({
+    day: item.day,
+    mode: item.mode,
+    package_id: item.package_id,
+    objective: item.objective,
+    package: item.package,
+  })),
   generated_at: fallbackCaregiverDashboard.generated_at,
 };
 
 export const fallbackCaregiverProgress: CaregiverProgressV1 = {
   schema_version: CAREGIVER_PROGRESS_SCHEMA_VERSION,
   household_id: fallbackCaregiverDashboard.household_id,
-  recent_events: fallbackCaregiverDashboard.recent_events.map<CaregiverProgressEventV1>(
-    (event) => ({
-      event,
-      child_name:
-        fallbackCaregiverDashboard.children.find(
-          (child) => child.child_id === event.child_id,
-        )?.name ?? event.child_id,
-      package_title:
-        fallbackCaregiverDashboard.package_queue.find(
-          (storyPackage) => storyPackage.package_id === event.package_id,
-        )?.title ?? event.package_id,
-    }),
-  ),
+  recent_events:
+    fallbackCaregiverDashboard.recent_events.map<CaregiverProgressEventV1>(
+      event => ({
+        event,
+        child_name:
+          fallbackCaregiverDashboard.children.find(
+            child => child.child_id === event.child_id
+          )?.name ?? event.child_id,
+        package_title:
+          fallbackCaregiverDashboard.package_queue.find(
+            storyPackage => storyPackage.package_id === event.package_id
+          )?.title ?? event.package_id,
+      })
+    ),
   progress_metrics: fallbackCaregiverDashboard.progress_metrics,
   generated_at: fallbackCaregiverDashboard.generated_at,
 };
 
 export const fallbackHouseholdOverview = buildHouseholdOverview(
-  fallbackCaregiverHousehold,
+  fallbackCaregiverHousehold
 );
 export const fallbackChildDomainView = buildChildDomainView(
-  fallbackCaregiverChildren,
+  fallbackCaregiverChildren
 );
 export const fallbackPlanDomainView = buildPlanDomainView(
-  fallbackCaregiverPlan,
+  fallbackCaregiverPlan
 );
 export const fallbackProgressDomainView = buildProgressDomainView(
-  fallbackCaregiverProgress,
+  fallbackCaregiverProgress
 );
 
 export type DemoReadingSessionPayloadOptions = {
@@ -431,15 +510,15 @@ export type DemoReadingSessionPayloadOptions = {
 };
 
 export function buildDemoReadingSessionPayload(
-  options: DemoReadingSessionPayloadOptions = {},
+  options: DemoReadingSessionPayloadOptions = {}
 ): ReadingSessionCreateV2 {
   return {
     child_id: options.childId ?? demoChildId,
     package_id: options.packageId ?? demoStoryPackageId,
     started_at: options.startedAt ?? new Date().toISOString(),
-    mode: options.mode ?? "read_to_me",
-    language_mode: options.languageMode ?? "zh-CN",
-    assist_mode: options.assistMode ?? ["read_aloud_sync"],
+    mode: options.mode ?? 'read_to_me',
+    language_mode: options.languageMode ?? 'zh-CN',
+    assist_mode: options.assistMode ?? ['read_aloud_sync'],
   };
 }
 
@@ -451,11 +530,11 @@ export type DemoReadingSessionResponseOptions = {
 };
 
 export function buildDemoReadingSessionResponse(
-  options: DemoReadingSessionResponseOptions = {},
+  options: DemoReadingSessionResponseOptions = {}
 ): ReadingSessionResponseV2 {
   return {
     session_id: options.sessionId ?? demoReadingSessionId,
-    status: "accepted",
+    status: 'accepted',
     accepted_at: options.acceptedAt ?? demoAcceptedAt,
     child_id: options.childId ?? demoChildId,
     package_id: options.packageId ?? demoStoryPackageId,
@@ -472,50 +551,50 @@ export type DemoReadingEventBatchRequestOptions = {
 };
 
 export function buildDemoReadingEventBatchRequest(
-  options: DemoReadingEventBatchRequestOptions = {},
+  options: DemoReadingEventBatchRequestOptions = {}
 ): ReadingEventBatchRequestV2 {
   const childId = options.childId ?? demoChildId;
   const packageId = options.packageId ?? demoStoryPackageId;
   const sessionId = options.sessionId ?? demoReadingSessionId;
   const occurredAt = options.occurredAt ?? new Date().toISOString();
-  const appVersion = options.appVersion ?? "2.0.0";
-  const languageMode = options.languageMode ?? "zh-CN";
+  const appVersion = options.appVersion ?? '2.0.0';
+  const languageMode = options.languageMode ?? 'zh-CN';
 
   return {
     events: [
       {
         schema_version: READING_EVENT_SCHEMA_VERSION,
-        event_id: "c1d3a8c0-05f3-45bd-9a56-72a911200101",
-        event_type: "session_started",
+        event_id: 'c1d3a8c0-05f3-45bd-9a56-72a911200101',
+        event_type: 'session_started',
         occurred_at: occurredAt,
         session_id: sessionId,
         child_id: childId,
         package_id: packageId,
         page_index: null,
-        platform: "ipadOS",
-        surface: "child-app",
+        platform: 'ipadOS',
+        surface: 'child-app',
         app_version: appVersion,
         language_mode: languageMode,
         payload: {
-          source: "api-workbench",
+          source: 'api-workbench',
         },
       },
       {
         schema_version: READING_EVENT_SCHEMA_VERSION,
-        event_id: "c1d3a8c0-05f3-45bd-9a56-72a911200102",
-        event_type: "page_viewed",
+        event_id: 'c1d3a8c0-05f3-45bd-9a56-72a911200102',
+        event_type: 'page_viewed',
         occurred_at: occurredAt,
         session_id: sessionId,
         child_id: childId,
         package_id: packageId,
         page_index: 0,
-        platform: "ipadOS",
-        surface: "child-app",
+        platform: 'ipadOS',
+        surface: 'child-app',
         app_version: appVersion,
         language_mode: languageMode,
         payload: {
           dwell_ms: 18000,
-          source: "api-workbench",
+          source: 'api-workbench',
         },
       },
     ],
@@ -529,10 +608,10 @@ export type DemoReadingEventIngestedResponseOptions = {
 };
 
 export function buildDemoReadingEventIngestedResponse(
-  options: DemoReadingEventIngestedResponseOptions = {},
+  options: DemoReadingEventIngestedResponseOptions = {}
 ): ReadingEventIngestedResponseV2 {
   return {
-    status: "accepted",
+    status: 'accepted',
     accepted_count: options.acceptedCount ?? 2,
     accepted_at: options.acceptedAt ?? demoAcceptedAt,
     session_ids: options.sessionIds ?? [demoReadingSessionId],

@@ -1,425 +1,172 @@
-import type { ReadingSessionResponseV2, StoryPackageManifestV1 } from '@lumosreading/contracts';
-import { startTransition, useEffect, useState } from 'react';
+import { router } from 'expo-router';
 import {
   ActivityIndicator,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-import {
-  buildReadingEventBatch,
-  buildReadingSessionPayload,
-  childRuntime,
-} from '@/lib/runtime';
-
-type RuntimeAction = 'package' | 'session' | 'event';
-
-type ActivityItem = {
-  id: string;
-  label: string;
-  timestamp: string;
-};
+import { ScreenShell } from '@/components/screen-shell';
+import { useChildRuntime } from '@/features/runtime/provider';
 
 function formatDuration(seconds: number): string {
   const minutes = Math.max(1, Math.round(seconds / 60));
   return `${minutes} min`;
 }
 
-function appendActivityEntry(
-  previous: ActivityItem[],
-  label: string,
-  timestamp: string = new Date().toLocaleTimeString(),
-): ActivityItem[] {
-  return [
-    {
-      id: `${Date.now()}-${previous.length}`,
-      label,
-      timestamp,
-    },
-    ...previous,
-  ].slice(0, 6);
-}
-
 export default function ChildHomeScreen() {
-  const [storyPackage, setStoryPackage] = useState<StoryPackageManifestV1 | null>(null);
-  const [sessionReceipt, setSessionReceipt] = useState<ReadingSessionResponseV2 | null>(null);
-  const [activity, setActivity] = useState<ActivityItem[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [translationVisible, setTranslationVisible] = useState(false);
-  const [activeAction, setActiveAction] = useState<RuntimeAction | null>('package');
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadStoryPackage() {
-      setActiveAction('package');
-      setError(null);
-
-      try {
-        const result = await childRuntime.services.storyPackages.lookup(childRuntime.defaultPackageId);
-
-        if (!isMounted) {
-          return;
-        }
-
-        startTransition(() => {
-          setStoryPackage(result);
-          setActivity((previous) =>
-            appendActivityEntry(previous, `Loaded ${result.title} from ${childRuntime.mode} mode.`),
-          );
-        });
-      } catch (loadError) {
-        if (!isMounted) {
-          return;
-        }
-
-        const message =
-          loadError instanceof Error ? loadError.message : 'Unable to load story package.';
-
-        startTransition(() => {
-          setError(message);
-        });
-      } finally {
-        if (isMounted) {
-          setActiveAction(null);
-        }
-      }
-    }
-
-    void loadStoryPackage();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  async function handleStartSession() {
-    if (!storyPackage) {
-      return;
-    }
-
-    setActiveAction('session');
-    setError(null);
-
-    try {
-      const receipt = await childRuntime.services.readingSessions.start(
-        buildReadingSessionPayload({
-          childId: childRuntime.defaultChildId,
-          packageId: storyPackage.package_id,
-        }),
-      );
-
-      startTransition(() => {
-        setSessionReceipt(receipt);
-        setActivity((previous) =>
-          appendActivityEntry(previous, `Reading session accepted: ${receipt.session_id.slice(0, 8)}.`),
-        );
-      });
-    } catch (sessionError) {
-      const message =
-        sessionError instanceof Error ? sessionError.message : 'Unable to start reading session.';
-
-      startTransition(() => {
-        setError(message);
-      });
-    } finally {
-      setActiveAction(null);
-    }
-  }
-
-  async function handleEventAction(
-    eventType: 'page_viewed' | 'page_replayed_audio' | 'word_revealed_translation',
-  ) {
-    if (!storyPackage || !sessionReceipt) {
-      return;
-    }
-
-    const payloadByEventType = {
-      page_viewed: {
-        dwell_ms: 18000,
-      },
-      page_replayed_audio: {
-        replay_count: 1,
-      },
-      word_revealed_translation: {
-        word: storyPackage.pages[0]?.overlays?.vocabulary?.[0] ?? 'bridge',
-        reveal_count: 1,
-      },
-    } as const;
-
-    const labelsByEventType = {
-      page_viewed: 'Logged page_viewed for the current spread.',
-      page_replayed_audio: 'Logged page_replayed_audio for read-to-me replay.',
-      word_revealed_translation: 'Logged word_revealed_translation for bilingual assist.',
-    } as const;
-
-    setActiveAction('event');
-    setError(null);
-
-    try {
-      await childRuntime.services.readingEvents.ingestBatch(
-        buildReadingEventBatch({
-          eventType,
-          sessionId: sessionReceipt.session_id,
-          childId: sessionReceipt.child_id,
-          packageId: sessionReceipt.package_id,
-          pageIndex: 0,
-          payload: payloadByEventType[eventType],
-        }),
-      );
-
-      if (eventType === 'word_revealed_translation') {
-        setTranslationVisible(true);
-      }
-
-      startTransition(() => {
-        setActivity((previous) => appendActivityEntry(previous, labelsByEventType[eventType]));
-      });
-    } catch (eventError) {
-      const message =
-        eventError instanceof Error ? eventError.message : 'Unable to ingest reading event.';
-
-      startTransition(() => {
-        setError(message);
-      });
-    } finally {
-      setActiveAction(null);
-    }
-  }
-
-  const primaryText =
-    storyPackage?.pages[0]?.text_runs.map((run) => run.text).join(' ') ?? 'Loading first spread...';
-  const vocabulary = storyPackage?.pages[0]?.overlays?.vocabulary ?? [];
+  const { activity, activeAction, homePackages, mode, sessionReceipt } =
+    useChildRuntime();
+  const featuredPackage = homePackages[0] ?? null;
 
   return (
-    <View style={styles.screen}>
-      <View style={styles.backgroundOrbLarge} />
-      <View style={styles.backgroundOrbSmall} />
+    <ScreenShell>
+      <View style={styles.heroCard}>
+        <View style={styles.kickerRow}>
+          <Text style={styles.kicker}>Lumos Reading</Text>
+          <Text style={styles.modeBadge}>{mode.toUpperCase()}</Text>
+        </View>
 
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}>
-          <View style={styles.heroCard}>
-            <View style={styles.heroHeader}>
-              <View style={styles.kickerRow}>
-                <Text style={styles.kicker}>Lumos Child Runtime</Text>
-                <Text style={styles.modeBadge}>{childRuntime.mode.toUpperCase()}</Text>
-              </View>
-              <Text style={styles.heroTitle}>A calm reading shell for iPad-first sessions.</Text>
-              <Text style={styles.heroCopy}>
-                The child app now consumes shared contracts, loads a versioned story package, and
-                sends typed reading commands instead of relying on page-local demo shapes.
-              </Text>
-            </View>
+        <Text style={styles.heroTitle}>
+          A quiet library built for shared bedtime reading.
+        </Text>
+        <Text style={styles.heroCopy}>
+          Home now acts as a real child runtime entry surface. It hands off into
+          typed story packages, then into a live session that carries page
+          progression, media preload, and read-to-me playback state.
+        </Text>
 
-            <View style={styles.metricsRow}>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricLabel}>Surface</Text>
-                <Text style={styles.metricValue}>child-app</Text>
-              </View>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricLabel}>Story Package</Text>
-                <Text style={styles.metricValue}>
-                  {storyPackage ? storyPackage.schema_version : 'loading'}
-                </Text>
-              </View>
-              <View style={styles.metricCard}>
-                <Text style={styles.metricLabel}>Session</Text>
-                <Text style={styles.metricValue}>
-                  {sessionReceipt ? sessionReceipt.status : 'idle'}
-                </Text>
-              </View>
-            </View>
+        <View style={styles.metricsRow}>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricLabel}>Packages</Text>
+            <Text style={styles.metricValue}>{homePackages.length}</Text>
           </View>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricLabel}>Session</Text>
+            <Text style={styles.metricValue}>
+              {sessionReceipt ? 'active' : 'not started'}
+            </Text>
+          </View>
+          <View style={styles.metricCard}>
+            <Text style={styles.metricLabel}>Flow</Text>
+            <Text style={styles.metricValue}>home to package to session</Text>
+          </View>
+        </View>
+      </View>
 
-          <View style={styles.storyCard}>
-            <View style={styles.storyHeader}>
-              <Text style={styles.sectionLabel}>Tonight&apos;s package</Text>
-              {activeAction === 'package' && <ActivityIndicator color="#27403a" />}
-            </View>
+      <View style={styles.featureCard}>
+        <Text style={styles.sectionLabel}>Featured tonight</Text>
 
-            <Text style={styles.storyTitle}>{storyPackage?.title ?? 'Loading package...'}</Text>
-            <Text style={styles.storySubtitle}>
-              {storyPackage?.subtitle ?? 'Fetching a typed runtime package from shared services.'}
+        {activeAction === 'home' && !featuredPackage ? (
+          <View style={styles.loadingCard}>
+            <ActivityIndicator color="#27403a" />
+            <Text style={styles.loadingCopy}>Loading the reading shelf...</Text>
+          </View>
+        ) : featuredPackage ? (
+          <>
+            <Text style={styles.featureTitle}>{featuredPackage.title}</Text>
+            <Text style={styles.featureSubtitle}>
+              {featuredPackage.subtitle}
             </Text>
 
-            <View style={styles.storyMetaRow}>
-              <Text style={styles.storyMetaPill}>
-                {storyPackage?.language_mode ?? 'language'}
+            <View style={styles.metaRow}>
+              <Text style={styles.metaPill}>
+                {featuredPackage.language_mode}
               </Text>
-              <Text style={styles.storyMetaPill}>{storyPackage?.age_band ?? 'age band'}</Text>
-              <Text style={styles.storyMetaPill}>
-                {storyPackage ? formatDuration(storyPackage.estimated_duration_sec) : 'duration'}
+              <Text style={styles.metaPill}>{featuredPackage.age_band}</Text>
+              <Text style={styles.metaPill}>
+                {featuredPackage.pages.length} pages
+              </Text>
+              <Text style={styles.metaPill}>
+                {formatDuration(featuredPackage.estimated_duration_sec)}
               </Text>
             </View>
 
-            <View style={styles.pageCard}>
-              <Text style={styles.pageEyebrow}>Page 1</Text>
-              <Text style={styles.pageCopy}>{primaryText}</Text>
-              <Text style={styles.pageHint}>
-                Stable narration first, bilingual support as an assistive reveal layer.
+            <Pressable
+              onPress={() =>
+                router.push({
+                  pathname: '/packages/[packageId]',
+                  params: { packageId: featuredPackage.package_id },
+                })
+              }
+              style={({ pressed }) => [
+                styles.primaryAction,
+                pressed && styles.pressedAction,
+              ]}
+            >
+              <Text style={styles.primaryActionLabel}>
+                Open Featured Package
               </Text>
+            </Pressable>
+          </>
+        ) : (
+          <Text style={styles.emptyCopy}>No package is available yet.</Text>
+        )}
+      </View>
 
-              {translationVisible && vocabulary.length > 0 && (
-                <View style={styles.vocabularyStrip}>
-                  {vocabulary.map((word) => (
-                    <View key={word} style={styles.vocabularyChip}>
-                      <Text style={styles.vocabularyText}>{word}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
-          </View>
-
-          <View style={styles.controlCard}>
-            <Text style={styles.sectionLabel}>Reading controls</Text>
-            <Text style={styles.controlCopy}>
-              This shell already exercises the shared reading session and event ingestion contracts.
-            </Text>
-
-            <View style={styles.actionGrid}>
-              <Pressable
-                onPress={() => void handleStartSession()}
-                disabled={!storyPackage || activeAction !== null}
-                style={({ pressed }) => [
-                  styles.primaryAction,
-                  (!storyPackage || activeAction !== null) && styles.disabledAction,
-                  pressed && styles.pressedAction,
-                ]}>
-                <Text style={styles.primaryActionLabel}>
-                  {sessionReceipt ? 'Session Ready' : 'Start Session'}
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => void handleEventAction('page_viewed')}
-                disabled={!sessionReceipt || activeAction !== null}
-                style={({ pressed }) => [
-                  styles.secondaryAction,
-                  (!sessionReceipt || activeAction !== null) && styles.disabledAction,
-                  pressed && styles.pressedAction,
-                ]}>
-                <Text style={styles.secondaryActionLabel}>Log Page View</Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => void handleEventAction('page_replayed_audio')}
-                disabled={!sessionReceipt || activeAction !== null}
-                style={({ pressed }) => [
-                  styles.secondaryAction,
-                  (!sessionReceipt || activeAction !== null) && styles.disabledAction,
-                  pressed && styles.pressedAction,
-                ]}>
-                <Text style={styles.secondaryActionLabel}>Replay Audio</Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => void handleEventAction('word_revealed_translation')}
-                disabled={!sessionReceipt || activeAction !== null}
-                style={({ pressed }) => [
-                  styles.secondaryAction,
-                  (!sessionReceipt || activeAction !== null) && styles.disabledAction,
-                  pressed && styles.pressedAction,
-                ]}>
-                <Text style={styles.secondaryActionLabel}>Reveal Vocabulary</Text>
-              </Pressable>
-            </View>
-
-            {sessionReceipt && (
-              <View style={styles.receiptCard}>
-                <Text style={styles.receiptLabel}>Session receipt</Text>
-                <Text style={styles.receiptValue}>{sessionReceipt.session_id}</Text>
-                <Text style={styles.receiptMeta}>
-                  accepted at {sessionReceipt.accepted_at} for package {sessionReceipt.package_id}
+      <View style={styles.shelfCard}>
+        <Text style={styles.sectionLabel}>Tonight&apos;s shelf</Text>
+        <View style={styles.shelfList}>
+          {homePackages.map(storyPackage => (
+            <Pressable
+              key={storyPackage.package_id}
+              onPress={() =>
+                router.push({
+                  pathname: '/packages/[packageId]',
+                  params: { packageId: storyPackage.package_id },
+                })
+              }
+              style={({ pressed }) => [
+                styles.shelfItem,
+                pressed && styles.pressedAction,
+              ]}
+            >
+              <View style={styles.shelfHeader}>
+                <Text style={styles.shelfTitle}>{storyPackage.title}</Text>
+                <Text style={styles.shelfBadge}>
+                  {storyPackage.safety.review_status}
                 </Text>
               </View>
-            )}
+              <Text style={styles.shelfCopy} numberOfLines={2}>
+                {storyPackage.subtitle}
+              </Text>
+              <Text style={styles.shelfMeta}>
+                {storyPackage.language_mode} · {storyPackage.difficulty_level} ·{' '}
+                {storyPackage.pages.length} pages
+                {' · '}
+                {formatDuration(storyPackage.estimated_duration_sec)}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
 
-            {error && (
-              <View style={styles.errorCard}>
-                <Text style={styles.errorTitle}>Runtime error</Text>
-                <Text style={styles.errorCopy}>{error}</Text>
+      <View style={styles.activityCard}>
+        <Text style={styles.sectionLabel}>Runtime activity</Text>
+        <View style={styles.activityList}>
+          {activity.length === 0 ? (
+            <Text style={styles.emptyCopy}>No activity yet.</Text>
+          ) : (
+            activity.map(item => (
+              <View key={item.id} style={styles.activityItem}>
+                <Text style={styles.activityLabel}>{item.label}</Text>
+                <Text style={styles.activityTimestamp}>{item.timestamp}</Text>
               </View>
-            )}
-          </View>
-
-          <View style={styles.activityCard}>
-            <Text style={styles.sectionLabel}>Activity log</Text>
-            <View style={styles.activityList}>
-              {activity.length === 0 ? (
-                <Text style={styles.emptyState}>No activity yet.</Text>
-              ) : (
-                activity.map((item) => (
-                  <View key={item.id} style={styles.activityItem}>
-                    <Text style={styles.activityLabel}>{item.label}</Text>
-                    <Text style={styles.activityTimestamp}>{item.timestamp}</Text>
-                  </View>
-                ))
-              )}
-            </View>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </View>
+            ))
+          )}
+        </View>
+      </View>
+    </ScreenShell>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: '#f7f0e1',
-  },
-  safeArea: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 32,
-    gap: 18,
-  },
-  backgroundOrbLarge: {
-    position: 'absolute',
-    top: -120,
-    right: -80,
-    width: 280,
-    height: 280,
-    borderRadius: 140,
-    backgroundColor: '#efd7b5',
-    opacity: 0.55,
-  },
-  backgroundOrbSmall: {
-    position: 'absolute',
-    left: -60,
-    top: 240,
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: '#d7e6d8',
-    opacity: 0.75,
-  },
   heroCard: {
     backgroundColor: '#24313f',
     borderRadius: 32,
     padding: 24,
-    gap: 20,
-    shadowColor: '#1e2a35',
-    shadowOpacity: 0.18,
-    shadowRadius: 20,
-    shadowOffset: {
-      width: 0,
-      height: 10,
-    },
-    elevation: 8,
-  },
-  heroHeader: {
-    gap: 12,
+    gap: 18,
   },
   kickerRow: {
     flexDirection: 'row',
@@ -429,7 +176,7 @@ const styles = StyleSheet.create({
   kicker: {
     color: '#f7f0e1',
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
@@ -445,10 +192,10 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     color: '#fff8ef',
-    fontSize: 28,
-    lineHeight: 34,
+    fontSize: 30,
+    lineHeight: 36,
     fontWeight: '800',
-    maxWidth: 520,
+    maxWidth: 560,
   },
   heroCopy: {
     color: '#d7e0e6',
@@ -466,7 +213,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    minWidth: 110,
+    minWidth: 120,
     gap: 4,
   },
   metricLabel: {
@@ -481,7 +228,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
-  storyCard: {
+  featureCard: {
     backgroundColor: '#fffaf0',
     borderRadius: 30,
     padding: 20,
@@ -489,10 +236,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e8dac0',
   },
-  storyHeader: {
+  loadingCard: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 12,
+    paddingVertical: 10,
+  },
+  loadingCopy: {
+    color: '#596170',
+    fontSize: 15,
   },
   sectionLabel: {
     color: '#6b5d4a',
@@ -501,23 +253,23 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
-  storyTitle: {
+  featureTitle: {
     color: '#24313f',
-    fontSize: 26,
-    lineHeight: 30,
+    fontSize: 28,
+    lineHeight: 32,
     fontWeight: '800',
   },
-  storySubtitle: {
+  featureSubtitle: {
     color: '#5a6170',
     fontSize: 15,
     lineHeight: 22,
   },
-  storyMetaRow: {
+  metaRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
   },
-  storyMetaPill: {
+  metaPill: {
     backgroundColor: '#f1e4ca',
     color: '#6a5538',
     borderRadius: 999,
@@ -526,62 +278,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     fontSize: 12,
     fontWeight: '700',
-  },
-  pageCard: {
-    backgroundColor: '#f8efe0',
-    borderRadius: 24,
-    padding: 18,
-    gap: 12,
-  },
-  pageEyebrow: {
-    color: '#7a6646',
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-  },
-  pageCopy: {
-    color: '#24313f',
-    fontSize: 24,
-    lineHeight: 32,
-    fontWeight: '700',
-  },
-  pageHint: {
-    color: '#596170',
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  vocabularyStrip: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  vocabularyChip: {
-    backgroundColor: '#dcefe5',
-    borderRadius: 18,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  vocabularyText: {
-    color: '#27403a',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  controlCard: {
-    backgroundColor: '#fffdf7',
-    borderRadius: 30,
-    padding: 20,
-    gap: 16,
-    borderWidth: 1,
-    borderColor: '#eee1c9',
-  },
-  controlCopy: {
-    color: '#5a6170',
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  actionGrid: {
-    gap: 12,
   },
   primaryAction: {
     backgroundColor: '#df7f63',
@@ -595,67 +291,56 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
   },
-  secondaryAction: {
-    backgroundColor: '#e9efe8',
-    borderRadius: 22,
-    paddingVertical: 16,
-    paddingHorizontal: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
+  shelfCard: {
+    backgroundColor: '#fffdf7',
+    borderRadius: 30,
+    padding: 20,
+    gap: 16,
+    borderWidth: 1,
+    borderColor: '#eee1c9',
   },
-  secondaryActionLabel: {
-    color: '#27403a',
-    fontSize: 15,
-    fontWeight: '700',
+  shelfList: {
+    gap: 12,
   },
-  disabledAction: {
-    opacity: 0.45,
-  },
-  pressedAction: {
-    transform: [{ scale: 0.985 }],
-  },
-  receiptCard: {
-    backgroundColor: '#24313f',
+  shelfItem: {
+    backgroundColor: '#f8efe0',
     borderRadius: 24,
     padding: 16,
     gap: 8,
   },
-  receiptLabel: {
-    color: '#c9d4dd',
-    fontSize: 12,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.9,
+  shelfHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 10,
   },
-  receiptValue: {
-    color: '#fffaf0',
-    fontSize: 16,
+  shelfTitle: {
+    color: '#24313f',
+    fontSize: 18,
+    lineHeight: 22,
     fontWeight: '800',
+    flex: 1,
   },
-  receiptMeta: {
-    color: '#d7e0e6',
-    fontSize: 13,
-    lineHeight: 18,
-  },
-  errorCard: {
-    backgroundColor: '#fff0eb',
-    borderRadius: 22,
-    padding: 16,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: '#f2b9a8',
-  },
-  errorTitle: {
-    color: '#7f2f1e',
-    fontSize: 13,
+  shelfBadge: {
+    color: '#27403a',
+    backgroundColor: '#dcefe5',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+    overflow: 'hidden',
+    fontSize: 11,
     fontWeight: '800',
     textTransform: 'uppercase',
-    letterSpacing: 0.9,
   },
-  errorCopy: {
-    color: '#7f2f1e',
+  shelfCopy: {
+    color: '#5a6170',
     fontSize: 14,
     lineHeight: 20,
+  },
+  shelfMeta: {
+    color: '#6c7280',
+    fontSize: 12,
+    fontWeight: '700',
   },
   activityCard: {
     backgroundColor: '#f0f5ef',
@@ -686,9 +371,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  emptyState: {
+  emptyCopy: {
     color: '#596170',
     fontSize: 14,
     lineHeight: 20,
+  },
+  pressedAction: {
+    transform: [{ scale: 0.985 }],
   },
 });

@@ -91,7 +91,7 @@ The following checks have already passed on the current baseline:
 
 ## Known gaps
 
-- `apps/child-app` is only the first runtime shell. Offline package caching, media playback orchestration, and real caregiver-to-child assignment flows are not implemented yet.
+- `apps/child-app` now has routed session state plus initial media orchestration, but offline package caching, durable package persistence, and real caregiver-to-child assignment flows are not implemented yet.
 - The current FastAPI layer is still a bootstrap/PoC boundary and not the final modular monolith described in `02-*`.
 - Real persistence, real object storage, release workflow, and content packaging jobs are not implemented yet.
 - Legacy `apps/web` still exists and should continue to be treated as a migration reference, not a target architecture.
@@ -99,7 +99,7 @@ The following checks have already passed on the current baseline:
 ## Current focus and next slices
 
 - Keep extracting shared logic out of app-local code into `packages/contracts` and `packages/sdk`.
-- Grow the child runtime from the new Expo shell toward real offline package consumption, page navigation, media playback, and assignment-driven home recommendations.
+- Grow the child runtime from the new routed shell toward real offline package persistence, richer overlay semantics, and assignment-driven home recommendations.
 - Replace bootstrap fallback/demo responses with real backend module implementations behind the same contracts.
 - Continue reducing legacy `apps/web` responsibility until it can be retired from the V2 main path.
 
@@ -115,3 +115,12 @@ The following checks have already passed on the current baseline:
 - Added runtime-mode switching so the child app can default to demo mode and optionally use the shared API client with `EXPO_PUBLIC_*` environment variables.
 - Removed unused Expo template tutorial components and assets so the child app workspace now reflects product structure rather than scaffold leftovers.
 - Verified the child app with `npm run typecheck --workspace child-app` and `npm run build --workspace child-app`.
+- Added a runtime provider plus routed `home -> package -> session` flow so the child app now has a real internal navigation model instead of a single bootstrap page.
+- Added dynamic package preview and session screens that reuse the shared reading contracts and keep activity history inside the child runtime context.
+- Installed `expo-asset` and `expo-audio` in `apps/child-app` so runtime media can be preloaded and played through the official Expo SDK 55 path.
+- Added a bundled local demo audio asset under `apps/child-app/assets/audio/` so demo mode no longer depends on placeholder OSS media URLs to exercise playback.
+- Expanded shared SDK demo packages from single-page placeholders into multi-page `StoryPackage` payloads, while keeping the same shared `story-package.v1` contract.
+- Extended `apps/child-app/src/lib/runtime.ts` with runtime page resolution, bundled media fallback selection, and typed asset preload helpers.
+- Reworked the child runtime provider so page progression, preload state, audio playback control, and runtime event ingestion now live in one shared session-state layer.
+- Rebuilt the session route into a true reading surface with page turns, preload visibility, read-to-me controls, vocabulary reveal, and session completion on top of the shared runtime provider.
+- Re-verified the new slice with `npm run typecheck --workspace child-app`, `npm run build --workspace child-app`, `npm run test:contracts --workspace @lumosreading/sdk`, and `npx tsc -p packages/sdk/tsconfig.json --noEmit`.

@@ -8,6 +8,11 @@ LumosReading V2 child runtime shell built with Expo and React Native.
 - Direct consumption of `@lumosreading/contracts` and `@lumosreading/sdk`
 - Default offline-safe demo runtime mode
 - Shared `StoryPackage`, `ReadingSession`, and `ReadingEvent` contract usage
+- Expo Router flow for `home -> package -> session`
+- Multi-page reading session state with typed page progression
+- Page asset preload via `expo-asset`
+- Read-to-me audio playback via `expo-audio`
+- Bundled local demo media so placeholder OSS URLs do not block runtime work
 
 ## Commands
 
@@ -33,6 +38,26 @@ When using API mode, also set:
 - `EXPO_PUBLIC_API_BASE_URL`
 - `EXPO_PUBLIC_DEFAULT_CHILD_ID` (optional)
 - `EXPO_PUBLIC_DEFAULT_STORY_PACKAGE_ID` (optional)
+
+## Current route slices
+
+- `/`
+  Child home shelf with featured package and package queue.
+- `/packages/[packageId]`
+  Story package preview and session handoff.
+- `/session/[sessionId]`
+  Active reading session shell with page progression, asset preload state, and read-to-me controls.
+
+## Demo runtime media
+
+In demo mode the app resolves package media to bundled local assets inside this workspace:
+
+- `assets/images/icon.png`
+- `assets/images/splash-icon.png`
+- `assets/audio/demo-page.wav`
+
+This keeps the runtime flow stable while real object storage, signed URLs, and package caching are
+still placeholder-backed.
 
 ## Read order
 
