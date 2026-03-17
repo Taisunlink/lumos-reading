@@ -31,9 +31,9 @@ After each meaningful development session:
 - Active authority docs: `docs/v2/01-*`, `docs/v2/02-*`, and this file
 - Shared contract package: `packages/contracts`
 - Shared application package: `packages/sdk`
-- Active V2 surfaces: `apps/caregiver-web` and `apps/studio-web`
+- Active V2 surfaces: `apps/caregiver-web`, `apps/studio-web`, and `apps/child-app`
 - Legacy surfaces still present for migration reference: `apps/web`, `apps/api`, `apps/ai-service`
-- Child runtime status: `apps/child-app` is still not bootstrapped
+- Child runtime status: Expo shell is bootstrapped and wired to shared reading contracts plus shared SDK services
 - Storage status: placeholder OSS contract exists, real object storage integration is intentionally deferred
 - Legacy concept and PoC documents: archived under `docs/archive/`
 
@@ -44,6 +44,7 @@ After each meaningful development session:
 - Shared schema authority is in place for caregiver read models, reading session commands, reading event ingestion, story package delivery, and safety audit governance.
 - Shared SDK services now provide a single API client, caregiver subdomain services, reading application services, demo payload builders, and a placeholder OSS storage adapter.
 - `apps/caregiver-web` and `apps/studio-web` already consume shared contracts and shared application services instead of inventing page-local shapes.
+- `apps/child-app` is now bootstrapped as an Expo workspace app and directly consumes shared `StoryPackage`, `ReadingSession`, and `ReadingEvent` application services.
 - Contract tests and SDK self-checks already validate the current bootstrap payloads against the shared schemas.
 - Legacy docs have been moved under `docs/archive/`, so the repo now has a clean active-docs area.
 
@@ -75,6 +76,8 @@ The following checks have already passed on the current baseline:
 - `npx tsc -p packages/sdk/tsconfig.json --noEmit`
 - `npm run build --workspace caregiver-web`
 - `npm run build --workspace studio-web`
+- `npm run typecheck --workspace child-app`
+- `npm run build --workspace child-app`
 
 ## Current V2 decisions
 
@@ -88,7 +91,7 @@ The following checks have already passed on the current baseline:
 
 ## Known gaps
 
-- `apps/child-app` does not exist yet.
+- `apps/child-app` is only the first runtime shell. Offline package caching, media playback orchestration, and real caregiver-to-child assignment flows are not implemented yet.
 - The current FastAPI layer is still a bootstrap/PoC boundary and not the final modular monolith described in `02-*`.
 - Real persistence, real object storage, release workflow, and content packaging jobs are not implemented yet.
 - Legacy `apps/web` still exists and should continue to be treated as a migration reference, not a target architecture.
@@ -96,7 +99,7 @@ The following checks have already passed on the current baseline:
 ## Current focus and next slices
 
 - Keep extracting shared logic out of app-local code into `packages/contracts` and `packages/sdk`.
-- Build the eventual child runtime on top of the existing `StoryPackage`, reading session, and reading event contracts.
+- Grow the child runtime from the new Expo shell toward real offline package consumption, page navigation, media playback, and assignment-driven home recommendations.
 - Replace bootstrap fallback/demo responses with real backend module implementations behind the same contracts.
 - Continue reducing legacy `apps/web` responsibility until it can be retired from the V2 main path.
 
@@ -107,3 +110,8 @@ The following checks have already passed on the current baseline:
 - Rewrote `docs/README.md`, `docs/v2/README.md`, and `apps/README.md` into clean governance entrypoints.
 - Wired the activity log into the official read-before-work order across docs and contracts.
 - Preserved the current baseline as the starting point for subsequent business-logic slices.
+- Bootstrapped `apps/child-app` with Expo SDK 55 and React Native, using the official monorepo-compatible app foundation.
+- Replaced the Expo tutorial screens with a child runtime shell that loads a shared `StoryPackage`, starts a shared reading session, and ingests shared reading events.
+- Added runtime-mode switching so the child app can default to demo mode and optionally use the shared API client with `EXPO_PUBLIC_*` environment variables.
+- Removed unused Expo template tutorial components and assets so the child app workspace now reflects product structure rather than scaffold leftovers.
+- Verified the child app with `npm run typecheck --workspace child-app` and `npm run build --workspace child-app`.

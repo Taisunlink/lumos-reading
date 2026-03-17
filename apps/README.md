@@ -9,7 +9,7 @@ This directory contains both remaining legacy PoC apps and the V2 target surface
 - `studio-web/`
   Active minimal studio and operations shell. It already consumes shared contracts and shared application services.
 - `child-app/`
-  Planned iPad-first child runtime surface. Not bootstrapped yet.
+  Bootstrapped Expo and React Native child runtime shell. It already consumes shared reading contracts and shared application services.
 - `workers/`
   Planned async jobs boundary for packaging, TTS, safety review, release, and other offline workflows.
 
