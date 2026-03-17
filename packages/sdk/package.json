@@ -11,6 +11,7 @@
     ".": "./index.ts"
   },
   "files": [
+    "application.ts",
     "index.ts",
     "caregiver.ts",
     "demo.ts",

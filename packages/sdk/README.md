@@ -8,6 +8,7 @@ Shared V2 API client package for LumosReading.
 - Expose a reusable client for `/api/v2`
 - Keep transport logic out of app pages and components
 - Expose shared caregiver subdomain services so multiple surfaces can consume the same page models
+- Expose shared reading application services for story package lookup, reading session creation, and event ingestion
 - Expose the placeholder OSS storage contract used by demo and fallback assets
 
 ## Current API surface
@@ -35,5 +36,14 @@ Shared V2 API client package for LumosReading.
 - `fallbackProgressDomainView`
 - `PlaceholderOssStorageService`
 - `createPlaceholderOssStorageService`
+
+## Shared application surfaces
+
+- `createReadingApplicationServices`
+- `buildDemoReadingSessionPayload`
+- `buildDemoReadingEventBatchRequest`
+- `demoStoryPackageId`
+- `demoChildId`
+- `demoReadingSessionId`
 
 `@lumosreading/contracts` remains the authority for schemas and domain payload types.

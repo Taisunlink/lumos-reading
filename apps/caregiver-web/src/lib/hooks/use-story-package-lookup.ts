@@ -2,7 +2,7 @@
 
 import { startTransition, useState } from "react";
 import type { StoryPackageManifestV1 } from "@lumosreading/contracts";
-import { getStoryPackage } from "@/lib/api/v2";
+import { readingApplicationServices } from "@/lib/api/v2";
 
 type LookupStatus = "idle" | "pending" | "success" | "error";
 
@@ -16,7 +16,7 @@ export function useStoryPackageLookup() {
     setError(null);
 
     try {
-      const response = await getStoryPackage(packageId);
+      const response = await readingApplicationServices.storyPackages.lookup(packageId);
 
       startTransition(() => {
         setData(response);

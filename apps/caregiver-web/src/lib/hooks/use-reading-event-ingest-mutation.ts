@@ -1,22 +1,27 @@
 "use client";
 
 import { startTransition, useState } from "react";
-import type { ReadingSessionCreateV2, ReadingSessionResponseV2 } from "@lumosreading/contracts";
+import type {
+  ReadingEventBatchRequestV2,
+  ReadingEventIngestedResponseV2,
+} from "@lumosreading/contracts";
 import { readingApplicationServices } from "@/lib/api/v2";
 
 type MutationStatus = "idle" | "pending" | "success" | "error";
 
-export function useReadingSessionMutation() {
-  const [data, setData] = useState<ReadingSessionResponseV2 | null>(null);
+export function useReadingEventIngestMutation() {
+  const [data, setData] = useState<ReadingEventIngestedResponseV2 | null>(null);
   const [status, setStatus] = useState<MutationStatus>("idle");
   const [error, setError] = useState<string | null>(null);
 
-  async function mutate(payload: ReadingSessionCreateV2): Promise<ReadingSessionResponseV2> {
+  async function mutate(
+    payload: ReadingEventBatchRequestV2,
+  ): Promise<ReadingEventIngestedResponseV2> {
     setStatus("pending");
     setError(null);
 
     try {
-      const response = await readingApplicationServices.readingSessions.start(payload);
+      const response = await readingApplicationServices.readingEvents.ingestBatch(payload);
 
       startTransition(() => {
         setData(response);
@@ -26,7 +31,7 @@ export function useReadingSessionMutation() {
       return response;
     } catch (caught) {
       const message =
-        caught instanceof Error ? caught.message : "Failed to create reading session.";
+        caught instanceof Error ? caught.message : "Failed to ingest reading events.";
 
       startTransition(() => {
         setStatus("error");

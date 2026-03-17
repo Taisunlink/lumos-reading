@@ -1,6 +1,7 @@
 import {
   DEFAULT_LUMOS_API_BASE_URL,
   createCaregiverSubdomainServices,
+  createReadingApplicationServices,
   createLumosApiClient,
 } from "@lumosreading/sdk";
 
@@ -12,6 +13,7 @@ export const apiClient = createLumosApiClient({
 });
 
 export const caregiverSubdomainServices = createCaregiverSubdomainServices(apiClient);
+export const readingApplicationServices = createReadingApplicationServices(apiClient);
 
 export const getCaregiverHousehold = apiClient.getCaregiverHousehold;
 export const getCaregiverChildren = apiClient.getCaregiverChildren;

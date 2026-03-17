@@ -16,7 +16,9 @@ import {
   type CaregiverProgressEventV1,
   type CaregiverProgressV1,
   type CaregiverWeeklyPlanItemV1,
+  type ReadingEventBatchRequestV2,
   type ReadingEventV1,
+  type ReadingSessionCreateV2,
   type StoryPackageManifestV1,
 } from "@lumosreading/contracts";
 import {
@@ -28,6 +30,9 @@ import {
 import { createPlaceholderOssStorageService } from "./object-storage";
 
 export const demoHouseholdId = "44444444-4444-4444-4444-444444444444";
+export const demoChildId = "55555555-5555-5555-5555-555555555555";
+export const demoSecondaryChildId = "12121212-1212-1212-1212-121212121212";
+export const demoReadingSessionId = "d1d3a8c0-05f3-45bd-9a56-72a911200099";
 
 export type ResolvedChildSnapshot = CaregiverChildSummaryV1 & {
   currentPackage: StoryPackageManifestV1;
@@ -175,13 +180,21 @@ const packageLibrary = {
   }),
 };
 
+export const demoStoryPackageId = packageLibrary.friendshipTrail.package_id;
+export const demoStoryPackage = packageLibrary.friendshipTrail;
+export const demoPackageQueue = [
+  packageLibrary.friendshipTrail,
+  packageLibrary.moonGarden,
+  packageLibrary.bridgeWords,
+] as const;
+
 const recentEvents: ReadingEventV1[] = [
   buildEvent({
     eventId: "c1d3a8c0-05f3-45bd-9a56-72a911200001",
     type: "session_completed",
     occurredAt: "2026-03-16T19:42:00Z",
     sessionId: "d1d3a8c0-05f3-45bd-9a56-72a911200001",
-    childId: "55555555-5555-5555-5555-555555555555",
+    childId: demoChildId,
     packageId: packageLibrary.friendshipTrail.package_id,
     payload: { dwell_ms: 402000 },
   }),
@@ -190,7 +203,7 @@ const recentEvents: ReadingEventV1[] = [
     type: "word_revealed_translation",
     occurredAt: "2026-03-16T19:21:00Z",
     sessionId: "d1d3a8c0-05f3-45bd-9a56-72a911200002",
-    childId: "55555555-5555-5555-5555-555555555555",
+    childId: demoChildId,
     packageId: packageLibrary.bridgeWords.package_id,
     payload: { word: "bridge", reveal_count: 1 },
     pageIndex: 0,
@@ -200,7 +213,7 @@ const recentEvents: ReadingEventV1[] = [
     type: "page_replayed_audio",
     occurredAt: "2026-03-15T11:12:00Z",
     sessionId: "d1d3a8c0-05f3-45bd-9a56-72a911200003",
-    childId: "12121212-1212-1212-1212-121212121212",
+    childId: demoSecondaryChildId,
     packageId: packageLibrary.moonGarden.package_id,
     payload: { replay_count: 2 },
     pageIndex: 0,
@@ -210,7 +223,7 @@ const recentEvents: ReadingEventV1[] = [
     type: "assist_mode_enabled",
     occurredAt: "2026-03-14T20:08:00Z",
     sessionId: "d1d3a8c0-05f3-45bd-9a56-72a911200004",
-    childId: "12121212-1212-1212-1212-121212121212",
+    childId: demoSecondaryChildId,
     packageId: packageLibrary.moonGarden.package_id,
     payload: { assist_mode: "focus_support" },
   }),
@@ -229,7 +242,7 @@ export const fallbackCaregiverDashboard: CaregiverDashboardV1 = {
   recent_events: recentEvents,
   children: [
     {
-      child_id: "55555555-5555-5555-5555-555555555555",
+      child_id: demoChildId,
       name: "Mina",
       age_label: "Age 5",
       focus: "Shared reading and early vocabulary",
@@ -237,7 +250,7 @@ export const fallbackCaregiverDashboard: CaregiverDashboardV1 = {
       current_package_id: packageLibrary.friendshipTrail.package_id,
     },
     {
-      child_id: "12121212-1212-1212-1212-121212121212",
+      child_id: demoSecondaryChildId,
       name: "Leo",
       age_label: "Age 7",
       focus: "Bilingual assist with predictable pacing",
@@ -404,3 +417,85 @@ export const fallbackPlanDomainView = buildPlanDomainView(
 export const fallbackProgressDomainView = buildProgressDomainView(
   fallbackCaregiverProgress,
 );
+
+export type DemoReadingSessionPayloadOptions = {
+  childId?: string;
+  packageId?: string;
+  startedAt?: string;
+  mode?: string;
+  languageMode?: string;
+  assistMode?: string[];
+};
+
+export function buildDemoReadingSessionPayload(
+  options: DemoReadingSessionPayloadOptions = {},
+): ReadingSessionCreateV2 {
+  return {
+    child_id: options.childId ?? demoChildId,
+    package_id: options.packageId ?? demoStoryPackageId,
+    started_at: options.startedAt ?? new Date().toISOString(),
+    mode: options.mode ?? "read_to_me",
+    language_mode: options.languageMode ?? "zh-CN",
+    assist_mode: options.assistMode ?? ["read_aloud_sync"],
+  };
+}
+
+export type DemoReadingEventBatchRequestOptions = {
+  childId?: string;
+  packageId?: string;
+  sessionId?: string;
+  occurredAt?: string;
+  appVersion?: string;
+  languageMode?: string;
+};
+
+export function buildDemoReadingEventBatchRequest(
+  options: DemoReadingEventBatchRequestOptions = {},
+): ReadingEventBatchRequestV2 {
+  const childId = options.childId ?? demoChildId;
+  const packageId = options.packageId ?? demoStoryPackageId;
+  const sessionId = options.sessionId ?? demoReadingSessionId;
+  const occurredAt = options.occurredAt ?? new Date().toISOString();
+  const appVersion = options.appVersion ?? "2.0.0";
+  const languageMode = options.languageMode ?? "zh-CN";
+
+  return {
+    events: [
+      {
+        schema_version: READING_EVENT_SCHEMA_VERSION,
+        event_id: "c1d3a8c0-05f3-45bd-9a56-72a911200101",
+        event_type: "session_started",
+        occurred_at: occurredAt,
+        session_id: sessionId,
+        child_id: childId,
+        package_id: packageId,
+        page_index: null,
+        platform: "ipadOS",
+        surface: "child-app",
+        app_version: appVersion,
+        language_mode: languageMode,
+        payload: {
+          source: "api-workbench",
+        },
+      },
+      {
+        schema_version: READING_EVENT_SCHEMA_VERSION,
+        event_id: "c1d3a8c0-05f3-45bd-9a56-72a911200102",
+        event_type: "page_viewed",
+        occurred_at: occurredAt,
+        session_id: sessionId,
+        child_id: childId,
+        package_id: packageId,
+        page_index: 0,
+        platform: "ipadOS",
+        surface: "child-app",
+        app_version: appVersion,
+        language_mode: languageMode,
+        payload: {
+          dwell_ms: 18000,
+          source: "api-workbench",
+        },
+      },
+    ],
+  };
+}

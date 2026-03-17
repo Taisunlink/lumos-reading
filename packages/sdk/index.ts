@@ -14,6 +14,7 @@ import type {
 export * from "./caregiver";
 export * from "./demo";
 export * from "./object-storage";
+export * from "./application";
 
 export const DEFAULT_LUMOS_API_BASE_URL = "http://localhost:8000/api/v2";
 
