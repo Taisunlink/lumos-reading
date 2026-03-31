@@ -162,15 +162,7 @@ class StoryPackageReleaseService:
             if build["package_id"] != str(package_id):
                 raise StoryPackageReleaseValidationError("Build does not belong to the requested package.")
 
-            if audit["audit_status"] != "approved":
-                raise StoryPackageReleaseValidationError(
-                    "Only packages with an approved safety audit can be released."
-                )
-
-            if audit.get("resolution", {}).get("action") != "release":
-                raise StoryPackageReleaseValidationError(
-                    "Safety audit resolution must explicitly allow release."
-                )
+            self._assert_release_allowed(audit)
 
             for release in state["releases"]:
                 if release["package_id"] == str(package_id) and release["status"] == "active":
@@ -268,12 +260,15 @@ class StoryPackageReleaseService:
             self._bootstrap_release_state(state)
             draft = self._find_draft(state, package_id)
             target_release = self._find_release(state, command.target_release_id)
+            audit = self._find_audit(state, draft["safety_audit_id"])
 
             if target_release["package_id"] != str(package_id):
                 raise StoryPackageReleaseValidationError("Target release does not belong to the requested package.")
 
             if target_release["status"] == "recalled":
                 raise StoryPackageReleaseValidationError("Recalled releases cannot be promoted through rollback.")
+
+            self._assert_release_allowed(audit)
 
             for release in state["releases"]:
                 if release["package_id"] == str(package_id) and release["status"] == "active":
@@ -476,6 +471,18 @@ class StoryPackageReleaseService:
         if release is None:
             raise StoryPackageReleaseNotFoundError(f"Unknown release id: {release_id}")
         return release
+
+    @staticmethod
+    def _assert_release_allowed(audit: dict[str, Any]) -> None:
+        if audit["audit_status"] != "approved":
+            raise StoryPackageReleaseValidationError(
+                "Only packages with an approved safety audit can be released."
+            )
+
+        if audit.get("resolution", {}).get("action") != "release":
+            raise StoryPackageReleaseValidationError(
+                "Safety audit resolution must explicitly allow release."
+            )
 
     @staticmethod
     def _find_audit(state: dict[str, Any], audit_id: str) -> dict[str, Any]:

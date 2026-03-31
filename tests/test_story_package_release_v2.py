@@ -443,6 +443,39 @@ def test_cannot_release_package_without_approved_audit() -> None:
     assert selected_draft["active_release_id"] is not None
 
 
+def test_cannot_rollback_package_without_approved_audit() -> None:
+    client = TestClient(app)
+
+    seed_history_response = client.get(
+        f"/api/v2/story-packages/{PACKAGE_ID}/history",
+        headers={"host": "localhost"},
+    )
+    assert seed_history_response.status_code == 200
+    seed_history = seed_history_response.json()
+    seed_release = next(
+        item for item in seed_history["releases"] if item["release_version"] == 1
+    )
+
+    set_package_audit_state(
+        PACKAGE_ID,
+        audit_status="needs_revision",
+        resolution_action="block",
+    )
+
+    rollback_response = client.post(
+        f"/api/v2/story-packages/{PACKAGE_ID}:rollback",
+        headers={"host": "localhost"},
+        json={
+            "schema_version": "story-package-rollback-command.v1",
+            "target_release_id": seed_release["release_id"],
+            "requested_by": "studio.operator",
+            "requested_at": build_request_time(9),
+            "reason": "Attempt rollback after audit regression.",
+        },
+    )
+    assert rollback_response.status_code == 400
+
+
 def test_unknown_story_package_history_returns_404() -> None:
     client = TestClient(app)
     unknown_package_id = "aaaaaaaa-0000-1111-2222-bbbbbbbbbbbb"

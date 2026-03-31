@@ -65,6 +65,9 @@ export function StudioPackageWorkspace() {
     latestBuild !== null &&
     selectedHistory.audit.audit_status === "approved" &&
     selectedHistory.audit.resolution.action === "release";
+  const canRollback =
+    selectedHistory.audit.audit_status === "approved" &&
+    selectedHistory.audit.resolution.action === "release";
   const isBusy = actionState.status === "running";
 
   return (
@@ -422,7 +425,7 @@ export function StudioPackageWorkspace() {
                               `Rollback to release ${release.release_version} via studio console.`,
                             )
                           }
-                          disabled={isBusy}
+                          disabled={isBusy || !canRollback}
                         >
                           Roll back to this release
                         </button>

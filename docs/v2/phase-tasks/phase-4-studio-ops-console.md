@@ -28,7 +28,7 @@ Turn studio-web into the operator surface for review and release control.
 - [x] Wire publish and recall actions
 - [x] Add release history and operator notes visibility
 - [x] Add build verification for studio-web
-- [x] Enforce approved-audit release gating in the backend and studio publish surface
+- [x] Enforce approved-audit release gating in the backend and studio publish and rollback surfaces
 
 ## Verification
 
@@ -46,5 +46,5 @@ Turn studio-web into the operator surface for review and release control.
 ## Implementation notes
 
 - `studio-web` now consumes shared release-domain hooks and shared SDK view models instead of caregiver page models.
-- Publish is backend-gated and UI-gated by `safety_audit.audit_status == approved` plus `resolution.action == release`.
+- Publish and rollback are backend-gated and UI-gated by `safety_audit.audit_status == approved` plus `resolution.action == release`.
 - Accepted follow-up: local seed/runtime data still skews toward approved/released samples, so later phases should add richer pending/rejected AI-draft fixtures.

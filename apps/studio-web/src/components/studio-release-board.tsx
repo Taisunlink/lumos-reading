@@ -164,7 +164,11 @@ export function StudioReleaseBoard() {
                         `Rollback to release ${release.release_version} from studio release board.`,
                       )
                     }
-                    disabled={isBusy}
+                    disabled={
+                      isBusy ||
+                      history.audit.audit_status !== "approved" ||
+                      history.audit.resolution.action !== "release"
+                    }
                   >
                     Roll back to this release
                   </button>
