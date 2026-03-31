@@ -12,6 +12,15 @@ import readingEventSchema from "./schemas/reading-event.v1.schema.json";
 import readingSessionCreateSchema from "./schemas/reading-session-create.v2.schema.json";
 import readingSessionResponseSchema from "./schemas/reading-session-response.v2.schema.json";
 import safetyAuditSchema from "./schemas/safety-audit.v1.schema.json";
+import storyPackageBuildCommandSchema from "./schemas/story-package-build-command.v1.schema.json";
+import storyPackageBuildSchema from "./schemas/story-package-build.v1.schema.json";
+import storyPackageDraftIndexSchema from "./schemas/story-package-draft-index.v1.schema.json";
+import storyPackageDraftSchema from "./schemas/story-package-draft.v1.schema.json";
+import storyPackageHistorySchema from "./schemas/story-package-history.v1.schema.json";
+import storyPackageRecallCommandSchema from "./schemas/story-package-recall-command.v1.schema.json";
+import storyPackageReleaseCommandSchema from "./schemas/story-package-release-command.v1.schema.json";
+import storyPackageReleaseSchema from "./schemas/story-package-release.v1.schema.json";
+import storyPackageRollbackCommandSchema from "./schemas/story-package-rollback-command.v1.schema.json";
 import storyPackageSchema from "./schemas/story-package.v1.schema.json";
 
 export const CAREGIVER_DASHBOARD_SCHEMA_VERSION = "caregiver-dashboard.v1" as const;
@@ -32,6 +41,20 @@ export const READING_EVENT_BATCH_SCHEMA_VERSION = "reading-event-batch.v2" as co
 export const READING_EVENT_INGESTED_RESPONSE_SCHEMA_VERSION =
   "reading-event-ingested-response.v2" as const;
 export const SAFETY_AUDIT_SCHEMA_VERSION = "safety-audit.v1" as const;
+export const STORY_PACKAGE_BUILD_COMMAND_SCHEMA_VERSION =
+  "story-package-build-command.v1" as const;
+export const STORY_PACKAGE_BUILD_SCHEMA_VERSION = "story-package-build.v1" as const;
+export const STORY_PACKAGE_DRAFT_INDEX_SCHEMA_VERSION =
+  "story-package-draft-index.v1" as const;
+export const STORY_PACKAGE_DRAFT_SCHEMA_VERSION = "story-package-draft.v1" as const;
+export const STORY_PACKAGE_HISTORY_SCHEMA_VERSION = "story-package-history.v1" as const;
+export const STORY_PACKAGE_RECALL_COMMAND_SCHEMA_VERSION =
+  "story-package-recall-command.v1" as const;
+export const STORY_PACKAGE_RELEASE_COMMAND_SCHEMA_VERSION =
+  "story-package-release-command.v1" as const;
+export const STORY_PACKAGE_RELEASE_SCHEMA_VERSION = "story-package-release.v1" as const;
+export const STORY_PACKAGE_ROLLBACK_COMMAND_SCHEMA_VERSION =
+  "story-package-rollback-command.v1" as const;
 
 export const caregiverDashboardV1Schema = caregiverDashboardSchema;
 export const caregiverAssignmentCommandV1Schema = caregiverAssignmentCommandSchema;
@@ -48,6 +71,15 @@ export const readingSessionResponseV2Schema = readingSessionResponseSchema;
 export const readingEventBatchV2Schema = readingEventBatchSchema;
 export const readingEventIngestedResponseV2Schema = readingEventIngestedResponseSchema;
 export const safetyAuditV1Schema = safetyAuditSchema;
+export const storyPackageBuildCommandV1Schema = storyPackageBuildCommandSchema;
+export const storyPackageBuildV1Schema = storyPackageBuildSchema;
+export const storyPackageDraftIndexV1Schema = storyPackageDraftIndexSchema;
+export const storyPackageDraftV1Schema = storyPackageDraftSchema;
+export const storyPackageHistoryV1Schema = storyPackageHistorySchema;
+export const storyPackageRecallCommandV1Schema = storyPackageRecallCommandSchema;
+export const storyPackageReleaseCommandV1Schema = storyPackageReleaseCommandSchema;
+export const storyPackageReleaseV1Schema = storyPackageReleaseSchema;
+export const storyPackageRollbackCommandV1Schema = storyPackageRollbackCommandSchema;
 
 export type LanguageTag = string;
 export type Surface = "child-app" | "caregiver-web" | "studio-web";
@@ -55,6 +87,10 @@ export type Platform = "ipadOS" | "ios" | "android" | "web" | "desktop-web" | "u
 
 export type ReleaseChannel = "general" | "pilot" | "experimental" | "internal";
 export type StoryPackageReviewStatus = "approved" | "limited_release" | "recalled";
+export type StoryPackageSourceType = "editorial" | "ai_generated";
+export type StoryPackageWorkflowState = "draft" | "built" | "released" | "recalled";
+export type StoryPackageBuildStatus = "queued" | "running" | "succeeded" | "failed";
+export type StoryPackageReleaseStatus = "active" | "recalled" | "superseded";
 
 export interface StoryPackageSafetyV1 {
   review_status: StoryPackageReviewStatus;
@@ -340,4 +376,102 @@ export interface SafetyAuditV1 {
   created_at: string;
   reviewed_at?: string | null;
   resolution: SafetyAuditResolutionV1;
+}
+
+export interface StoryPackageDraftV1 {
+  schema_version: typeof STORY_PACKAGE_DRAFT_SCHEMA_VERSION;
+  draft_id: string;
+  package_id: string;
+  source_type: StoryPackageSourceType;
+  workflow_state: StoryPackageWorkflowState;
+  package_preview: StoryPackageManifestV1;
+  safety_audit: SafetyAuditV1;
+  operator_notes: string[];
+  latest_build_id?: string | null;
+  active_release_id?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StoryPackageDraftIndexV1 {
+  schema_version: typeof STORY_PACKAGE_DRAFT_INDEX_SCHEMA_VERSION;
+  generated_at: string;
+  drafts: StoryPackageDraftV1[];
+}
+
+export interface StoryPackageBuildCommandV1 {
+  schema_version: typeof STORY_PACKAGE_BUILD_COMMAND_SCHEMA_VERSION;
+  build_reason: string;
+  requested_by: string;
+  requested_at: string;
+}
+
+export interface StoryPackageBuildV1 {
+  schema_version: typeof STORY_PACKAGE_BUILD_SCHEMA_VERSION;
+  build_id: string;
+  draft_id: string;
+  package_id: string;
+  build_version: number;
+  status: StoryPackageBuildStatus;
+  build_reason: string;
+  worker_job_id: string;
+  manifest_object_key: string;
+  artifact_root_object_key: string;
+  requested_by: string;
+  requested_at: string;
+  completed_at?: string | null;
+  failure_message?: string | null;
+  built_package: StoryPackageManifestV1;
+}
+
+export interface StoryPackageReleaseCommandV1 {
+  schema_version: typeof STORY_PACKAGE_RELEASE_COMMAND_SCHEMA_VERSION;
+  build_id: string;
+  release_channel: ReleaseChannel;
+  requested_by: string;
+  requested_at: string;
+  notes?: string;
+}
+
+export interface StoryPackageReleaseV1 {
+  schema_version: typeof STORY_PACKAGE_RELEASE_SCHEMA_VERSION;
+  release_id: string;
+  package_id: string;
+  draft_id: string;
+  build_id: string;
+  release_version: number;
+  release_channel: ReleaseChannel;
+  status: StoryPackageReleaseStatus;
+  runtime_lookup_key: string;
+  requested_by: string;
+  released_at: string;
+  notes?: string;
+  recalled_at?: string | null;
+  rollback_of_release_id?: string | null;
+}
+
+export interface StoryPackageRecallCommandV1 {
+  schema_version: typeof STORY_PACKAGE_RECALL_COMMAND_SCHEMA_VERSION;
+  release_id: string;
+  requested_by: string;
+  requested_at: string;
+  reason?: string;
+}
+
+export interface StoryPackageRollbackCommandV1 {
+  schema_version: typeof STORY_PACKAGE_ROLLBACK_COMMAND_SCHEMA_VERSION;
+  target_release_id: string;
+  requested_by: string;
+  requested_at: string;
+  reason?: string;
+}
+
+export interface StoryPackageHistoryV1 {
+  schema_version: typeof STORY_PACKAGE_HISTORY_SCHEMA_VERSION;
+  package_id: string;
+  draft: StoryPackageDraftV1;
+  builds: StoryPackageBuildV1[];
+  releases: StoryPackageReleaseV1[];
+  active_release_id?: string | null;
+  generated_at: string;
 }

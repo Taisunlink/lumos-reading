@@ -19,6 +19,7 @@
     "caregiver.ts",
     "demo.ts",
     "object-storage.ts",
+    "release.ts",
     "tsconfig.json",
     "README.md"
   ],

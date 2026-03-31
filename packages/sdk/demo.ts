@@ -10,6 +10,16 @@ import {
   CAREGIVER_PROGRESS_SCHEMA_VERSION,
   CHILD_HOME_SCHEMA_VERSION,
   READING_EVENT_SCHEMA_VERSION,
+  SAFETY_AUDIT_SCHEMA_VERSION,
+  STORY_PACKAGE_BUILD_COMMAND_SCHEMA_VERSION,
+  STORY_PACKAGE_BUILD_SCHEMA_VERSION,
+  STORY_PACKAGE_DRAFT_INDEX_SCHEMA_VERSION,
+  STORY_PACKAGE_DRAFT_SCHEMA_VERSION,
+  STORY_PACKAGE_HISTORY_SCHEMA_VERSION,
+  STORY_PACKAGE_RECALL_COMMAND_SCHEMA_VERSION,
+  STORY_PACKAGE_RELEASE_COMMAND_SCHEMA_VERSION,
+  STORY_PACKAGE_RELEASE_SCHEMA_VERSION,
+  STORY_PACKAGE_ROLLBACK_COMMAND_SCHEMA_VERSION,
   STORY_PACKAGE_SCHEMA_VERSION,
   type ChildHomeV1,
   type CaregiverChildAssignmentV1,
@@ -27,6 +37,16 @@ import {
   type ReadingEventV1,
   type ReadingSessionCreateV2,
   type ReadingSessionResponseV2,
+  type SafetyAuditV1,
+  type StoryPackageBuildCommandV1,
+  type StoryPackageBuildV1,
+  type StoryPackageDraftIndexV1,
+  type StoryPackageDraftV1,
+  type StoryPackageHistoryV1,
+  type StoryPackageRecallCommandV1,
+  type StoryPackageReleaseCommandV1,
+  type StoryPackageReleaseV1,
+  type StoryPackageRollbackCommandV1,
   type StoryPackageManifestV1,
 } from '@lumosreading/contracts';
 import {
@@ -42,6 +62,9 @@ export const demoChildId = '55555555-5555-5555-5555-555555555555';
 export const demoSecondaryChildId = '12121212-1212-1212-1212-121212121212';
 export const demoReadingSessionId = 'd1d3a8c0-05f3-45bd-9a56-72a911200099';
 export const demoAcceptedAt = '2026-03-17T20:00:30Z';
+export const demoDraftId = '45454545-4545-4545-4545-454545454545';
+export const demoBuildId = '56565656-5656-5656-5656-565656565656';
+export const demoReleaseId = '67676767-6767-6767-6767-676767676767';
 
 export type ResolvedChildSnapshot = CaregiverChildSummaryV1 & {
   currentPackage: StoryPackageManifestV1;
@@ -266,6 +289,183 @@ export const demoPackageQueue = [
   packageLibrary.moonGarden,
   packageLibrary.bridgeWords,
 ] as const;
+
+export const demoSafetyAudit: SafetyAuditV1 = {
+  schema_version: SAFETY_AUDIT_SCHEMA_VERSION,
+  audit_id: '78787878-7878-7878-7878-787878787878',
+  target_type: 'story_package',
+  target_id: demoStoryPackageId,
+  audit_source: 'pre_release',
+  audit_status: 'approved',
+  severity: 'low',
+  policy_version: '2026.03',
+  findings: [],
+  reviewer: {
+    reviewer_type: 'hybrid',
+    reviewer_id: 'ops.review.bot',
+  },
+  created_at: '2026-03-17T11:45:00Z',
+  reviewed_at: '2026-03-17T12:00:00Z',
+  resolution: {
+    action: 'release',
+    notes: 'Bootstrap package cleared for pilot release.',
+    resolved_at: '2026-03-17T12:00:00Z',
+  },
+};
+
+export const fallbackStoryPackageDraft: StoryPackageDraftV1 = {
+  schema_version: STORY_PACKAGE_DRAFT_SCHEMA_VERSION,
+  draft_id: demoDraftId,
+  package_id: demoStoryPackageId,
+  source_type: 'editorial',
+  workflow_state: 'released',
+  package_preview: demoStoryPackage,
+  safety_audit: demoSafetyAudit,
+  operator_notes: ['Bootstrap runtime package seeded for release-loop validation.'],
+  latest_build_id: demoBuildId,
+  active_release_id: demoReleaseId,
+  created_at: '2026-03-17T11:40:00Z',
+  updated_at: demoAcceptedAt,
+};
+
+export const fallbackStoryPackageDraftIndex: StoryPackageDraftIndexV1 = {
+  schema_version: STORY_PACKAGE_DRAFT_INDEX_SCHEMA_VERSION,
+  generated_at: demoAcceptedAt,
+  drafts: [fallbackStoryPackageDraft],
+};
+
+export function buildDemoStoryPackageBuildCommand(
+  overrides: Partial<StoryPackageBuildCommandV1> = {},
+): StoryPackageBuildCommandV1 {
+  return {
+    schema_version: STORY_PACKAGE_BUILD_COMMAND_SCHEMA_VERSION,
+    build_reason: overrides.build_reason ?? 'editorial_release',
+    requested_by: overrides.requested_by ?? 'studio.operator',
+    requested_at: overrides.requested_at ?? demoAcceptedAt,
+  };
+}
+
+export function buildDemoStoryPackageBuild(
+  overrides: Partial<StoryPackageBuildV1> = {},
+): StoryPackageBuildV1 {
+  return {
+    schema_version: STORY_PACKAGE_BUILD_SCHEMA_VERSION,
+    build_id: overrides.build_id ?? demoBuildId,
+    draft_id: overrides.draft_id ?? demoDraftId,
+    package_id: overrides.package_id ?? demoStoryPackageId,
+    build_version: overrides.build_version ?? 2,
+    status: overrides.status ?? 'succeeded',
+    build_reason: overrides.build_reason ?? 'editorial_release',
+    worker_job_id: overrides.worker_job_id ?? 'story-package-build:demo:2',
+    manifest_object_key:
+      overrides.manifest_object_key ??
+      `story-packages/runtime/${demoStoryPackageId}/build-2/manifest.json`,
+    artifact_root_object_key:
+      overrides.artifact_root_object_key ??
+      `story-packages/runtime/${demoStoryPackageId}/build-2`,
+    requested_by: overrides.requested_by ?? 'studio.operator',
+    requested_at: overrides.requested_at ?? demoAcceptedAt,
+    completed_at: overrides.completed_at ?? demoAcceptedAt,
+    failure_message: overrides.failure_message ?? null,
+    built_package: overrides.built_package ?? {
+      ...demoStoryPackage,
+      cover_image_url: placeholderStorage.getPublicUrl(
+        `story-packages/runtime/${demoStoryPackageId}/build-2/cover.png`
+      ),
+      pages: demoStoryPackage.pages.map((page) => ({
+        ...page,
+        media: {
+          image_url: placeholderStorage.getPublicUrl(
+            `story-packages/runtime/${demoStoryPackageId}/build-2/pages/${page.page_index}/image.png`
+          ),
+          audio_url: placeholderStorage.getPublicUrl(
+            `story-packages/runtime/${demoStoryPackageId}/build-2/pages/${page.page_index}/audio.mp3`
+          ),
+        },
+      })),
+    },
+  };
+}
+
+export function buildDemoStoryPackageReleaseCommand(
+  overrides: Partial<StoryPackageReleaseCommandV1> = {},
+): StoryPackageReleaseCommandV1 {
+  return {
+    schema_version: STORY_PACKAGE_RELEASE_COMMAND_SCHEMA_VERSION,
+    build_id: overrides.build_id ?? demoBuildId,
+    release_channel: overrides.release_channel ?? 'general',
+    requested_by: overrides.requested_by ?? 'studio.operator',
+    requested_at: overrides.requested_at ?? demoAcceptedAt,
+    notes: overrides.notes ?? 'Promote build for runtime validation.',
+  };
+}
+
+export function buildDemoStoryPackageRelease(
+  overrides: Partial<StoryPackageReleaseV1> = {},
+): StoryPackageReleaseV1 {
+  return {
+    schema_version: STORY_PACKAGE_RELEASE_SCHEMA_VERSION,
+    release_id: overrides.release_id ?? demoReleaseId,
+    package_id: overrides.package_id ?? demoStoryPackageId,
+    draft_id: overrides.draft_id ?? demoDraftId,
+    build_id: overrides.build_id ?? demoBuildId,
+    release_version: overrides.release_version ?? 2,
+    release_channel: overrides.release_channel ?? 'general',
+    status: overrides.status ?? 'active',
+    runtime_lookup_key:
+      overrides.runtime_lookup_key ?? `/api/v2/story-packages/${demoStoryPackageId}`,
+    requested_by: overrides.requested_by ?? 'studio.operator',
+    released_at: overrides.released_at ?? demoAcceptedAt,
+    notes: overrides.notes ?? 'Promote build for runtime validation.',
+    recalled_at: overrides.recalled_at ?? null,
+    rollback_of_release_id: overrides.rollback_of_release_id ?? null,
+  };
+}
+
+export function buildDemoStoryPackageRecallCommand(
+  overrides: Partial<StoryPackageRecallCommandV1> = {},
+): StoryPackageRecallCommandV1 {
+  return {
+    schema_version: STORY_PACKAGE_RECALL_COMMAND_SCHEMA_VERSION,
+    release_id: overrides.release_id ?? demoReleaseId,
+    requested_by: overrides.requested_by ?? 'studio.operator',
+    requested_at: overrides.requested_at ?? demoAcceptedAt,
+    reason: overrides.reason ?? 'Recall after operator review.',
+  };
+}
+
+export function buildDemoStoryPackageRollbackCommand(
+  overrides: Partial<StoryPackageRollbackCommandV1> = {},
+): StoryPackageRollbackCommandV1 {
+  return {
+    schema_version: STORY_PACKAGE_ROLLBACK_COMMAND_SCHEMA_VERSION,
+    target_release_id: overrides.target_release_id ?? demoReleaseId,
+    requested_by: overrides.requested_by ?? 'studio.operator',
+    requested_at: overrides.requested_at ?? demoAcceptedAt,
+    reason: overrides.reason ?? 'Rollback to last stable release.',
+  };
+}
+
+export function buildDemoStoryPackageHistory(
+  overrides: Partial<StoryPackageHistoryV1> = {},
+): StoryPackageHistoryV1 {
+  const build = buildDemoStoryPackageBuild();
+  const release = buildDemoStoryPackageRelease();
+
+  return {
+    schema_version: STORY_PACKAGE_HISTORY_SCHEMA_VERSION,
+    package_id: overrides.package_id ?? demoStoryPackageId,
+    draft: overrides.draft ?? {
+      ...fallbackStoryPackageDraft,
+      latest_build_id: build.build_id,
+      active_release_id: release.release_id,
+    },
+    builds: overrides.builds ?? [build],
+    releases: overrides.releases ?? [release],
+    active_release_id: overrides.active_release_id ?? release.release_id,
+    generated_at: overrides.generated_at ?? demoAcceptedAt,
+  };
+}
 
 function resolveDemoPackageLanguageMode(packageId: string): string {
   return (

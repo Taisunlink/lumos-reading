@@ -92,13 +92,13 @@ The following checks have already passed on the current baseline:
 ## Known gaps
 
 - The current FastAPI layer is still a bootstrap/PoC boundary and not the final modular monolith described in `02-*`.
-- Real persistence, real object storage, release workflow, and content packaging jobs are not implemented yet.
+- Real database persistence and real object storage are still not implemented; the current package release loop uses a repo-local bootstrap seed/runtime store plus a synchronous worker helper.
 - Legacy `apps/web` still exists and should continue to be treated as a migration reference, not a target architecture.
 
 ## Current focus and next slices
 
 - Execute the sequential seven-phase delivery plan defined in `docs/v2/04-engineering-delivery-plan.md`.
-- Complete Phase 3 next: package release loop, release-state surfaces, and publish-readback flow.
+- Complete Phase 4 next: studio minimum operations console on top of the Phase 3 release surfaces.
 - Replace bootstrap fallback/demo responses with real backend module implementations behind the same contracts.
 - Continue reducing legacy `apps/web` responsibility until it can be retired from the V2 main path.
 
@@ -139,6 +139,23 @@ The following checks have already passed on the current baseline:
 - Verification passed for Phase 2 with `pytest tests/test_caregiver_v2_contracts.py -q`, `npm run test:contracts --workspace @lumosreading/sdk`, `npm run test:runtime-contracts --workspace child-app`, `npm run build --workspace caregiver-web`, `npm run typecheck --workspace child-app`, and `npm run build --workspace child-app`.
 - Phase 2 QC gate is cleared after making caregiver assignment validation atomic, so invalid package requests now fail with `400` and leave `caregiver/children` plus `child-home` unchanged.
 - The next recommended slice is Phase 3 package release loop delivery.
+
+## Session update: 2026-03-31 Phase 3
+
+- Added shared package release contracts for draft index, build, release, recall, rollback, and history, extending the V2 schema authority beyond runtime package lookup.
+- Extended the shared SDK API client with typed package release methods and added release-domain helpers so studio-facing surfaces can consume draft cards and history views without page-local aggregate logic.
+- Added a repo-local bootstrap seed/runtime store for package release state under `apps/api/app/data/v2/`, so package draft, build, release, and audit state now persist across local API sessions without changing runtime contracts.
+- Added a release-aware story package service in FastAPI, keeping `/api/v2/story-packages/{package_id}` as the runtime read path while backing it with active release resolution and versioned build records.
+- Added new Phase 3 API endpoints for draft listing, build trigger, release, recall, rollback, and history under the existing `story-packages` router.
+- Added a worker packaging helper in `apps/workers/jobs/story_package.py` so build output now rewrites runtime assets into versioned object-storage keys instead of returning fixture URLs directly.
+- Wired caregiver and child-home read models to the release-aware package service, so existing V2 surfaces now read the same released package records that the runtime package endpoint resolves.
+- Added dedicated release-loop API coverage for draft index, build-release-readback, recall fallback, recalled-only runtime state, rollback rejection for recalled releases, and unknown package history `404` handling.
+- Closed two QC-blocking state-machine issues: recalling the only active release no longer falls back to the raw source fixture, and rollback now rejects releases already marked `recalled`.
+- Aligned optional operator text semantics between FastAPI request models and shared JSON Schemas by allowing `null` on release command notes/reasons where the server already accepted omitted values.
+- Updated `docs/v2/02-v2-architecture-and-migration-blueprint.md` so the documented studio/package API list now matches the Phase 3 implementation and records the current synchronous worker-helper boundary.
+- Verification passed for Phase 3 with `pytest tests/test_caregiver_v2_contracts.py -q`, `pytest tests/test_story_package_release_v2.py -q`, `npm run test:contracts --workspace @lumosreading/sdk`, `npm run build --workspace studio-web`, `npm run build --workspace caregiver-web`, and `npm run build --workspace child-app`.
+- Phase 3 QC gate is cleared after subagent re-review confirmed no remaining blocking issue; the only accepted follow-up is that the repo-local runtime store currently has only in-process locking, so cross-process validation should stay serialized until a stronger file-lock or atomic strategy is introduced.
+- The next recommended slice is Phase 4 studio minimum operations console delivery.
 
 ## Session update: 2026-03-17
 

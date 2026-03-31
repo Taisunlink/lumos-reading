@@ -25,6 +25,17 @@ from .reading import (
 )
 from .safety_audit import SafetyAuditV1
 from .story_package import StoryPackageManifestV1
+from .story_package_release import (
+    StoryPackageBuildCommandV1,
+    StoryPackageBuildV1,
+    StoryPackageDraftIndexV1,
+    StoryPackageDraftV1,
+    StoryPackageHistoryV1,
+    StoryPackageRecallCommandV1,
+    StoryPackageReleaseCommandV1,
+    StoryPackageReleaseV1,
+    StoryPackageRollbackCommandV1,
+)
 
 __all__ = [
     "CaregiverAssignmentCommandV1",
@@ -47,5 +58,14 @@ __all__ = [
     "ReadingSessionCreateV2",
     "ReadingSessionResponseV2",
     "SafetyAuditV1",
+    "StoryPackageBuildCommandV1",
+    "StoryPackageBuildV1",
+    "StoryPackageDraftIndexV1",
+    "StoryPackageDraftV1",
+    "StoryPackageHistoryV1",
+    "StoryPackageRecallCommandV1",
+    "StoryPackageReleaseCommandV1",
+    "StoryPackageReleaseV1",
+    "StoryPackageRollbackCommandV1",
     "StoryPackageManifestV1",
 ]

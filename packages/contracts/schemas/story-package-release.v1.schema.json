@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lumosreading.local/story-package-release.v1.schema.json",
+  "title": "StoryPackageReleaseV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "release_id",
+    "package_id",
+    "draft_id",
+    "build_id",
+    "release_version",
+    "release_channel",
+    "status",
+    "runtime_lookup_key",
+    "requested_by",
+    "released_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "story-package-release.v1"
+    },
+    "release_id": {
+      "$ref": "https://schemas.lumosreading.local/story-package.v1.schema.json#/$defs/uuid"
+    },
+    "package_id": {
+      "$ref": "https://schemas.lumosreading.local/story-package.v1.schema.json#/$defs/uuid"
+    },
+    "draft_id": {
+      "$ref": "https://schemas.lumosreading.local/story-package.v1.schema.json#/$defs/uuid"
+    },
+    "build_id": {
+      "$ref": "https://schemas.lumosreading.local/story-package.v1.schema.json#/$defs/uuid"
+    },
+    "release_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "release_channel": {
+      "type": "string",
+      "enum": [
+        "general",
+        "pilot",
+        "experimental",
+        "internal"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "recalled",
+        "superseded"
+      ]
+    },
+    "runtime_lookup_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "requested_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "released_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "recalled_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "rollback_of_release_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    }
+  }
+}

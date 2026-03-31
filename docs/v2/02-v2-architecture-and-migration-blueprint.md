@@ -300,9 +300,12 @@ erDiagram
 - `POST /api/v2/story-variants`
 - `POST /api/v2/story-variants/{variant_id}:generate-draft`
 - `POST /api/v2/story-variants/{variant_id}:submit-review`
-- `POST /api/v2/story-variants/{variant_id}:build-package`
+- `GET /api/v2/story-packages`
+- `POST /api/v2/story-packages/{package_id}:build`
 - `POST /api/v2/story-packages/{package_id}:release`
+- `POST /api/v2/story-packages/{package_id}:recall`
 - `POST /api/v2/story-packages/{package_id}:rollback`
+- `GET /api/v2/story-packages/{package_id}/history`
 - `GET /api/v2/safety-audits`
 - `POST /api/v2/experiments`
 
@@ -316,6 +319,10 @@ erDiagram
 - `story_package_build`
 - `safety_scan`
 - `release_publish`
+
+Phase 3 implementation note:
+- The current repo uses a repo-local bootstrap seed/runtime store for package draft, build, and release state.
+- `story_package_build` is currently executed synchronously through the shared worker helper, while preserving versioned object-key semantics so a real queue boundary can be introduced later without changing API or runtime contracts.
 
 示例：
 

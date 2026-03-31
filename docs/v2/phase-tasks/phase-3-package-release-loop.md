@@ -22,22 +22,24 @@ Create a versioned build and release path for `StoryPackage` artifacts.
 
 ## Tasks
 
-- [ ] Define package draft, package build, and release contracts
-- [ ] Create `apps/workers` runtime skeleton and packaging jobs
-- [ ] Add API endpoints for draft listing, build trigger, release, recall, and history
-- [ ] Add shared SDK client methods for package and release operations
-- [ ] Persist package and release state in a repo-local bootstrap store
-- [ ] Add tests covering build and release flows
+- [x] Define package draft, package build, and release contracts
+- [x] Create `apps/workers` runtime skeleton and packaging jobs
+- [x] Add API endpoints for draft listing, build trigger, release, recall, rollback, and history
+- [x] Add shared SDK client methods for package and release operations
+- [x] Persist package and release state in a repo-local bootstrap seed/runtime store
+- [x] Add tests covering build and release flows
 
 ## Verification
 
-- [ ] `pytest tests/test_caregiver_v2_contracts.py -q`
-- [ ] package and release API tests pass
-- [ ] `npm run test:contracts --workspace @lumosreading/sdk`
-- [ ] affected app builds pass
+- [x] `pytest tests/test_caregiver_v2_contracts.py -q`
+- [x] `pytest tests/test_story_package_release_v2.py -q`
+- [x] `npm run test:contracts --workspace @lumosreading/sdk`
+- [x] `npm run build --workspace studio-web`
+- [x] `npm run build --workspace caregiver-web`
+- [x] `npm run build --workspace child-app`
 
 ## QC gate
 
-- [ ] Draft to release creates a stable runtime package record
-- [ ] Release history is queryable
-- [ ] Recall and rollback do not break package lookup semantics
+- [x] Draft to release creates a stable runtime package record
+- [x] Release history is queryable
+- [x] Recall and rollback do not break package lookup semantics

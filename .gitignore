@@ -74,6 +74,7 @@ jspm_packages/
 !package-lock.json
 !tsconfig.json
 !packages/contracts/schemas/*.schema.json
+!apps/api/app/data/v2/*.seed.json
 
 # parcel-bundler cache
 .cache

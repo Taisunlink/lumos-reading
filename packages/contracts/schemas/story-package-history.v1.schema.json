@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lumosreading.local/story-package-history.v1.schema.json",
+  "title": "StoryPackageHistoryV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "package_id",
+    "draft",
+    "builds",
+    "releases",
+    "generated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "story-package-history.v1"
+    },
+    "package_id": {
+      "$ref": "https://schemas.lumosreading.local/story-package.v1.schema.json#/$defs/uuid"
+    },
+    "draft": {
+      "$ref": "https://schemas.lumosreading.local/story-package-draft.v1.schema.json"
+    },
+    "builds": {
+      "type": "array",
+      "items": {
+        "$ref": "https://schemas.lumosreading.local/story-package-build.v1.schema.json"
+      }
+    },
+    "releases": {
+      "type": "array",
+      "items": {
+        "$ref": "https://schemas.lumosreading.local/story-package-release.v1.schema.json"
+      }
+    },
+    "active_release_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

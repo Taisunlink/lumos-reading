@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lumosreading.local/story-package-release-command.v1.schema.json",
+  "title": "StoryPackageReleaseCommandV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "build_id",
+    "release_channel",
+    "requested_by",
+    "requested_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "story-package-release-command.v1"
+    },
+    "build_id": {
+      "$ref": "https://schemas.lumosreading.local/story-package.v1.schema.json#/$defs/uuid"
+    },
+    "release_channel": {
+      "type": "string",
+      "enum": [
+        "general",
+        "pilot",
+        "experimental",
+        "internal"
+      ]
+    },
+    "requested_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

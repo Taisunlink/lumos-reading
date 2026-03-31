@@ -11,6 +11,14 @@ import type {
   ReadingEventIngestedResponseV2,
   ReadingSessionCreateV2,
   ReadingSessionResponseV2,
+  StoryPackageBuildCommandV1,
+  StoryPackageBuildV1,
+  StoryPackageDraftIndexV1,
+  StoryPackageHistoryV1,
+  StoryPackageRecallCommandV1,
+  StoryPackageReleaseCommandV1,
+  StoryPackageReleaseV1,
+  StoryPackageRollbackCommandV1,
   StoryPackageManifestV1,
 } from "@lumosreading/contracts";
 
@@ -18,6 +26,7 @@ export * from "./caregiver";
 export * from "./demo";
 export * from "./object-storage";
 export * from "./application";
+export * from "./release";
 
 export const DEFAULT_LUMOS_API_BASE_URL = "http://localhost:8000/api/v2";
 
@@ -158,6 +167,82 @@ export function createLumosApiClient(options: LumosApiClientOptions = {}) {
         baseUrl,
         `/story-packages/${packageId}`,
         options.headers,
+      );
+    },
+    async listStoryPackageDrafts(): Promise<StoryPackageDraftIndexV1> {
+      return request<StoryPackageDraftIndexV1>(
+        fetchImpl,
+        baseUrl,
+        "/story-packages",
+        options.headers,
+      );
+    },
+    async getStoryPackageHistory(packageId: string): Promise<StoryPackageHistoryV1> {
+      return request<StoryPackageHistoryV1>(
+        fetchImpl,
+        baseUrl,
+        `/story-packages/${packageId}/history`,
+        options.headers,
+      );
+    },
+    async triggerStoryPackageBuild(
+      packageId: string,
+      payload: StoryPackageBuildCommandV1,
+    ): Promise<StoryPackageBuildV1> {
+      return request<StoryPackageBuildV1>(
+        fetchImpl,
+        baseUrl,
+        `/story-packages/${packageId}:build`,
+        options.headers,
+        {
+          method: "POST",
+          body: JSON.stringify(payload),
+        },
+      );
+    },
+    async releaseStoryPackageBuild(
+      packageId: string,
+      payload: StoryPackageReleaseCommandV1,
+    ): Promise<StoryPackageReleaseV1> {
+      return request<StoryPackageReleaseV1>(
+        fetchImpl,
+        baseUrl,
+        `/story-packages/${packageId}:release`,
+        options.headers,
+        {
+          method: "POST",
+          body: JSON.stringify(payload),
+        },
+      );
+    },
+    async recallStoryPackageRelease(
+      packageId: string,
+      payload: StoryPackageRecallCommandV1,
+    ): Promise<StoryPackageReleaseV1> {
+      return request<StoryPackageReleaseV1>(
+        fetchImpl,
+        baseUrl,
+        `/story-packages/${packageId}:recall`,
+        options.headers,
+        {
+          method: "POST",
+          body: JSON.stringify(payload),
+        },
+      );
+    },
+    async rollbackStoryPackageRelease(
+      packageId: string,
+      payload: StoryPackageRollbackCommandV1,
+    ): Promise<StoryPackageReleaseV1> {
+      return request<StoryPackageReleaseV1>(
+        fetchImpl,
+        baseUrl,
+        `/story-packages/${packageId}:rollback`,
+        options.headers,
+        {
+          method: "POST",
+          body: JSON.stringify(payload),
+        },
       );
     },
     async createReadingSession(

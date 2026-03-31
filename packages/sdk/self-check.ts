@@ -13,6 +13,16 @@ import {
   readingEventIngestedResponseV2Schema,
   readingSessionCreateV2Schema,
   readingSessionResponseV2Schema,
+  safetyAuditV1Schema,
+  storyPackageBuildCommandV1Schema,
+  storyPackageBuildV1Schema,
+  storyPackageDraftIndexV1Schema,
+  storyPackageDraftV1Schema,
+  storyPackageHistoryV1Schema,
+  storyPackageRecallCommandV1Schema,
+  storyPackageReleaseCommandV1Schema,
+  storyPackageReleaseV1Schema,
+  storyPackageRollbackCommandV1Schema,
   storyPackageV1Schema,
 } from "@lumosreading/contracts";
 import {
@@ -22,10 +32,20 @@ import {
   buildDemoReadingEventIngestedResponse,
   buildDemoReadingSessionPayload,
   buildDemoReadingSessionResponse,
+  buildDemoStoryPackageBuild,
+  buildDemoStoryPackageBuildCommand,
+  buildDemoStoryPackageHistory,
+  buildDemoStoryPackageRecallCommand,
+  buildDemoStoryPackageRelease,
+  buildDemoStoryPackageReleaseCommand,
+  buildDemoStoryPackageRollbackCommand,
   demoAcceptedAt,
   demoPackageQueue,
   fallbackChildHome,
   demoReadingSessionId,
+  fallbackStoryPackageDraft,
+  fallbackStoryPackageDraftIndex,
+  demoSafetyAudit,
   demoStoryPackage,
   fallbackCaregiverChildren,
   fallbackCaregiverDashboard,
@@ -126,6 +146,56 @@ function buildValidationCases(): ValidationCase[] {
         sessionIds: [demoReadingSessionId],
       }),
     },
+    {
+      name: "safety-audit.v1 demo audit",
+      schema: safetyAuditV1Schema,
+      payload: demoSafetyAudit,
+    },
+    {
+      name: "story-package-draft.v1 fallback draft",
+      schema: storyPackageDraftV1Schema,
+      payload: fallbackStoryPackageDraft,
+    },
+    {
+      name: "story-package-draft-index.v1 fallback draft index",
+      schema: storyPackageDraftIndexV1Schema,
+      payload: fallbackStoryPackageDraftIndex,
+    },
+    {
+      name: "story-package-build-command.v1 demo command",
+      schema: storyPackageBuildCommandV1Schema,
+      payload: buildDemoStoryPackageBuildCommand(),
+    },
+    {
+      name: "story-package-build.v1 demo build",
+      schema: storyPackageBuildV1Schema,
+      payload: buildDemoStoryPackageBuild(),
+    },
+    {
+      name: "story-package-release-command.v1 demo command",
+      schema: storyPackageReleaseCommandV1Schema,
+      payload: buildDemoStoryPackageReleaseCommand(),
+    },
+    {
+      name: "story-package-release.v1 demo release",
+      schema: storyPackageReleaseV1Schema,
+      payload: buildDemoStoryPackageRelease(),
+    },
+    {
+      name: "story-package-recall-command.v1 demo command",
+      schema: storyPackageRecallCommandV1Schema,
+      payload: buildDemoStoryPackageRecallCommand(),
+    },
+    {
+      name: "story-package-rollback-command.v1 demo command",
+      schema: storyPackageRollbackCommandV1Schema,
+      payload: buildDemoStoryPackageRollbackCommand(),
+    },
+    {
+      name: "story-package-history.v1 demo history",
+      schema: storyPackageHistoryV1Schema,
+      payload: buildDemoStoryPackageHistory(),
+    },
   ];
 }
 
@@ -148,6 +218,22 @@ export function validateDemoContractsOrThrow(): ValidationResult {
   ajv.addSchema(
     storyPackageV1Schema,
     "https://schemas.lumosreading.local/story-package.v1.schema.json",
+  );
+  ajv.addSchema(
+    safetyAuditV1Schema,
+    "https://schemas.lumosreading.local/safety-audit.v1.schema.json",
+  );
+  ajv.addSchema(
+    storyPackageDraftV1Schema,
+    "https://schemas.lumosreading.local/story-package-draft.v1.schema.json",
+  );
+  ajv.addSchema(
+    storyPackageBuildV1Schema,
+    "https://schemas.lumosreading.local/story-package-build.v1.schema.json",
+  );
+  ajv.addSchema(
+    storyPackageReleaseV1Schema,
+    "https://schemas.lumosreading.local/story-package-release.v1.schema.json",
   );
 
   const cases = buildValidationCases();

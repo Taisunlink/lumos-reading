@@ -1,0 +1,126 @@
+{
+  "schema_version": "story-package-release-store.v1",
+  "drafts": [
+    {
+      "draft_id": "45454545-4545-4545-4545-454545454541",
+      "package_id": "33333333-3333-3333-3333-333333333333",
+      "source_type": "editorial",
+      "workflow_state": "released",
+      "safety_audit_id": "78787878-7878-7878-7878-787878787871",
+      "operator_notes": [
+        "Bootstrap editorial package seeded from the V2 fixture library."
+      ],
+      "latest_build_id": null,
+      "active_release_id": null,
+      "created_at": "2026-03-17T11:40:00Z",
+      "updated_at": "2026-03-17T12:00:00Z"
+    },
+    {
+      "draft_id": "45454545-4545-4545-4545-454545454542",
+      "package_id": "66666666-6666-6666-6666-666666666666",
+      "source_type": "editorial",
+      "workflow_state": "released",
+      "safety_audit_id": "78787878-7878-7878-7878-787878787872",
+      "operator_notes": [
+        "Bootstrap calm-path package seeded from the V2 fixture library."
+      ],
+      "latest_build_id": null,
+      "active_release_id": null,
+      "created_at": "2026-03-17T11:42:00Z",
+      "updated_at": "2026-03-17T12:00:00Z"
+    },
+    {
+      "draft_id": "45454545-4545-4545-4545-454545454543",
+      "package_id": "99999999-9999-9999-9999-999999999999",
+      "source_type": "editorial",
+      "workflow_state": "released",
+      "safety_audit_id": "78787878-7878-7878-7878-787878787873",
+      "operator_notes": [
+        "Bootstrap bilingual-assist package seeded from the V2 fixture library."
+      ],
+      "latest_build_id": null,
+      "active_release_id": null,
+      "created_at": "2026-03-17T11:44:00Z",
+      "updated_at": "2026-03-17T12:00:00Z"
+    }
+  ],
+  "audits": [
+    {
+      "schema_version": "safety-audit.v1",
+      "audit_id": "78787878-7878-7878-7878-787878787871",
+      "target_type": "story_package",
+      "target_id": "33333333-3333-3333-3333-333333333333",
+      "audit_source": "pre_release",
+      "audit_status": "approved",
+      "severity": "low",
+      "policy_version": "2026.03",
+      "findings": [],
+      "reviewer": {
+        "reviewer_type": "hybrid",
+        "reviewer_id": "ops.review.bot"
+      },
+      "created_at": "2026-03-17T11:45:00Z",
+      "reviewed_at": "2026-03-17T12:00:00Z",
+      "resolution": {
+        "action": "release",
+        "notes": "Approved for pilot bootstrap release.",
+        "resolved_at": "2026-03-17T12:00:00Z"
+      }
+    },
+    {
+      "schema_version": "safety-audit.v1",
+      "audit_id": "78787878-7878-7878-7878-787878787872",
+      "target_type": "story_package",
+      "target_id": "66666666-6666-6666-6666-666666666666",
+      "audit_source": "pre_release",
+      "audit_status": "approved",
+      "severity": "low",
+      "policy_version": "2026.03",
+      "findings": [],
+      "reviewer": {
+        "reviewer_type": "hybrid",
+        "reviewer_id": "ops.review.bot"
+      },
+      "created_at": "2026-03-17T11:46:00Z",
+      "reviewed_at": "2026-03-17T12:00:00Z",
+      "resolution": {
+        "action": "release",
+        "notes": "Approved for pilot bootstrap release.",
+        "resolved_at": "2026-03-17T12:00:00Z"
+      }
+    },
+    {
+      "schema_version": "safety-audit.v1",
+      "audit_id": "78787878-7878-7878-7878-787878787873",
+      "target_type": "story_package",
+      "target_id": "99999999-9999-9999-9999-999999999999",
+      "audit_source": "pre_release",
+      "audit_status": "approved",
+      "severity": "medium",
+      "policy_version": "2026.03",
+      "findings": [
+        {
+          "code": "translation-overlay-reviewed",
+          "title": "Translation overlay reviewed",
+          "description": "Bilingual reveal volume was checked for paced use.",
+          "severity": "low",
+          "page_index": 1,
+          "action_required": false
+        }
+      ],
+      "reviewer": {
+        "reviewer_type": "hybrid",
+        "reviewer_id": "ops.review.bot"
+      },
+      "created_at": "2026-03-17T11:47:00Z",
+      "reviewed_at": "2026-03-17T12:00:00Z",
+      "resolution": {
+        "action": "release",
+        "notes": "Approved for pilot bootstrap release with reviewed bilingual overlay.",
+        "resolved_at": "2026-03-17T12:00:00Z"
+      }
+    }
+  ],
+  "builds": [],
+  "releases": []
+}

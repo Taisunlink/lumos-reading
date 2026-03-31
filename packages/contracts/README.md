@@ -23,6 +23,15 @@ This package carries the formal shared contracts used across apps and services. 
 - `ReadingEventBatch v2`
 - `ReadingEventIngestedResponse v2`
 - `SafetyAudit v1`
+- `StoryPackageDraft v1`
+- `StoryPackageDraftIndex v1`
+- `StoryPackageBuildCommand v1`
+- `StoryPackageBuild v1`
+- `StoryPackageReleaseCommand v1`
+- `StoryPackageRelease v1`
+- `StoryPackageRecallCommand v1`
+- `StoryPackageRollbackCommand v1`
+- `StoryPackageHistory v1`
 
 ## Package outputs
 
@@ -66,3 +75,12 @@ Before starting V2 work, read in this order:
 - `schemas/reading-event-batch.v2.schema.json`
 - `schemas/reading-event-ingested-response.v2.schema.json`
 - `schemas/safety-audit.v1.schema.json`
+- `schemas/story-package-build-command.v1.schema.json`
+- `schemas/story-package-build.v1.schema.json`
+- `schemas/story-package-draft-index.v1.schema.json`
+- `schemas/story-package-draft.v1.schema.json`
+- `schemas/story-package-history.v1.schema.json`
+- `schemas/story-package-recall-command.v1.schema.json`
+- `schemas/story-package-release-command.v1.schema.json`
+- `schemas/story-package-release.v1.schema.json`
+- `schemas/story-package-rollback-command.v1.schema.json`

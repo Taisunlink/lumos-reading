@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lumosreading.local/story-package-draft.v1.schema.json",
+  "title": "StoryPackageDraftV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "draft_id",
+    "package_id",
+    "source_type",
+    "workflow_state",
+    "package_preview",
+    "safety_audit",
+    "operator_notes",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "story-package-draft.v1"
+    },
+    "draft_id": {
+      "$ref": "https://schemas.lumosreading.local/story-package.v1.schema.json#/$defs/uuid"
+    },
+    "package_id": {
+      "$ref": "https://schemas.lumosreading.local/story-package.v1.schema.json#/$defs/uuid"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "editorial",
+        "ai_generated"
+      ]
+    },
+    "workflow_state": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "built",
+        "released",
+        "recalled"
+      ]
+    },
+    "package_preview": {
+      "$ref": "https://schemas.lumosreading.local/story-package.v1.schema.json"
+    },
+    "safety_audit": {
+      "$ref": "https://schemas.lumosreading.local/safety-audit.v1.schema.json"
+    },
+    "operator_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "latest_build_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "active_release_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

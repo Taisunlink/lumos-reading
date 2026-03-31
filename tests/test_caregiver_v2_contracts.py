@@ -20,6 +20,7 @@ sys.path.insert(0, str(API_DIR))
 from app.main import app  # noqa: E402
 from app.services.v2.child_service import reset_child_package_assignment_overrides  # noqa: E402
 from app.services.v2.reading_event_store import reset_ingested_reading_events  # noqa: E402
+from app.services.v2.story_package_release_store import reset_story_package_release_state  # noqa: E402
 
 
 HOUSEHOLD_ID = "44444444-4444-4444-4444-444444444444"
@@ -57,9 +58,11 @@ SCHEMA_REGISTRY = build_schema_registry()
 def reset_demo_runtime_state() -> None:
     reset_child_package_assignment_overrides()
     reset_ingested_reading_events()
+    reset_story_package_release_state()
     yield
     reset_child_package_assignment_overrides()
     reset_ingested_reading_events()
+    reset_story_package_release_state()
 
 
 def validate_payload(payload: dict, schema_file_name: str) -> None:
@@ -84,6 +87,15 @@ def test_contract_schema_files_exist() -> None:
         "reading-event-batch.v2.schema.json",
         "reading-event-ingested-response.v2.schema.json",
         "safety-audit.v1.schema.json",
+        "story-package-build-command.v1.schema.json",
+        "story-package-build.v1.schema.json",
+        "story-package-draft-index.v1.schema.json",
+        "story-package-draft.v1.schema.json",
+        "story-package-history.v1.schema.json",
+        "story-package-recall-command.v1.schema.json",
+        "story-package-release-command.v1.schema.json",
+        "story-package-release.v1.schema.json",
+        "story-package-rollback-command.v1.schema.json",
     ]
 
     for file_name in expected_files:

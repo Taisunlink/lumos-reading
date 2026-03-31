@@ -7,10 +7,12 @@ from app.services.v2.child_home_service import ChildHomeService
 from app.services.v2.child_service import DemoChildService
 from app.services.v2.fixtures import FIXTURE_TIMESTAMP
 from app.services.v2.plan_service import DemoPlanService
-from app.services.v2.story_package_service import DemoStoryPackageService
+from app.services.v2.story_package_release_service import create_release_story_package_services
 
 router = APIRouter()
-story_package_service = DemoStoryPackageService()
+story_package_service, _release_service = create_release_story_package_services(
+    clock=lambda: FIXTURE_TIMESTAMP,
+)
 child_service = DemoChildService()
 plan_service = DemoPlanService(story_package_service)
 child_home_service = ChildHomeService(

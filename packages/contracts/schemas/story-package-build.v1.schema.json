@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lumosreading.local/story-package-build.v1.schema.json",
+  "title": "StoryPackageBuildV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "build_id",
+    "draft_id",
+    "package_id",
+    "build_version",
+    "status",
+    "build_reason",
+    "worker_job_id",
+    "manifest_object_key",
+    "artifact_root_object_key",
+    "requested_by",
+    "requested_at",
+    "built_package"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "story-package-build.v1"
+    },
+    "build_id": {
+      "$ref": "https://schemas.lumosreading.local/story-package.v1.schema.json#/$defs/uuid"
+    },
+    "draft_id": {
+      "$ref": "https://schemas.lumosreading.local/story-package.v1.schema.json#/$defs/uuid"
+    },
+    "package_id": {
+      "$ref": "https://schemas.lumosreading.local/story-package.v1.schema.json#/$defs/uuid"
+    },
+    "build_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "running",
+        "succeeded",
+        "failed"
+      ]
+    },
+    "build_reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "worker_job_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "manifest_object_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifact_root_object_key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "requested_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "failure_message": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "built_package": {
+      "$ref": "https://schemas.lumosreading.local/story-package.v1.schema.json"
+    }
+  }
+}

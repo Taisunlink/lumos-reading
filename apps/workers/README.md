@@ -1,12 +1,17 @@
 # workers
 
-V2 异步任务目录预留。
+V2 worker boundary for packaging, generation, and review jobs.
 
-目标：
+## Current scope
 
-- 受限生成任务
-- 插图与 TTS 渲染
-- Story Package 构建
-- 安全扫描与发布任务
+- Story package build helpers
+- AI brief-to-draft orchestration stubs
+- Media generation provider adapters
+- Safety scan and release-job handoff
 
-当前阶段：目录占位，等待按 V2 job 契约正式落地。
+## Phase 3 baseline
+
+- `jobs/story_package.py`
+  Pure packaging helper that rewrites runtime asset URLs into versioned object-storage paths.
+- The API currently executes the Phase 3 build loop synchronously against the same helper.
+- Later phases can move the same job contract behind a real queue without changing release semantics.

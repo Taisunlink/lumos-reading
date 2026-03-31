@@ -19,6 +19,15 @@ These files are the authoritative shared schemas for LumosReading V2.
 - `reading-event-batch.v2.schema.json`
 - `reading-event-ingested-response.v2.schema.json`
 - `safety-audit.v1.schema.json`
+- `story-package-build-command.v1.schema.json`
+- `story-package-build.v1.schema.json`
+- `story-package-draft-index.v1.schema.json`
+- `story-package-draft.v1.schema.json`
+- `story-package-history.v1.schema.json`
+- `story-package-recall-command.v1.schema.json`
+- `story-package-release-command.v1.schema.json`
+- `story-package-release.v1.schema.json`
+- `story-package-rollback-command.v1.schema.json`
 
 ## Scope
 
@@ -52,6 +61,24 @@ These files are the authoritative shared schemas for LumosReading V2.
   Response contract for accepted reading event ingestion.
 - `SafetyAudit v1`
   Audit and governance contract for review, recall, and compliance workflows.
+- `StoryPackageDraft v1`
+  Studio-facing package draft record with preview manifest, review state, and release pointers.
+- `StoryPackageDraftIndex v1`
+  Studio-facing list contract for package draft visibility and operator refresh state.
+- `StoryPackageBuildCommand v1`
+  Write contract for triggering a versioned story package build.
+- `StoryPackageBuild v1`
+  Build job and output contract for versioned runtime package artifacts.
+- `StoryPackageReleaseCommand v1`
+  Write contract for promoting a specific build into runtime lookup.
+- `StoryPackageRelease v1`
+  Release record contract for active, recalled, and superseded runtime states.
+- `StoryPackageRecallCommand v1`
+  Write contract for recalling an active release without breaking lookup fallback semantics.
+- `StoryPackageRollbackCommand v1`
+  Write contract for promoting a prior release back into the active runtime path.
+- `StoryPackageHistory v1`
+  Query contract for one package's draft, build history, release history, and current active release.
 
 ## Design rules
 
