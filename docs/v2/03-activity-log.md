@@ -13,9 +13,11 @@ Before each development session:
 1. Read `docs/v2/01-strategy-review-and-references.md`.
 2. Read `docs/v2/02-v2-architecture-and-migration-blueprint.md`.
 3. Read this file.
-4. Read `packages/contracts/schemas/README.md`.
-5. Read `apps/README.md`.
-6. Read `packages/contracts/README.md`.
+4. Read `docs/v2/04-engineering-delivery-plan.md`.
+5. Read `docs/v2/05-frontend-experience-and-content-delivery-plan.md`.
+6. Read `packages/contracts/schemas/README.md`.
+7. Read `apps/README.md`.
+8. Read `packages/contracts/README.md`.
 
 After each meaningful development session:
 
@@ -99,8 +101,10 @@ The following checks have already passed on the current baseline:
 
 - Execute the sequential seven-phase delivery plan defined in `docs/v2/04-engineering-delivery-plan.md`.
 - The seven-phase V2 delivery plan is now complete through all seven phases (`Phase 0` through `Phase 6`).
+- Post-foundation frontend and productization work is now governed by `docs/v2/05-frontend-experience-and-content-delivery-plan.md`.
 - Replace bootstrap fallback/demo responses with real backend module implementations behind the same contracts.
 - Continue reducing legacy `apps/web` responsibility until it can be retired from the V2 main path.
+- The next recommended slice is `Frontend Phase 1`, with emphasis on shared IA, copy tone rules, state language, and local/remote handoff clarity.
 
 ## Session update: 2026-03-31 Phase 0
 
@@ -203,6 +207,15 @@ The following checks have already passed on the current baseline:
 - Closed a second QC-blocking boundary case for zero-entitlement households: package-bearing read surfaces now return an explicit access-lost response instead of throwing unhandled errors or emitting contract-invalid empty package queues.
 - Verification was re-run after the gate fix and passed for Phase 6 with `npm run test:contracts --workspace @lumosreading/sdk`, `pytest tests/test_story_generation_v2.py -q`, `pytest tests/test_story_package_release_v2.py -q`, `pytest tests/test_monetization_v2.py -q`, `pytest tests/test_caregiver_v2_contracts.py -q`, `npm run build --workspace caregiver-web`, `npm run build --workspace studio-web`, `npm run typecheck --workspace child-app`, and `npm run build --workspace child-app`.
 - Phase 6 QC gate is cleared after subagent re-review confirmed that access state, delivery rules, and weekly value now reconcile across caregiver, child, studio, API, and SDK surfaces; the accepted follow-up is that manual workbench package lookup helpers still expose a context-free route and should later converge on the same child-scoped access semantics.
+
+## Session update: 2026-03-31 Frontend/Product Follow-On Plan
+
+- Added `docs/v2/05-frontend-experience-and-content-delivery-plan.md` as the follow-on six-phase execution plan after the completed core V2 buildout.
+- Defined the next six phases around shared experience foundation, child reading experience, caregiver guidance, access and conversion communication, studio programming, and launch readiness.
+- Added six executable phase task playbooks under `docs/v2/phase-tasks/` so the next round of work can be picked up locally or remotely without relying on chat context.
+- Updated the active V2 docs index and phase-task index so the new plan is part of the required read order for future sessions.
+- Recorded the new operating rule for this follow-on track: each frontend/product phase must leave behind user-flow intent, copy intent, planning outputs, verification results, and a clear next slice inside the repo.
+- Set the next recommended slice to `Frontend Phase 1: Experience Foundation`.
 
 ## Session update: 2026-03-17
 
