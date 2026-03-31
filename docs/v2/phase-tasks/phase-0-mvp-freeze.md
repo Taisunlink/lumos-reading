@@ -22,19 +22,19 @@ Freeze the delivery order, phase gates, and QC rules so the repo can be develope
 
 ## Tasks
 
-- [ ] Create `docs/v2/04-engineering-delivery-plan.md`
-- [ ] Create `docs/v2/phase-tasks/README.md`
-- [ ] Create one task playbook for each remaining phase
-- [ ] Update `docs/v2/README.md` to reference the new execution docs
-- [ ] Update `docs/v2/03-activity-log.md`
+- [x] Create `docs/v2/04-engineering-delivery-plan.md`
+- [x] Create `docs/v2/phase-tasks/README.md`
+- [x] Create one task playbook for each remaining phase
+- [x] Update `docs/v2/README.md` to reference the new execution docs
+- [x] Update `docs/v2/03-activity-log.md`
 
 ## Verification
 
-- [ ] Docs render correctly in plain Markdown
-- [ ] All newly referenced files exist
+- [x] Docs render correctly in plain Markdown
+- [x] All newly referenced files exist
 
 ## QC gate
 
-- [ ] Delivery order is unambiguous
-- [ ] Every phase has a clear objective, scope, and release gate
-- [ ] Activity log records the new governance layer
+- [x] Delivery order is unambiguous
+- [x] Every phase has a clear objective, scope, and release gate
+- [x] Activity log records the new governance layer
