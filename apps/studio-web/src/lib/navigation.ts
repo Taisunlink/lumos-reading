@@ -10,6 +10,11 @@ export const studioNavItems = [
     description: "Draft cards, package detail, build trigger, and publish controls.",
   },
   {
+    href: "/briefs",
+    label: "Briefs",
+    description: "Editorial briefs, AI generation jobs, and provider fallback visibility.",
+  },
+  {
     href: "/releases",
     label: "Releases",
     description: "Active, recalled, and superseded release history with rollback controls.",

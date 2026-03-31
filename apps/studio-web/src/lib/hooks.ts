@@ -2,18 +2,27 @@
 
 import { startTransition, useEffect, useState } from "react";
 import type {
+  StoryBriefV1,
+  StoryGenerationJobV1,
   StoryPackageBuildV1,
+  StoryPackageDraftV1,
   StoryPackageReleaseV1,
 } from "@lumosreading/contracts";
 import {
+  buildStoryBriefCards,
+  buildStoryGenerationJobCards,
   buildDemoStoryPackageHistory,
   buildStoryPackageDraftCards,
   buildStoryPackageHistoryView,
+  fallbackStoryBriefIndex,
+  fallbackStoryGenerationJobIndex,
   fallbackStoryPackageDraftIndex,
+  type StoryBriefCard,
+  type StoryGenerationJobCard,
   type StoryPackageDraftCard,
   type StoryPackageHistoryView,
 } from "@lumosreading/sdk";
-import { storyPackageReleaseServices } from "@/lib/api";
+import { storyGenerationServices, storyPackageReleaseServices } from "@/lib/api";
 
 export type ResourceStatus = "loading" | "live" | "fallback";
 export type ActionStatus = "idle" | "running" | "success" | "error";
@@ -40,6 +49,12 @@ export type StudioActionState = {
   status: ActionStatus;
   message: string | null;
   error: string | null;
+};
+
+export type StudioGenerationBoard = {
+  briefs: StoryBriefCard[];
+  jobs: StoryGenerationJobCard[];
+  generatedAt: string;
 };
 
 const STUDIO_OPERATOR_ID = "studio.operator";
@@ -80,6 +95,14 @@ function buildFallbackBoard(): StudioReleaseBoard {
   };
 }
 
+function buildFallbackGenerationBoard(): StudioGenerationBoard {
+  return {
+    briefs: buildStoryBriefCards(fallbackStoryBriefIndex).sort(sortByUpdatedAt),
+    jobs: buildStoryGenerationJobCards(fallbackStoryGenerationJobIndex).sort(sortByUpdatedAt),
+    generatedAt: fallbackStoryBriefIndex.generated_at,
+  };
+}
+
 async function fetchStudioReleaseBoard(): Promise<StudioReleaseBoard> {
   const drafts = (await storyPackageReleaseServices.listDraftCards()).sort(sortByUpdatedAt);
   const histories = (
@@ -92,6 +115,19 @@ async function fetchStudioReleaseBoard(): Promise<StudioReleaseBoard> {
     drafts,
     histories,
     historiesByPackageId: buildHistoryLookup(histories),
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+async function fetchStudioGenerationBoard(): Promise<StudioGenerationBoard> {
+  const [briefs, jobs] = await Promise.all([
+    storyGenerationServices.listBriefCards(),
+    storyGenerationServices.listJobCards(),
+  ]);
+
+  return {
+    briefs: briefs.sort(sortByUpdatedAt),
+    jobs: jobs.sort(sortByUpdatedAt),
     generatedAt: new Date().toISOString(),
   };
 }
@@ -118,7 +154,8 @@ export function summarizeStudioReleaseBoard(
       (history) =>
         history.latestBuildId !== null &&
         history.activeReleaseId === null &&
-        history.reviewStatus !== "recalled",
+        history.auditStatus === "approved" &&
+        history.audit.resolution.action === "release",
     ).length,
   };
 }
@@ -268,6 +305,44 @@ export function useStudioReleaseBoard() {
     );
   }
 
+  function reviewPackage(
+    packageId: string,
+    args: {
+      auditStatus: string;
+      resolutionAction: string;
+      notes: string;
+    },
+  ): Promise<StoryPackageDraftV1 | null> {
+    return runAction(
+      `Reviewing ${packageId}.`,
+      `Review updated for ${packageId}.`,
+      () =>
+        storyPackageReleaseServices.reviewPackage(packageId, {
+          schema_version: "story-package-review-command.v1",
+          audit_status: args.auditStatus as
+            | "pending"
+            | "in_review"
+            | "approved"
+            | "needs_revision"
+            | "rejected"
+            | "recalled"
+            | "escalated",
+          resolution_action: args.resolutionAction as
+            | "none"
+            | "revise"
+            | "block"
+            | "release"
+            | "recall"
+            | "escalate",
+          reviewer_type: "human",
+          reviewer_id: STUDIO_OPERATOR_ID,
+          notes: args.notes,
+          requested_by: STUDIO_OPERATOR_ID,
+          requested_at: new Date().toISOString(),
+        }),
+    );
+  }
+
   function recallRelease(
     packageId: string,
     releaseId: string,
@@ -314,7 +389,193 @@ export function useStudioReleaseBoard() {
     refresh,
     triggerBuild,
     publishBuild,
+    reviewPackage,
     recallRelease,
     rollbackRelease,
+  };
+}
+
+export function useStudioGenerationBoard() {
+  const [board, setBoard] = useState<StudioGenerationBoard>(buildFallbackGenerationBoard());
+  const [status, setStatus] = useState<ResourceStatus>("loading");
+  const [error, setError] = useState<string | null>(null);
+  const [actionState, setActionState] = useState<StudioActionState>({
+    status: "idle",
+    message: null,
+    error: null,
+  });
+  const [refreshToken, setRefreshToken] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+
+    setStatus("loading");
+    setError(null);
+
+    fetchStudioGenerationBoard()
+      .then((nextBoard) => {
+        if (!active) {
+          return;
+        }
+
+        startTransition(() => {
+          setBoard(nextBoard);
+          setStatus("live");
+          setError(null);
+        });
+      })
+      .catch((caught) => {
+        if (!active) {
+          return;
+        }
+
+        startTransition(() => {
+          setBoard(buildFallbackGenerationBoard());
+          setStatus("fallback");
+          setError(
+            describeError(caught, "Failed to hydrate the studio generation board."),
+          );
+        });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [refreshToken]);
+
+  function refresh() {
+    startTransition(() => {
+      setRefreshToken((current) => current + 1);
+    });
+  }
+
+  async function runAction<T>(
+    pendingMessage: string,
+    successMessage: string,
+    action: () => Promise<T>,
+  ): Promise<T | null> {
+    startTransition(() => {
+      setActionState({
+        status: "running",
+        message: pendingMessage,
+        error: null,
+      });
+    });
+
+    try {
+      const result = await action();
+
+      try {
+        const nextBoard = await fetchStudioGenerationBoard();
+
+        startTransition(() => {
+          setBoard(nextBoard);
+          setStatus("live");
+          setError(null);
+          setActionState({
+            status: "success",
+            message: successMessage,
+            error: null,
+          });
+        });
+      } catch (refreshCaught) {
+        startTransition(() => {
+          setActionState({
+            status: "error",
+            message: `${successMessage} Refresh is required.`,
+            error: describeError(
+              refreshCaught,
+              "Action succeeded but the studio generation board refresh failed.",
+            ),
+          });
+        });
+      }
+
+      return result;
+    } catch (caught) {
+      startTransition(() => {
+        setActionState({
+          status: "error",
+          message: pendingMessage,
+          error: describeError(caught, "Studio generation action failed."),
+        });
+      });
+
+      return null;
+    }
+  }
+
+  function createBrief(input: {
+    title: string;
+    theme: string;
+    premise: string;
+    languageMode: string;
+    ageBand: string;
+    desiredPageCount: number;
+    sourceOutline?: string;
+  }): Promise<StoryBriefV1 | null> {
+    return runAction(
+      `Creating brief ${input.title}.`,
+      `Brief created for ${input.title}.`,
+      () =>
+        storyGenerationServices.createBrief({
+          schema_version: "story-brief-command.v1",
+          title: input.title,
+          theme: input.theme,
+          premise: input.premise,
+          language_mode: input.languageMode,
+          age_band: input.ageBand,
+          desired_page_count: input.desiredPageCount,
+          source_outline: input.sourceOutline ?? null,
+          requested_by: STUDIO_OPERATOR_ID,
+          requested_at: new Date().toISOString(),
+        }),
+    );
+  }
+
+  function generateDraft(briefId: string): Promise<StoryGenerationJobV1 | null> {
+    return runAction(
+      `Generating draft for ${briefId}.`,
+      `Draft generated for ${briefId}.`,
+      () =>
+        storyGenerationServices.generateDraft(briefId, {
+          schema_version: "story-generation-job-command.v1",
+          job_type: "brief_to_draft",
+          provider_preference: "placeholder",
+          notes: "Generate a reviewable package draft from the studio briefs board.",
+          requested_by: STUDIO_OPERATOR_ID,
+          requested_at: new Date().toISOString(),
+        }),
+    );
+  }
+
+  function generateMedia(
+    briefId: string,
+    providerPreference: "qwen" | "vertex" | "openai" | "placeholder" = "qwen",
+  ): Promise<StoryGenerationJobV1 | null> {
+    return runAction(
+      `Generating media for ${briefId}.`,
+      `Media generated for ${briefId}.`,
+      () =>
+        storyGenerationServices.generateMedia(briefId, {
+          schema_version: "story-generation-job-command.v1",
+          job_type: "draft_to_media",
+          provider_preference: providerPreference,
+          notes: "Generate images and audio for the reviewable package draft.",
+          requested_by: STUDIO_OPERATOR_ID,
+          requested_at: new Date().toISOString(),
+        }),
+    );
+  }
+
+  return {
+    board,
+    status,
+    error,
+    actionState,
+    refresh,
+    createBrief,
+    generateDraft,
+    generateMedia,
   };
 }

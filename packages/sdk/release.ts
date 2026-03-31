@@ -3,9 +3,11 @@ import type {
   StoryPackageBuildCommandV1,
   StoryPackageBuildV1,
   StoryPackageDraftIndexV1,
+  StoryPackageDraftV1,
   StoryPackageHistoryV1,
   StoryPackageManifestV1,
   StoryPackageRecallCommandV1,
+  StoryPackageReviewCommandV1,
   StoryPackageReleaseCommandV1,
   StoryPackageReleaseV1,
   StoryPackageRollbackCommandV1,
@@ -22,6 +24,10 @@ export interface StoryPackageReleaseClient {
     packageId: string,
     payload: StoryPackageReleaseCommandV1,
   ): Promise<StoryPackageReleaseV1>;
+  reviewStoryPackage(
+    packageId: string,
+    payload: StoryPackageReviewCommandV1,
+  ): Promise<StoryPackageDraftV1>;
   recallStoryPackageRelease(
     packageId: string,
     payload: StoryPackageRecallCommandV1,
@@ -81,6 +87,10 @@ export interface StoryPackageReleaseServices {
     packageId: string,
     payload: StoryPackageReleaseCommandV1,
   ): Promise<StoryPackageReleaseV1>;
+  reviewPackage(
+    packageId: string,
+    payload: StoryPackageReviewCommandV1,
+  ): Promise<StoryPackageDraftV1>;
   recallRelease(
     packageId: string,
     payload: StoryPackageRecallCommandV1,
@@ -157,6 +167,12 @@ export function createStoryPackageReleaseServices(
       payload: StoryPackageReleaseCommandV1,
     ) {
       return client.releaseStoryPackageBuild(packageId, payload);
+    },
+    async reviewPackage(
+      packageId: string,
+      payload: StoryPackageReviewCommandV1,
+    ) {
+      return client.reviewStoryPackage(packageId, payload);
     },
     async recallRelease(
       packageId: string,

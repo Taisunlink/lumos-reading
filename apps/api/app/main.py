@@ -18,6 +18,7 @@ from app.middleware.security import SecurityMiddleware
 from app.routers.v2 import caregiver as v2_caregiver
 from app.routers.v2 import children as v2_children
 from app.routers.v2 import reading as v2_reading
+from app.routers.v2 import story_briefs as v2_story_briefs
 from app.routers.v2 import story_packages as v2_story_packages
 
 
@@ -147,6 +148,12 @@ async def health_check():
 
 
 app.include_router(v2_story_packages.router, prefix="/api/v2/story-packages", tags=["v2-story-packages"])
+app.include_router(v2_story_briefs.router, prefix="/api/v2/story-briefs", tags=["v2-story-briefs"])
+app.include_router(
+    v2_story_briefs.jobs_router,
+    prefix="/api/v2/story-generation-jobs",
+    tags=["v2-story-generation"],
+)
 app.include_router(v2_caregiver.router, prefix="/api/v2/caregiver", tags=["v2-caregiver"])
 app.include_router(v2_children.router, prefix="/api/v2/child-home", tags=["v2-child-home"])
 app.include_router(v2_reading.router, prefix="/api/v2", tags=["v2-reading"])

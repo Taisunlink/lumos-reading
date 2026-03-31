@@ -48,6 +48,27 @@ class StoryPackageRollbackCommandV1(BaseModel):
     reason: Optional[str] = None
 
 
+class StoryPackageReviewCommandV1(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: Literal["story-package-review-command.v1"] = "story-package-review-command.v1"
+    audit_status: Literal[
+        "pending",
+        "in_review",
+        "approved",
+        "needs_revision",
+        "rejected",
+        "recalled",
+        "escalated",
+    ]
+    resolution_action: Literal["none", "revise", "block", "release", "recall", "escalate"]
+    reviewer_type: Literal["system", "human", "hybrid"]
+    reviewer_id: Optional[str] = None
+    notes: Optional[str] = None
+    requested_by: str = Field(min_length=1)
+    requested_at: datetime
+
+
 class StoryPackageDraftV1(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

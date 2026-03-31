@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lumosreading.local/story-generation-job-command.v1.schema.json",
+  "title": "StoryGenerationJobCommandV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "job_type",
+    "requested_by",
+    "requested_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "story-generation-job-command.v1"
+    },
+    "job_type": {
+      "type": "string",
+      "enum": [
+        "brief_to_draft",
+        "draft_to_media"
+      ]
+    },
+    "provider_preference": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "qwen",
+        "vertex",
+        "openai",
+        "placeholder",
+        null
+      ]
+    },
+    "notes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "requested_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

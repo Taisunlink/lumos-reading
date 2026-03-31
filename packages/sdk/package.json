@@ -18,6 +18,7 @@
     "index.ts",
     "caregiver.ts",
     "demo.ts",
+    "generation.ts",
     "object-storage.ts",
     "release.ts",
     "tsconfig.json",

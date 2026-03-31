@@ -14,12 +14,19 @@ import {
   readingSessionCreateV2Schema,
   readingSessionResponseV2Schema,
   safetyAuditV1Schema,
+  storyBriefCommandV1Schema,
+  storyBriefIndexV1Schema,
+  storyBriefV1Schema,
+  storyGenerationJobCommandV1Schema,
+  storyGenerationJobIndexV1Schema,
+  storyGenerationJobV1Schema,
   storyPackageBuildCommandV1Schema,
   storyPackageBuildV1Schema,
   storyPackageDraftIndexV1Schema,
   storyPackageDraftV1Schema,
   storyPackageHistoryV1Schema,
   storyPackageRecallCommandV1Schema,
+  storyPackageReviewCommandV1Schema,
   storyPackageReleaseCommandV1Schema,
   storyPackageReleaseV1Schema,
   storyPackageRollbackCommandV1Schema,
@@ -32,10 +39,13 @@ import {
   buildDemoReadingEventIngestedResponse,
   buildDemoReadingSessionPayload,
   buildDemoReadingSessionResponse,
+  buildDemoStoryBriefCommand,
+  buildDemoStoryGenerationJobCommand,
   buildDemoStoryPackageBuild,
   buildDemoStoryPackageBuildCommand,
   buildDemoStoryPackageHistory,
   buildDemoStoryPackageRecallCommand,
+  buildDemoStoryPackageReviewCommand,
   buildDemoStoryPackageRelease,
   buildDemoStoryPackageReleaseCommand,
   buildDemoStoryPackageRollbackCommand,
@@ -52,6 +62,11 @@ import {
   fallbackCaregiverHousehold,
   fallbackCaregiverPlan,
   fallbackCaregiverProgress,
+  fallbackDraftGenerationJob,
+  fallbackMediaGenerationJob,
+  fallbackStoryBrief,
+  fallbackStoryBriefIndex,
+  fallbackStoryGenerationJobIndex,
 } from "./demo";
 import { buildStoryPackageHistoryView } from "./release";
 
@@ -153,6 +168,41 @@ function buildValidationCases(): ValidationCase[] {
       payload: demoSafetyAudit,
     },
     {
+      name: "story-brief-command.v1 demo command",
+      schema: storyBriefCommandV1Schema,
+      payload: buildDemoStoryBriefCommand(),
+    },
+    {
+      name: "story-brief.v1 fallback brief",
+      schema: storyBriefV1Schema,
+      payload: fallbackStoryBrief,
+    },
+    {
+      name: "story-brief-index.v1 fallback brief index",
+      schema: storyBriefIndexV1Schema,
+      payload: fallbackStoryBriefIndex,
+    },
+    {
+      name: "story-generation-job-command.v1 demo command",
+      schema: storyGenerationJobCommandV1Schema,
+      payload: buildDemoStoryGenerationJobCommand(),
+    },
+    {
+      name: "story-generation-job.v1 fallback draft job",
+      schema: storyGenerationJobV1Schema,
+      payload: fallbackDraftGenerationJob,
+    },
+    {
+      name: "story-generation-job.v1 fallback media job",
+      schema: storyGenerationJobV1Schema,
+      payload: fallbackMediaGenerationJob,
+    },
+    {
+      name: "story-generation-job-index.v1 fallback job index",
+      schema: storyGenerationJobIndexV1Schema,
+      payload: fallbackStoryGenerationJobIndex,
+    },
+    {
       name: "story-package-draft.v1 fallback draft",
       schema: storyPackageDraftV1Schema,
       payload: fallbackStoryPackageDraft,
@@ -186,6 +236,11 @@ function buildValidationCases(): ValidationCase[] {
       name: "story-package-recall-command.v1 demo command",
       schema: storyPackageRecallCommandV1Schema,
       payload: buildDemoStoryPackageRecallCommand(),
+    },
+    {
+      name: "story-package-review-command.v1 demo command",
+      schema: storyPackageReviewCommandV1Schema,
+      payload: buildDemoStoryPackageReviewCommand(),
     },
     {
       name: "story-package-rollback-command.v1 demo command",
@@ -223,6 +278,14 @@ export function validateDemoContractsOrThrow(): ValidationResult {
   ajv.addSchema(
     safetyAuditV1Schema,
     "https://schemas.lumosreading.local/safety-audit.v1.schema.json",
+  );
+  ajv.addSchema(
+    storyBriefV1Schema,
+    "https://schemas.lumosreading.local/story-brief.v1.schema.json",
+  );
+  ajv.addSchema(
+    storyGenerationJobV1Schema,
+    "https://schemas.lumosreading.local/story-generation-job.v1.schema.json",
   );
   ajv.addSchema(
     storyPackageDraftV1Schema,

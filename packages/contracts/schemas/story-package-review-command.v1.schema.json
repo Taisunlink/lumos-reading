@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lumosreading.local/story-package-review-command.v1.schema.json",
+  "title": "StoryPackageReviewCommandV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "audit_status",
+    "resolution_action",
+    "reviewer_type",
+    "requested_by",
+    "requested_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "story-package-review-command.v1"
+    },
+    "audit_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "in_review",
+        "approved",
+        "needs_revision",
+        "rejected",
+        "recalled",
+        "escalated"
+      ]
+    },
+    "resolution_action": {
+      "type": "string",
+      "enum": [
+        "none",
+        "revise",
+        "block",
+        "release",
+        "recall",
+        "escalate"
+      ]
+    },
+    "reviewer_type": {
+      "type": "string",
+      "enum": [
+        "system",
+        "human",
+        "hybrid"
+      ]
+    },
+    "reviewer_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "notes": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "requested_by": {
+      "type": "string",
+      "minLength": 1
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

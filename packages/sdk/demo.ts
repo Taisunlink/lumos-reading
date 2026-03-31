@@ -11,12 +11,19 @@ import {
   CHILD_HOME_SCHEMA_VERSION,
   READING_EVENT_SCHEMA_VERSION,
   SAFETY_AUDIT_SCHEMA_VERSION,
+  STORY_BRIEF_COMMAND_SCHEMA_VERSION,
+  STORY_BRIEF_INDEX_SCHEMA_VERSION,
+  STORY_BRIEF_SCHEMA_VERSION,
+  STORY_GENERATION_JOB_COMMAND_SCHEMA_VERSION,
+  STORY_GENERATION_JOB_INDEX_SCHEMA_VERSION,
+  STORY_GENERATION_JOB_SCHEMA_VERSION,
   STORY_PACKAGE_BUILD_COMMAND_SCHEMA_VERSION,
   STORY_PACKAGE_BUILD_SCHEMA_VERSION,
   STORY_PACKAGE_DRAFT_INDEX_SCHEMA_VERSION,
   STORY_PACKAGE_DRAFT_SCHEMA_VERSION,
   STORY_PACKAGE_HISTORY_SCHEMA_VERSION,
   STORY_PACKAGE_RECALL_COMMAND_SCHEMA_VERSION,
+  STORY_PACKAGE_REVIEW_COMMAND_SCHEMA_VERSION,
   STORY_PACKAGE_RELEASE_COMMAND_SCHEMA_VERSION,
   STORY_PACKAGE_RELEASE_SCHEMA_VERSION,
   STORY_PACKAGE_ROLLBACK_COMMAND_SCHEMA_VERSION,
@@ -38,12 +45,19 @@ import {
   type ReadingSessionCreateV2,
   type ReadingSessionResponseV2,
   type SafetyAuditV1,
+  type StoryBriefCommandV1,
+  type StoryBriefIndexV1,
+  type StoryBriefV1,
+  type StoryGenerationJobCommandV1,
+  type StoryGenerationJobIndexV1,
+  type StoryGenerationJobV1,
   type StoryPackageBuildCommandV1,
   type StoryPackageBuildV1,
   type StoryPackageDraftIndexV1,
   type StoryPackageDraftV1,
   type StoryPackageHistoryV1,
   type StoryPackageRecallCommandV1,
+  type StoryPackageReviewCommandV1,
   type StoryPackageReleaseCommandV1,
   type StoryPackageReleaseV1,
   type StoryPackageRollbackCommandV1,
@@ -65,6 +79,12 @@ export const demoAcceptedAt = '2026-03-17T20:00:30Z';
 export const demoDraftId = '45454545-4545-4545-4545-454545454545';
 export const demoBuildId = '56565656-5656-5656-5656-565656565656';
 export const demoReleaseId = '67676767-6767-6767-6767-676767676767';
+export const demoStoryBriefId = '10101010-1010-4010-8010-101010101010';
+export const demoAiPackageId = '20202020-2020-4020-8020-202020202020';
+export const demoAiDraftId = '30303030-3030-4030-8030-303030303030';
+export const demoAiAuditId = '40404040-4040-4040-4040-404040404040';
+export const demoDraftGenerationJobId = '50505050-5050-4050-8050-505050505050';
+export const demoMediaGenerationJobId = '60606060-6060-4060-8060-606060606060';
 
 export type ResolvedChildSnapshot = CaregiverChildSummaryV1 & {
   currentPackage: StoryPackageManifestV1;
@@ -333,6 +353,284 @@ export const fallbackStoryPackageDraftIndex: StoryPackageDraftIndexV1 = {
   generated_at: demoAcceptedAt,
   drafts: [fallbackStoryPackageDraft],
 };
+
+export const demoAiSafetyAudit: SafetyAuditV1 = {
+  schema_version: SAFETY_AUDIT_SCHEMA_VERSION,
+  audit_id: demoAiAuditId,
+  target_type: 'story_package',
+  target_id: demoAiPackageId,
+  audit_source: 'pre_release',
+  audit_status: 'pending',
+  severity: 'medium',
+  policy_version: '2026.04-ai-draft',
+  findings: [
+    {
+      code: 'human-review-required',
+      title: 'Human review required',
+      description:
+        'AI-generated content must be reviewed before build and release.',
+      severity: 'medium',
+      page_index: null,
+      action_required: true,
+    },
+  ],
+  reviewer: {
+    reviewer_type: 'system',
+    reviewer_id: 'ai.supply-chain',
+  },
+  created_at: '2026-03-31T09:05:00Z',
+  reviewed_at: null,
+  resolution: {
+    action: 'revise',
+    notes: 'Awaiting editor review after AI generation.',
+    resolved_at: null,
+  },
+};
+
+export const demoAiStoryPackage: StoryPackageManifestV1 = {
+  schema_version: STORY_PACKAGE_SCHEMA_VERSION,
+  package_id: demoAiPackageId,
+  story_master_id: '70707070-7070-4070-8070-707070707070',
+  story_variant_id: '80808080-8080-4080-8080-808080808080',
+  title: 'Cloud Post for Tomorrow',
+  subtitle: 'A reviewable AI draft about patience and promise-keeping.',
+  language_mode: 'en-US',
+  difficulty_level: 'L2',
+  age_band: '4-6',
+  estimated_duration_sec: 450,
+  release_channel: 'internal',
+  cover_image_url: placeholderStorage.getPublicUrl(
+    `story-packages/generated/${demoAiPackageId}/placeholder/cover.png`,
+  ),
+  tags: ['patience', 'ai-generated', 'review-required'],
+  safety: {
+    review_status: 'limited_release',
+    reviewed_at: null,
+    review_policy_version: '2026.04-ai-draft',
+  },
+  pages: [
+    {
+      page_index: 0,
+      text_runs: [
+        {
+          text: "Nia wrote a cloud post so tomorrow would remember today's promise.",
+          lang: 'en-US',
+          tts_timing: [0, 320, 760, 1180],
+        },
+      ],
+      media: {
+        image_url: placeholderStorage.getPublicUrl(
+          `story-packages/generated/${demoAiPackageId}/placeholder/pages/0/image.png`,
+        ),
+        audio_url: placeholderStorage.getPublicUrl(
+          `story-packages/generated/${demoAiPackageId}/placeholder/pages/0/audio.mp3`,
+        ),
+      },
+      overlays: {
+        vocabulary: ['promise', 'tomorrow'],
+        caregiver_prompt_ids: ['ai-draft-prompt-1'],
+      },
+    },
+    {
+      page_index: 1,
+      text_runs: [
+        {
+          text: 'She tucked the message under a blue leaf and waited without peeking.',
+          lang: 'en-US',
+          tts_timing: [0, 320, 760, 1180],
+        },
+      ],
+      media: {
+        image_url: placeholderStorage.getPublicUrl(
+          `story-packages/generated/${demoAiPackageId}/placeholder/pages/1/image.png`,
+        ),
+        audio_url: placeholderStorage.getPublicUrl(
+          `story-packages/generated/${demoAiPackageId}/placeholder/pages/1/audio.mp3`,
+        ),
+      },
+      overlays: {
+        vocabulary: ['wait', 'leaf'],
+        caregiver_prompt_ids: ['ai-draft-prompt-2'],
+      },
+    },
+    {
+      page_index: 2,
+      text_runs: [
+        {
+          text: 'In the morning, the cloud post returned with a small answer and a calm smile.',
+          lang: 'en-US',
+          tts_timing: [0, 320, 760, 1180],
+        },
+      ],
+      media: {
+        image_url: placeholderStorage.getPublicUrl(
+          `story-packages/generated/${demoAiPackageId}/placeholder/pages/2/image.png`,
+        ),
+        audio_url: placeholderStorage.getPublicUrl(
+          `story-packages/generated/${demoAiPackageId}/placeholder/pages/2/audio.mp3`,
+        ),
+      },
+      overlays: {
+        vocabulary: ['return', 'answer'],
+        caregiver_prompt_ids: ['ai-draft-prompt-3'],
+      },
+    },
+  ],
+};
+
+export const fallbackAiStoryPackageDraft: StoryPackageDraftV1 = {
+  schema_version: STORY_PACKAGE_DRAFT_SCHEMA_VERSION,
+  draft_id: demoAiDraftId,
+  package_id: demoAiPackageId,
+  source_type: 'ai_generated',
+  workflow_state: 'draft',
+  package_preview: demoAiStoryPackage,
+  safety_audit: demoAiSafetyAudit,
+  operator_notes: [
+    "AI draft assembled from brief 'Cloud Post for Tomorrow' with 3 generated pages.",
+    'Media generation completed with placeholder after qwen credentials were unavailable.',
+  ],
+  latest_build_id: null,
+  active_release_id: null,
+  created_at: '2026-03-31T09:00:00Z',
+  updated_at: '2026-03-31T09:10:00Z',
+};
+
+export const fallbackStoryBrief: StoryBriefV1 = {
+  schema_version: STORY_BRIEF_SCHEMA_VERSION,
+  brief_id: demoStoryBriefId,
+  package_id: demoAiPackageId,
+  title: 'Cloud Post for Tomorrow',
+  theme: 'patience',
+  premise:
+    'A child leaves a message for tomorrow and learns that waiting can be gentle.',
+  language_mode: 'en-US',
+  age_band: '4-6',
+  desired_page_count: 3,
+  status: 'media_ready',
+  source_outline: 'Keep the emotional arc calm and bedtime-friendly.',
+  latest_job_id: demoMediaGenerationJobId,
+  latest_failure_reason: null,
+  created_at: '2026-03-31T09:00:00Z',
+  updated_at: '2026-03-31T09:10:00Z',
+};
+
+export const fallbackStoryBriefIndex: StoryBriefIndexV1 = {
+  schema_version: STORY_BRIEF_INDEX_SCHEMA_VERSION,
+  generated_at: '2026-03-31T09:10:00Z',
+  briefs: [fallbackStoryBrief],
+};
+
+export const fallbackDraftGenerationJob: StoryGenerationJobV1 = {
+  schema_version: STORY_GENERATION_JOB_SCHEMA_VERSION,
+  job_id: demoDraftGenerationJobId,
+  brief_id: demoStoryBriefId,
+  package_id: demoAiPackageId,
+  job_type: 'brief_to_draft',
+  status: 'succeeded',
+  selected_provider: 'placeholder',
+  attempts: [
+    {
+      provider: 'placeholder',
+      status: 'succeeded',
+      reason: 'deterministic_draft_assembly',
+    },
+  ],
+  generated_asset_keys: [],
+  requested_by: 'studio.operator',
+  requested_at: '2026-03-31T09:05:00Z',
+  completed_at: '2026-03-31T09:05:00Z',
+  failure_reason: null,
+  notes: 'Seeded AI draft for studio review visibility.',
+};
+
+export const fallbackMediaGenerationJob: StoryGenerationJobV1 = {
+  schema_version: STORY_GENERATION_JOB_SCHEMA_VERSION,
+  job_id: demoMediaGenerationJobId,
+  brief_id: demoStoryBriefId,
+  package_id: demoAiPackageId,
+  job_type: 'draft_to_media',
+  status: 'succeeded',
+  selected_provider: 'placeholder',
+  attempts: [
+    {
+      provider: 'qwen',
+      status: 'failed',
+      reason: 'credentials_unavailable',
+    },
+    {
+      provider: 'placeholder',
+      status: 'succeeded',
+      reason: 'placeholder_generation',
+    },
+  ],
+  generated_asset_keys: [
+    `story-packages/generated/${demoAiPackageId}/placeholder/cover.png`,
+    `story-packages/generated/${demoAiPackageId}/placeholder/pages/0/image.png`,
+    `story-packages/generated/${demoAiPackageId}/placeholder/pages/0/audio.mp3`,
+    `story-packages/generated/${demoAiPackageId}/placeholder/pages/1/image.png`,
+    `story-packages/generated/${demoAiPackageId}/placeholder/pages/1/audio.mp3`,
+    `story-packages/generated/${demoAiPackageId}/placeholder/pages/2/image.png`,
+    `story-packages/generated/${demoAiPackageId}/placeholder/pages/2/audio.mp3`,
+  ],
+  requested_by: 'studio.operator',
+  requested_at: '2026-03-31T09:10:00Z',
+  completed_at: '2026-03-31T09:10:00Z',
+  failure_reason: null,
+  notes: 'Seeded media fallback record with placeholder assets.',
+};
+
+export const fallbackStoryGenerationJobIndex: StoryGenerationJobIndexV1 = {
+  schema_version: STORY_GENERATION_JOB_INDEX_SCHEMA_VERSION,
+  generated_at: '2026-03-31T09:10:00Z',
+  jobs: [fallbackMediaGenerationJob, fallbackDraftGenerationJob],
+};
+
+export function buildDemoStoryBriefCommand(
+  overrides: Partial<StoryBriefCommandV1> = {},
+): StoryBriefCommandV1 {
+  return {
+    schema_version: STORY_BRIEF_COMMAND_SCHEMA_VERSION,
+    title: overrides.title ?? fallbackStoryBrief.title,
+    theme: overrides.theme ?? fallbackStoryBrief.theme,
+    premise: overrides.premise ?? fallbackStoryBrief.premise,
+    language_mode: overrides.language_mode ?? fallbackStoryBrief.language_mode,
+    age_band: overrides.age_band ?? fallbackStoryBrief.age_band,
+    desired_page_count:
+      overrides.desired_page_count ?? fallbackStoryBrief.desired_page_count,
+    source_outline: overrides.source_outline ?? fallbackStoryBrief.source_outline,
+    requested_by: overrides.requested_by ?? 'studio.operator',
+    requested_at: overrides.requested_at ?? '2026-03-31T09:00:00Z',
+  };
+}
+
+export function buildDemoStoryGenerationJobCommand(
+  overrides: Partial<StoryGenerationJobCommandV1> = {},
+): StoryGenerationJobCommandV1 {
+  return {
+    schema_version: STORY_GENERATION_JOB_COMMAND_SCHEMA_VERSION,
+    job_type: overrides.job_type ?? 'brief_to_draft',
+    provider_preference: overrides.provider_preference ?? 'placeholder',
+    notes: overrides.notes ?? 'Drive seeded AI generation flow.',
+    requested_by: overrides.requested_by ?? 'studio.operator',
+    requested_at: overrides.requested_at ?? '2026-03-31T09:05:00Z',
+  };
+}
+
+export function buildDemoStoryPackageReviewCommand(
+  overrides: Partial<StoryPackageReviewCommandV1> = {},
+): StoryPackageReviewCommandV1 {
+  return {
+    schema_version: STORY_PACKAGE_REVIEW_COMMAND_SCHEMA_VERSION,
+    audit_status: overrides.audit_status ?? 'approved',
+    resolution_action: overrides.resolution_action ?? 'release',
+    reviewer_type: overrides.reviewer_type ?? 'human',
+    reviewer_id: overrides.reviewer_id ?? 'studio.reviewer',
+    notes: overrides.notes ?? 'Cleared for package build and runtime release.',
+    requested_by: overrides.requested_by ?? 'studio.operator',
+    requested_at: overrides.requested_at ?? '2026-03-31T09:20:00Z',
+  };
+}
 
 export function buildDemoStoryPackageBuildCommand(
   overrides: Partial<StoryPackageBuildCommandV1> = {},

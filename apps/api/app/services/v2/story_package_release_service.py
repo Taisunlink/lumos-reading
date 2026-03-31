@@ -19,6 +19,7 @@ from app.schemas.v2.story_package_release import (
     StoryPackageDraftV1,
     StoryPackageHistoryV1,
     StoryPackageRecallCommandV1,
+    StoryPackageReviewCommandV1,
     StoryPackageReleaseCommandV1,
     StoryPackageReleaseV1,
     StoryPackageRollbackCommandV1,
@@ -93,7 +94,14 @@ class StoryPackageReleaseService:
     def resolve_story_package(self, package_id: UUID) -> StoryPackageManifestV1:
         state = self._load_state()
         draft = self._find_draft(state, package_id)
-        return self._resolve_package_preview(draft, state)
+        release_records = self._list_releases_for_package(state, package_id)
+
+        if draft.get("active_release_id") or release_records:
+            return self._resolve_package_preview(draft, state)
+
+        raise StoryPackageReleaseNotFoundError(
+            f"Package {package_id} is not available for runtime lookup until it is released."
+        )
 
     def build_package(
         self,
@@ -308,6 +316,82 @@ class StoryPackageReleaseService:
 
         return self._build_release_payload(self.store.update(mutate))
 
+    def review_package(
+        self,
+        package_id: UUID,
+        command: StoryPackageReviewCommandV1,
+    ) -> StoryPackageDraftV1:
+        command_time = _isoformat(command.requested_at)
+
+        def mutate(state: dict[str, Any]) -> dict[str, Any]:
+            self._bootstrap_release_state(state)
+            draft = self._find_draft(state, package_id)
+            audit = self._find_audit(state, draft["safety_audit_id"])
+
+            audit["audit_status"] = command.audit_status
+            audit["reviewer"] = {
+                "reviewer_type": command.reviewer_type,
+                "reviewer_id": command.reviewer_id,
+            }
+            audit["reviewed_at"] = command_time if command.audit_status != "pending" else None
+            audit["resolution"] = {
+                "action": command.resolution_action,
+                "notes": command.notes,
+                "resolved_at": command_time if command.audit_status != "pending" else None,
+            }
+            if command.audit_status == "approved":
+                audit["severity"] = "low"
+                audit["findings"] = []
+            elif command.audit_status == "needs_revision":
+                audit["severity"] = "medium"
+                audit["findings"] = [
+                    {
+                        "code": "editorial-revision-required",
+                        "title": "Editorial revision required",
+                        "description": command.notes
+                        or "The package needs revision before release.",
+                        "severity": "medium",
+                        "page_index": None,
+                        "action_required": True,
+                    }
+                ]
+            elif command.audit_status in {"rejected", "recalled", "escalated"}:
+                audit["severity"] = "high"
+                audit["findings"] = [
+                    {
+                        "code": "release-blocked",
+                        "title": "Release blocked",
+                        "description": command.notes or "The package cannot be released in its current state.",
+                        "severity": "high",
+                        "page_index": None,
+                        "action_required": True,
+                    }
+                ]
+            elif command.audit_status == "in_review":
+                audit["severity"] = "medium"
+                audit["findings"] = [
+                    {
+                        "code": "review-in-progress",
+                        "title": "Review in progress",
+                        "description": command.notes or "The package is under active review.",
+                        "severity": "medium",
+                        "page_index": None,
+                        "action_required": True,
+                    }
+                ]
+            else:
+                audit["severity"] = audit.get("severity", "medium")
+
+            draft["updated_at"] = command_time
+            draft["operator_notes"].append(
+                f"Review updated to {command.audit_status} / {command.resolution_action} by {command.requested_by}."
+            )
+            if command.notes:
+                draft["operator_notes"].append(command.notes)
+            return self._build_draft_payload(draft, state)
+
+        return self.store.update(mutate)
+
     def _load_state(self) -> dict[str, Any]:
         def mutate(state: dict[str, Any]) -> dict[str, Any]:
             self._bootstrap_release_state(state)
@@ -320,10 +404,22 @@ class StoryPackageReleaseService:
         state.setdefault("audits", [])
         state.setdefault("builds", [])
         state.setdefault("releases", [])
+        state.setdefault("briefs", [])
+        state.setdefault("generation_jobs", [])
 
         for draft in state["drafts"]:
             package_id = draft["package_id"]
             if any(item["package_id"] == package_id for item in state["builds"]):
+                continue
+
+            if draft.get("workflow_state") != "released":
+                continue
+
+            audit = self._find_audit(state, draft["safety_audit_id"])
+            if audit["audit_status"] != "approved":
+                continue
+
+            if audit.get("resolution", {}).get("action") != "release":
                 continue
 
             built_package, artifact_plan = build_story_package_artifacts(

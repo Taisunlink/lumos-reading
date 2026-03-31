@@ -7,8 +7,10 @@ from app.schemas.v2.story_package_release import (
     StoryPackageBuildCommandV1,
     StoryPackageBuildV1,
     StoryPackageDraftIndexV1,
+    StoryPackageDraftV1,
     StoryPackageHistoryV1,
     StoryPackageRecallCommandV1,
+    StoryPackageReviewCommandV1,
     StoryPackageReleaseCommandV1,
     StoryPackageReleaseV1,
     StoryPackageRollbackCommandV1,
@@ -108,6 +110,24 @@ async def rollback_story_package_release(
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 
+@router.post(
+    "/{package_id}:review",
+    response_model=StoryPackageDraftV1,
+    response_model_exclude_none=True,
+)
+async def review_story_package(
+    package_id: UUID,
+    command: StoryPackageReviewCommandV1,
+) -> StoryPackageDraftV1:
+    """Record review state changes for editorial and AI-generated drafts."""
+    try:
+        return release_service.review_package(package_id, command)
+    except StoryPackageReleaseValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except StoryPackageReleaseNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
 @router.get(
     "/{package_id}/history",
     response_model=StoryPackageHistoryV1,
@@ -128,4 +148,9 @@ async def get_story_package_history(package_id: UUID) -> StoryPackageHistoryV1:
 )
 async def get_story_package(package_id: UUID) -> StoryPackageManifestV1:
     """Return the V2 runtime content package skeleton for a story."""
-    return story_package_service.get_story_package(package_id)
+    try:
+        return story_package_service.get_story_package(package_id)
+    except StoryPackageReleaseValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except StoryPackageReleaseNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc

@@ -296,25 +296,31 @@ erDiagram
 
 ### 8.3 面向 CMS / Studio 的核心接口
 
-- `POST /api/v2/story-masters`
-- `POST /api/v2/story-variants`
-- `POST /api/v2/story-variants/{variant_id}:generate-draft`
-- `POST /api/v2/story-variants/{variant_id}:submit-review`
+- `GET /api/v2/story-briefs`
+- `POST /api/v2/story-briefs`
+- `POST /api/v2/story-briefs/{brief_id}:generate-draft`
+- `POST /api/v2/story-briefs/{brief_id}:generate-media`
+- `GET /api/v2/story-generation-jobs`
 - `GET /api/v2/story-packages`
+- `POST /api/v2/story-packages/{package_id}:review`
 - `POST /api/v2/story-packages/{package_id}:build`
 - `POST /api/v2/story-packages/{package_id}:release`
 - `POST /api/v2/story-packages/{package_id}:recall`
 - `POST /api/v2/story-packages/{package_id}:rollback`
 - `GET /api/v2/story-packages/{package_id}/history`
-- `GET /api/v2/safety-audits`
 - `POST /api/v2/experiments`
+
+Phase 4/5 implementation note:
+- A dedicated `GET /api/v2/safety-audits` router is still deferred.
+- The current studio console reads audit evidence through package draft and history views.
 
 ### 8.4 异步 job 契约
 
 所有重型任务统一进入 job 系统：
 
-- `story_variant_generate`
+- `story_brief_to_draft`
 - `illustration_render`
+- `story_draft_to_media`
 - `tts_render`
 - `story_package_build`
 - `safety_scan`
@@ -323,6 +329,11 @@ erDiagram
 Phase 3 implementation note:
 - The current repo uses a repo-local bootstrap seed/runtime store for package draft, build, and release state.
 - `story_package_build` is currently executed synchronously through the shared worker helper, while preserving versioned object-key semantics so a real queue boundary can be introduced later without changing API or runtime contracts.
+
+Phase 5 implementation note:
+- The same repo-local store now also carries `story-brief`, `story-generation-job`, AI-generated package drafts, and their audit records.
+- AI generation currently uses deterministic helper jobs plus provider fallback reporting so tests do not depend on live credentials.
+- Unreleased AI drafts are visible only through studio draft/history surfaces and cannot resolve through the runtime package lookup path until review and release succeed.
 
 示例：
 

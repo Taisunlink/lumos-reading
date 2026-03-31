@@ -1,6 +1,7 @@
 import {
   DEFAULT_LUMOS_API_BASE_URL,
   createLumosApiClient,
+  createStoryGenerationServices,
   createStoryPackageReleaseServices,
 } from "@lumosreading/sdk";
 
@@ -11,4 +12,5 @@ export const apiClient = createLumosApiClient({
   baseUrl: API_BASE_URL,
 });
 
+export const storyGenerationServices = createStoryGenerationServices(apiClient);
 export const storyPackageReleaseServices = createStoryPackageReleaseServices(apiClient);

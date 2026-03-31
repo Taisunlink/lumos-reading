@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lumosreading.local/story-brief.v1.schema.json",
+  "title": "StoryBriefV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "brief_id",
+    "package_id",
+    "title",
+    "theme",
+    "premise",
+    "language_mode",
+    "age_band",
+    "desired_page_count",
+    "status",
+    "created_at",
+    "updated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "story-brief.v1"
+    },
+    "brief_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "package_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "theme": {
+      "type": "string",
+      "minLength": 1
+    },
+    "premise": {
+      "type": "string",
+      "minLength": 1
+    },
+    "language_mode": {
+      "type": "string",
+      "minLength": 1
+    },
+    "age_band": {
+      "type": "string",
+      "minLength": 1
+    },
+    "desired_page_count": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft_requested",
+        "draft_ready",
+        "media_ready",
+        "failed"
+      ]
+    },
+    "source_outline": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "latest_job_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "uuid"
+    },
+    "latest_failure_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

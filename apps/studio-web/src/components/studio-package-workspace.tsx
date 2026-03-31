@@ -26,6 +26,7 @@ export function StudioPackageWorkspace() {
     refresh,
     triggerBuild,
     publishBuild,
+    reviewPackage,
     recallRelease,
     rollbackRelease,
   } = useStudioReleaseBoard();
@@ -47,7 +48,7 @@ export function StudioPackageWorkspace() {
         />
         <EmptyState
           title="No package drafts"
-          copy="Phase 4 expects the release API to expose draft cards. The current board is empty."
+          copy="The release API should expose draft cards before the studio package workspace can operate."
         />
       </div>
     );
@@ -75,8 +76,8 @@ export function StudioPackageWorkspace() {
       <section className="panel-card">
         <div className="panel-card__header">
           <div>
-            <div className="panel-card__eyebrow">Phase 4 package control</div>
-            <h2>Build, publish, recall, and rollback from one workspace</h2>
+            <div className="panel-card__eyebrow">Phase 5 package control</div>
+            <h2>Review, build, publish, recall, and rollback from one workspace</h2>
           </div>
 
           <div className="button-row">
@@ -202,7 +203,7 @@ export function StudioPackageWorkspace() {
                 onClick={() =>
                   void triggerBuild(
                     selectedHistory.packageId,
-                    `phase4_operator_refresh_${selectedHistory.packagePreview.release_channel}`,
+                    `phase5_operator_refresh_${selectedHistory.packagePreview.release_channel}`,
                   )
                 }
                 disabled={isBusy}
@@ -250,7 +251,7 @@ export function StudioPackageWorkspace() {
               <div className="panel-card__header">
                 <div>
                   <div className="panel-card__eyebrow">Audit evidence</div>
-                  <h2>Review and findings</h2>
+                  <h2>Review decisions and findings</h2>
                 </div>
                 <StatusBadge
                   label={titleize(selectedHistory.audit.severity)}
@@ -314,6 +315,51 @@ export function StudioPackageWorkspace() {
                   {selectedHistory.audit.resolution.notes ??
                     "No resolution note was recorded for this audit yet."}
                 </p>
+              </div>
+
+              <div className="button-row">
+                <button
+                  type="button"
+                  className="button"
+                  onClick={() =>
+                    void reviewPackage(selectedHistory.packageId, {
+                      auditStatus: "approved",
+                      resolutionAction: "release",
+                      notes: "Approved for package build and runtime release.",
+                    })
+                  }
+                  disabled={isBusy}
+                >
+                  Approve for release
+                </button>
+                <button
+                  type="button"
+                  className="button is-secondary"
+                  onClick={() =>
+                    void reviewPackage(selectedHistory.packageId, {
+                      auditStatus: "needs_revision",
+                      resolutionAction: "revise",
+                      notes: "Needs editorial revision before the next build.",
+                    })
+                  }
+                  disabled={isBusy}
+                >
+                  Request revision
+                </button>
+                <button
+                  type="button"
+                  className="button is-danger"
+                  onClick={() =>
+                    void reviewPackage(selectedHistory.packageId, {
+                      auditStatus: "rejected",
+                      resolutionAction: "block",
+                      notes: "Rejected pending a new content pass.",
+                    })
+                  }
+                  disabled={isBusy}
+                >
+                  Reject package
+                </button>
               </div>
             </article>
 
@@ -414,7 +460,7 @@ export function StudioPackageWorkspace() {
                     <p>{release.notes ?? "No operator note recorded."}</p>
 
                     {release.status !== "recalled" && release.status !== "active" ? (
-            <div className="button-row">
+                      <div className="button-row">
                         <button
                           type="button"
                           className="button is-secondary"
@@ -433,14 +479,14 @@ export function StudioPackageWorkspace() {
                     ) : null}
                   </article>
                 ))}
-            </div>
-            <div className="note-card">
-              <p>
-                Publish is enabled only when the audit status is approved and the audit
-                resolution action is release.
-              </p>
-            </div>
-          </article>
+              </div>
+              <div className="note-card">
+                <p>
+                  Publish is enabled only when the audit status is approved and the audit
+                  resolution action is release.
+                </p>
+              </div>
+            </article>
           </section>
         </div>
       </section>

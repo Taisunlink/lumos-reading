@@ -11,11 +11,19 @@ import type {
   ReadingEventIngestedResponseV2,
   ReadingSessionCreateV2,
   ReadingSessionResponseV2,
+  StoryBriefCommandV1,
+  StoryBriefIndexV1,
+  StoryBriefV1,
+  StoryGenerationJobCommandV1,
+  StoryGenerationJobIndexV1,
+  StoryGenerationJobV1,
   StoryPackageBuildCommandV1,
   StoryPackageBuildV1,
   StoryPackageDraftIndexV1,
+  StoryPackageDraftV1,
   StoryPackageHistoryV1,
   StoryPackageRecallCommandV1,
+  StoryPackageReviewCommandV1,
   StoryPackageReleaseCommandV1,
   StoryPackageReleaseV1,
   StoryPackageRollbackCommandV1,
@@ -24,6 +32,7 @@ import type {
 
 export * from "./caregiver";
 export * from "./demo";
+export * from "./generation";
 export * from "./object-storage";
 export * from "./application";
 export * from "./release";
@@ -243,6 +252,79 @@ export function createLumosApiClient(options: LumosApiClientOptions = {}) {
           method: "POST",
           body: JSON.stringify(payload),
         },
+      );
+    },
+    async reviewStoryPackage(
+      packageId: string,
+      payload: StoryPackageReviewCommandV1,
+    ): Promise<StoryPackageDraftV1> {
+      return request<StoryPackageDraftV1>(
+        fetchImpl,
+        baseUrl,
+        `/story-packages/${packageId}:review`,
+        options.headers,
+        {
+          method: "POST",
+          body: JSON.stringify(payload),
+        },
+      );
+    },
+    async listStoryBriefs(): Promise<StoryBriefIndexV1> {
+      return request<StoryBriefIndexV1>(
+        fetchImpl,
+        baseUrl,
+        "/story-briefs",
+        options.headers,
+      );
+    },
+    async createStoryBrief(payload: StoryBriefCommandV1): Promise<StoryBriefV1> {
+      return request<StoryBriefV1>(
+        fetchImpl,
+        baseUrl,
+        "/story-briefs",
+        options.headers,
+        {
+          method: "POST",
+          body: JSON.stringify(payload),
+        },
+      );
+    },
+    async generateStoryBriefDraft(
+      briefId: string,
+      payload: StoryGenerationJobCommandV1,
+    ): Promise<StoryGenerationJobV1> {
+      return request<StoryGenerationJobV1>(
+        fetchImpl,
+        baseUrl,
+        `/story-briefs/${briefId}:generate-draft`,
+        options.headers,
+        {
+          method: "POST",
+          body: JSON.stringify(payload),
+        },
+      );
+    },
+    async generateStoryBriefMedia(
+      briefId: string,
+      payload: StoryGenerationJobCommandV1,
+    ): Promise<StoryGenerationJobV1> {
+      return request<StoryGenerationJobV1>(
+        fetchImpl,
+        baseUrl,
+        `/story-briefs/${briefId}:generate-media`,
+        options.headers,
+        {
+          method: "POST",
+          body: JSON.stringify(payload),
+        },
+      );
+    },
+    async listStoryGenerationJobs(): Promise<StoryGenerationJobIndexV1> {
+      return request<StoryGenerationJobIndexV1>(
+        fetchImpl,
+        baseUrl,
+        "/story-generation-jobs",
+        options.headers,
       );
     },
     async createReadingSession(

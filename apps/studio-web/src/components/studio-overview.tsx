@@ -62,6 +62,9 @@ export function StudioOverview() {
           <button type="button" className="button" onClick={refresh}>
             Refresh board
           </button>
+          <Link href="/briefs" className="button is-secondary">
+            Open briefs board
+          </Link>
           <Link href="/packages" className="button is-secondary">
             Open package workspace
           </Link>

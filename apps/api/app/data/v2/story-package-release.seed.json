@@ -42,6 +42,131 @@
       "active_release_id": null,
       "created_at": "2026-03-17T11:44:00Z",
       "updated_at": "2026-03-17T12:00:00Z"
+    },
+    {
+      "draft_id": "30303030-3030-4030-8030-303030303030",
+      "package_id": "20202020-2020-4020-8020-202020202020",
+      "source_type": "ai_generated",
+      "workflow_state": "draft",
+      "safety_audit_id": "40404040-4040-4040-4040-404040404040",
+      "operator_notes": [
+        "AI draft assembled from brief 'Cloud Post for Tomorrow' with 3 generated pages.",
+        "Media generation completed with placeholder after qwen credentials were unavailable."
+      ],
+      "latest_build_id": null,
+      "active_release_id": null,
+      "package_preview_override": {
+        "schema_version": "story-package.v1",
+        "package_id": "20202020-2020-4020-8020-202020202020",
+        "story_master_id": "70707070-7070-4070-8070-707070707070",
+        "story_variant_id": "80808080-8080-4080-8080-808080808080",
+        "title": "Cloud Post for Tomorrow",
+        "subtitle": "A reviewable AI draft about patience and promise-keeping.",
+        "language_mode": "en-US",
+        "difficulty_level": "L2",
+        "age_band": "4-6",
+        "estimated_duration_sec": 450,
+        "release_channel": "internal",
+        "cover_image_url": "https://oss-placeholder.lumosreading.local/story-packages/generated/20202020-2020-4020-8020-202020202020/placeholder/cover.png",
+        "tags": [
+          "patience",
+          "ai-generated",
+          "review-required"
+        ],
+        "safety": {
+          "review_status": "limited_release",
+          "reviewed_at": null,
+          "review_policy_version": "2026.04-ai-draft"
+        },
+        "pages": [
+          {
+            "page_index": 0,
+            "text_runs": [
+              {
+                "text": "Nia wrote a cloud post so tomorrow would remember today's promise.",
+                "lang": "en-US",
+                "tts_timing": [
+                  0,
+                  320,
+                  760,
+                  1180
+                ]
+              }
+            ],
+            "media": {
+              "image_url": "https://oss-placeholder.lumosreading.local/story-packages/generated/20202020-2020-4020-8020-202020202020/placeholder/pages/0/image.png",
+              "audio_url": "https://oss-placeholder.lumosreading.local/story-packages/generated/20202020-2020-4020-8020-202020202020/placeholder/pages/0/audio.mp3"
+            },
+            "overlays": {
+              "vocabulary": [
+                "promise",
+                "tomorrow"
+              ],
+              "caregiver_prompt_ids": [
+                "ai-draft-prompt-1"
+              ]
+            }
+          },
+          {
+            "page_index": 1,
+            "text_runs": [
+              {
+                "text": "She tucked the message under a blue leaf and waited without peeking.",
+                "lang": "en-US",
+                "tts_timing": [
+                  0,
+                  320,
+                  760,
+                  1180
+                ]
+              }
+            ],
+            "media": {
+              "image_url": "https://oss-placeholder.lumosreading.local/story-packages/generated/20202020-2020-4020-8020-202020202020/placeholder/pages/1/image.png",
+              "audio_url": "https://oss-placeholder.lumosreading.local/story-packages/generated/20202020-2020-4020-8020-202020202020/placeholder/pages/1/audio.mp3"
+            },
+            "overlays": {
+              "vocabulary": [
+                "wait",
+                "leaf"
+              ],
+              "caregiver_prompt_ids": [
+                "ai-draft-prompt-2"
+              ]
+            }
+          },
+          {
+            "page_index": 2,
+            "text_runs": [
+              {
+                "text": "In the morning, the cloud post returned with a small answer and a calm smile.",
+                "lang": "en-US",
+                "tts_timing": [
+                  0,
+                  320,
+                  760,
+                  1180
+                ]
+              }
+            ],
+            "media": {
+              "image_url": "https://oss-placeholder.lumosreading.local/story-packages/generated/20202020-2020-4020-8020-202020202020/placeholder/pages/2/image.png",
+              "audio_url": "https://oss-placeholder.lumosreading.local/story-packages/generated/20202020-2020-4020-8020-202020202020/placeholder/pages/2/audio.mp3"
+            },
+            "overlays": {
+              "vocabulary": [
+                "return",
+                "answer"
+              ],
+              "caregiver_prompt_ids": [
+                "ai-draft-prompt-3"
+              ]
+            }
+          }
+        ]
+      },
+      "created_at": "2026-03-31T09:00:00Z",
+      "updated_at": "2026-03-31T09:10:00Z"
     }
   ],
   "audits": [
@@ -119,8 +244,117 @@
         "notes": "Approved for pilot bootstrap release with reviewed bilingual overlay.",
         "resolved_at": "2026-03-17T12:00:00Z"
       }
+    },
+    {
+      "schema_version": "safety-audit.v1",
+      "audit_id": "40404040-4040-4040-4040-404040404040",
+      "target_type": "story_package",
+      "target_id": "20202020-2020-4020-8020-202020202020",
+      "audit_source": "pre_release",
+      "audit_status": "pending",
+      "severity": "medium",
+      "policy_version": "2026.04-ai-draft",
+      "findings": [
+        {
+          "code": "human-review-required",
+          "title": "Human review required",
+          "description": "AI-generated content must be reviewed before build and release.",
+          "severity": "medium",
+          "page_index": null,
+          "action_required": true
+        }
+      ],
+      "reviewer": {
+        "reviewer_type": "system",
+        "reviewer_id": "ai.supply-chain"
+      },
+      "created_at": "2026-03-31T09:05:00Z",
+      "reviewed_at": null,
+      "resolution": {
+        "action": "revise",
+        "notes": "Awaiting editor review after AI generation.",
+        "resolved_at": null
+      }
     }
   ],
   "builds": [],
-  "releases": []
+  "releases": [],
+  "briefs": [
+    {
+      "schema_version": "story-brief.v1",
+      "brief_id": "10101010-1010-4010-8010-101010101010",
+      "package_id": "20202020-2020-4020-8020-202020202020",
+      "title": "Cloud Post for Tomorrow",
+      "theme": "patience",
+      "premise": "A child leaves a message for tomorrow and learns that waiting can be gentle.",
+      "language_mode": "en-US",
+      "age_band": "4-6",
+      "desired_page_count": 3,
+      "status": "media_ready",
+      "source_outline": "Keep the emotional arc calm and bedtime-friendly.",
+      "latest_job_id": "60606060-6060-4060-8060-606060606060",
+      "latest_failure_reason": null,
+      "created_at": "2026-03-31T09:00:00Z",
+      "updated_at": "2026-03-31T09:10:00Z"
+    }
+  ],
+  "generation_jobs": [
+    {
+      "schema_version": "story-generation-job.v1",
+      "job_id": "50505050-5050-4050-8050-505050505050",
+      "brief_id": "10101010-1010-4010-8010-101010101010",
+      "package_id": "20202020-2020-4020-8020-202020202020",
+      "job_type": "brief_to_draft",
+      "status": "succeeded",
+      "selected_provider": "placeholder",
+      "attempts": [
+        {
+          "provider": "placeholder",
+          "status": "succeeded",
+          "reason": "deterministic_draft_assembly"
+        }
+      ],
+      "generated_asset_keys": [],
+      "requested_by": "studio.operator",
+      "requested_at": "2026-03-31T09:05:00Z",
+      "completed_at": "2026-03-31T09:05:00Z",
+      "failure_reason": null,
+      "notes": "Seeded AI draft for studio review visibility."
+    },
+    {
+      "schema_version": "story-generation-job.v1",
+      "job_id": "60606060-6060-4060-8060-606060606060",
+      "brief_id": "10101010-1010-4010-8010-101010101010",
+      "package_id": "20202020-2020-4020-8020-202020202020",
+      "job_type": "draft_to_media",
+      "status": "succeeded",
+      "selected_provider": "placeholder",
+      "attempts": [
+        {
+          "provider": "qwen",
+          "status": "failed",
+          "reason": "credentials_unavailable"
+        },
+        {
+          "provider": "placeholder",
+          "status": "succeeded",
+          "reason": "placeholder_generation"
+        }
+      ],
+      "generated_asset_keys": [
+        "story-packages/generated/20202020-2020-4020-8020-202020202020/placeholder/cover.png",
+        "story-packages/generated/20202020-2020-4020-8020-202020202020/placeholder/pages/0/image.png",
+        "story-packages/generated/20202020-2020-4020-8020-202020202020/placeholder/pages/0/audio.mp3",
+        "story-packages/generated/20202020-2020-4020-8020-202020202020/placeholder/pages/1/image.png",
+        "story-packages/generated/20202020-2020-4020-8020-202020202020/placeholder/pages/1/audio.mp3",
+        "story-packages/generated/20202020-2020-4020-8020-202020202020/placeholder/pages/2/image.png",
+        "story-packages/generated/20202020-2020-4020-8020-202020202020/placeholder/pages/2/audio.mp3"
+      ],
+      "requested_by": "studio.operator",
+      "requested_at": "2026-03-31T09:10:00Z",
+      "completed_at": "2026-03-31T09:10:00Z",
+      "failure_reason": null,
+      "notes": "Seeded media fallback record with placeholder assets."
+    }
+  ]
 }

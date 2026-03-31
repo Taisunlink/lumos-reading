@@ -98,7 +98,7 @@ The following checks have already passed on the current baseline:
 ## Current focus and next slices
 
 - Execute the sequential seven-phase delivery plan defined in `docs/v2/04-engineering-delivery-plan.md`.
-- Complete Phase 5 next: AI content supply chain v1 on top of the Phase 3 and Phase 4 release/review surfaces.
+- Complete Phase 6 next: monetization and optimization on top of the caregiver, child runtime, and release-aware package surfaces.
 - Replace bootstrap fallback/demo responses with real backend module implementations behind the same contracts.
 - Continue reducing legacy `apps/web` responsibility until it can be retired from the V2 main path.
 
@@ -171,6 +171,22 @@ The following checks have already passed on the current baseline:
 - Verification passed for Phase 4 with `npm run test:contracts --workspace @lumosreading/sdk`, `npm run build --workspace studio-web`, `npm run build --workspace caregiver-web`, `pytest tests/test_story_package_release_v2.py -q`, and `pytest tests/test_caregiver_v2_contracts.py -q`.
 - Phase 4 QC gate is cleared after subagent re-review confirmed no remaining blocking issue; accepted follow-ups are that the local seed/runtime store still over-represents approved/released states and that a dedicated audit router is still deferred because draft/history views already surface the required audit evidence for this phase.
 - The next recommended slice is Phase 5 AI content supply chain v1, with emphasis on brief records, generation jobs, reviewable AI-generated drafts, and keeping runtime consumption release-only.
+
+## Session update: 2026-03-31 Phase 5
+
+- Added shared Phase 5 contracts for `story-brief`, `story-generation-job`, and `story-package-review-command`, extending the V2 schema authority from release-loop control into the AI supply chain.
+- Extended the shared SDK with generation-domain client methods, demo payloads, and self-check coverage so studio surfaces can consume brief cards and generation job cards without page-local transport logic.
+- Added a repo-local AI supply-chain service and router in FastAPI, covering `GET/POST /api/v2/story-briefs`, `POST /api/v2/story-briefs/{brief_id}:generate-draft`, `POST /api/v2/story-briefs/{brief_id}:generate-media`, and `GET /api/v2/story-generation-jobs`.
+- Extended the shared release store so briefs, generation jobs, AI-generated drafts, and audits now live in the same repo-local lifecycle state as editorial drafts, builds, and releases.
+- Added a deterministic worker helper in `apps/workers/jobs/story_generation.py` so draft assembly and provider fallback reporting are testable without requiring live credentials.
+- Added a new package review mutation in FastAPI and studio-web, so operators can approve, request revision, or reject generated drafts before build and release.
+- Tightened the runtime gate for Phase 5 by preventing unreleased AI drafts from resolving through `GET /api/v2/story-packages/{package_id}`; generated content remains studio-visible through draft/history views only until it passes review and release.
+- Seeded the repo-local store with one pending AI-generated draft and fallback media job history so studio operations can open a realistic local Phase 5 board without manufacturing state by hand.
+- Added a new `/briefs` route in `apps/studio-web`, with brief creation, draft generation, media generation, and provider fallback visibility; the existing package workspace now carries the review decision step needed to move generated drafts into the Phase 3/4 release loop.
+- Added dedicated Phase 5 API coverage for seeded briefs/jobs, generated draft creation, media provider fallback, unreleased runtime gating, and the full review -> build -> release path for AI-generated packages.
+- Verification passed for Phase 5 with `pytest tests/test_story_generation_v2.py -q`, `pytest tests/test_story_package_release_v2.py -q`, `pytest tests/test_caregiver_v2_contracts.py -q`, `npm run test:contracts --workspace @lumosreading/sdk`, `npm run build --workspace studio-web`, and `npm run build --workspace caregiver-web`.
+- Phase 5 QC is ready for final re-review; the expected accepted follow-up is that generation still runs through deterministic synchronous helpers rather than a real queued provider execution boundary, but the phase gate itself is satisfied because AI output lands only as reviewable draft content and runtime lookup remains release-only.
+- The next recommended slice is Phase 6 monetization and optimization, with emphasis on household-scoped entitlements, subscription visibility, package delivery gates, and weekly value reporting.
 
 ## Session update: 2026-03-17
 
