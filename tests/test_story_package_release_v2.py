@@ -19,6 +19,7 @@ sys.path.insert(0, str(API_DIR))
 
 from app.main import app  # noqa: E402
 from app.services.v2.story_package_release_store import (  # noqa: E402
+    StoryPackageReleaseStore,
     reset_story_package_release_state,
 )
 
@@ -62,6 +63,27 @@ def validate_payload(payload: dict, schema_file_name: str) -> None:
 
 def build_request_time(step: int) -> str:
     return f"2026-03-31T10:0{step}:00Z"
+
+
+def set_package_audit_state(
+    package_id: str,
+    audit_status: str,
+    resolution_action: str,
+) -> None:
+    store = StoryPackageReleaseStore()
+
+    def mutate(state: dict) -> dict:
+        draft = next(item for item in state["drafts"] if item["package_id"] == package_id)
+        audit = next(
+            item for item in state["audits"] if item["audit_id"] == draft["safety_audit_id"]
+        )
+        audit["audit_status"] = audit_status
+        audit["resolution"]["action"] = resolution_action
+        audit["reviewed_at"] = build_request_time(0) if audit_status == "approved" else None
+        draft["updated_at"] = build_request_time(0)
+        return state
+
+    store.update(mutate)
 
 
 def test_story_package_draft_index_contract_matches_schema() -> None:
@@ -146,6 +168,26 @@ def test_story_package_build_release_and_runtime_lookup() -> None:
     assert history_payload["active_release_id"] == release_payload["release_id"]
     assert history_payload["builds"][0]["build_id"] == build_payload["build_id"]
     assert history_payload["releases"][0]["release_id"] == release_payload["release_id"]
+    assert history_payload["draft"]["safety_audit"]["audit_status"] == "approved"
+    assert history_payload["draft"]["package_preview"]["safety"]["review_status"] == "approved"
+    assert any(
+        "Released build 2" in note for note in history_payload["draft"]["operator_notes"]
+    )
+
+    draft_index_response = client.get(
+        "/api/v2/story-packages",
+        headers={"host": "localhost"},
+    )
+    assert draft_index_response.status_code == 200
+
+    draft_index_payload = draft_index_response.json()
+    selected_draft = next(
+        item for item in draft_index_payload["drafts"] if item["package_id"] == PACKAGE_ID
+    )
+    assert selected_draft["workflow_state"] == "released"
+    assert selected_draft["latest_build_id"] == build_payload["build_id"]
+    assert selected_draft["active_release_id"] == release_payload["release_id"]
+    assert selected_draft["safety_audit"]["audit_status"] == "approved"
 
 
 def test_story_package_recall_and_rollback_preserve_lookup_semantics() -> None:
@@ -349,6 +391,56 @@ def test_cannot_rollback_a_recalled_release() -> None:
         },
     )
     assert rollback_response.status_code == 400
+
+
+def test_cannot_release_package_without_approved_audit() -> None:
+    client = TestClient(app)
+
+    build_response = client.post(
+        f"/api/v2/story-packages/{PACKAGE_ID}:build",
+        headers={"host": "localhost"},
+        json={
+            "schema_version": "story-package-build-command.v1",
+            "build_reason": "editorial_release",
+            "requested_by": "studio.operator",
+            "requested_at": build_request_time(8),
+        },
+    )
+    assert build_response.status_code == 200
+    build_payload = build_response.json()
+    validate_payload(build_payload, "story-package-build.v1.schema.json")
+
+    set_package_audit_state(
+        PACKAGE_ID,
+        audit_status="needs_revision",
+        resolution_action="block",
+    )
+
+    release_response = client.post(
+        f"/api/v2/story-packages/{PACKAGE_ID}:release",
+        headers={"host": "localhost"},
+        json={
+            "schema_version": "story-package-release-command.v1",
+            "build_id": build_payload["build_id"],
+            "release_channel": "general",
+            "requested_by": "studio.operator",
+            "requested_at": build_request_time(9),
+            "notes": "Attempt release after audit regression.",
+        },
+    )
+    assert release_response.status_code == 400
+
+    draft_index_response = client.get(
+        "/api/v2/story-packages",
+        headers={"host": "localhost"},
+    )
+    assert draft_index_response.status_code == 200
+    draft_index_payload = draft_index_response.json()
+    selected_draft = next(
+        item for item in draft_index_payload["drafts"] if item["package_id"] == PACKAGE_ID
+    )
+    assert selected_draft["safety_audit"]["audit_status"] == "needs_revision"
+    assert selected_draft["active_release_id"] is not None
 
 
 def test_unknown_story_package_history_returns_404() -> None:

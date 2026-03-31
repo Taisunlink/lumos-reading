@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { StudioShell } from "@/components/studio-shell";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "LumosReading Studio Web",
-  description: "Minimal V2 studio shell consuming shared caregiver contracts.",
+  description: "Phase 4 studio operations console for package review and release control.",
 };
 
 export default function RootLayout({
@@ -13,7 +14,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <StudioShell>{children}</StudioShell>
+      </body>
     </html>
   );
 }

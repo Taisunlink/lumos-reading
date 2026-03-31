@@ -22,21 +22,29 @@ Turn studio-web into the operator surface for review and release control.
 
 ## Tasks
 
-- [ ] Add studio-web navigation for drafts, releases, and audits
-- [ ] Display package draft state from Phase 3 APIs
-- [ ] Display safety audit findings and review status
-- [ ] Wire publish and recall actions
-- [ ] Add release history and operator notes visibility
-- [ ] Add build verification for studio-web
+- [x] Add studio-web navigation for drafts, releases, and audits
+- [x] Display package draft state from Phase 3 APIs
+- [x] Display safety audit findings and review status
+- [x] Wire publish and recall actions
+- [x] Add release history and operator notes visibility
+- [x] Add build verification for studio-web
+- [x] Enforce approved-audit release gating in the backend and studio publish surface
 
 ## Verification
 
-- [ ] `npm run build --workspace studio-web`
-- [ ] package and audit API tests pass
-- [ ] contract checks pass for any touched schema
+- [x] `npm run build --workspace studio-web`
+- [x] package and audit API tests pass
+- [x] contract checks pass for any touched schema
+- [x] `npm run build --workspace caregiver-web`
 
 ## QC gate
 
-- [ ] Operators can see which package is draft, released, or recalled
-- [ ] Runtime-visible packages can be traced back to a review state
-- [ ] Studio does not rely on page-local mocked aggregates
+- [x] Operators can see which package is draft, released, or recalled
+- [x] Runtime-visible packages can be traced back to a review state
+- [x] Studio does not rely on page-local mocked aggregates
+
+## Implementation notes
+
+- `studio-web` now consumes shared release-domain hooks and shared SDK view models instead of caregiver page models.
+- Publish is backend-gated and UI-gated by `safety_audit.audit_status == approved` plus `resolution.action == release`.
+- Accepted follow-up: local seed/runtime data still skews toward approved/released samples, so later phases should add richer pending/rejected AI-draft fixtures.

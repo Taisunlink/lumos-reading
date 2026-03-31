@@ -98,7 +98,7 @@ The following checks have already passed on the current baseline:
 ## Current focus and next slices
 
 - Execute the sequential seven-phase delivery plan defined in `docs/v2/04-engineering-delivery-plan.md`.
-- Complete Phase 4 next: studio minimum operations console on top of the Phase 3 release surfaces.
+- Complete Phase 5 next: AI content supply chain v1 on top of the Phase 3 and Phase 4 release/review surfaces.
 - Replace bootstrap fallback/demo responses with real backend module implementations behind the same contracts.
 - Continue reducing legacy `apps/web` responsibility until it can be retired from the V2 main path.
 
@@ -156,6 +156,21 @@ The following checks have already passed on the current baseline:
 - Verification passed for Phase 3 with `pytest tests/test_caregiver_v2_contracts.py -q`, `pytest tests/test_story_package_release_v2.py -q`, `npm run test:contracts --workspace @lumosreading/sdk`, `npm run build --workspace studio-web`, `npm run build --workspace caregiver-web`, and `npm run build --workspace child-app`.
 - Phase 3 QC gate is cleared after subagent re-review confirmed no remaining blocking issue; the only accepted follow-up is that the repo-local runtime store currently has only in-process locking, so cross-process validation should stay serialized until a stronger file-lock or atomic strategy is introduced.
 - The next recommended slice is Phase 4 studio minimum operations console delivery.
+
+## Session update: 2026-03-31 Phase 4
+
+- Rebuilt `apps/studio-web` from a caregiver contracts probe into a routed operations console with a shared shell, navigation, and dedicated `/`, `/packages`, `/releases`, and `/audits` surfaces.
+- Replaced studio-side caregiver plan/progress fetching with shared release-domain services, so the studio now reads package draft cards and history views from the Phase 3 `story-packages` release API instead of page-local aggregates.
+- Extended the shared SDK release view so studio-facing consumers now receive package preview data, audit evidence, operator notes, finding counts, and release/build history through one reusable release-domain model.
+- Added a package workspace in `studio-web` that lets operators inspect draft state, audit findings, operator notes, build history, release history, and trigger build, publish, recall, and rollback actions from one surface.
+- Added release and audit overview pages so operators can trace active runtime releases back to review state and inspect recalled/superseded history without dropping into raw API payloads.
+- Closed the main Phase 4 QC blocker by making release promotion audit-aware in FastAPI: a package can now be released only when `safety_audit.audit_status == approved` and the audit resolution explicitly allows `release`.
+- Aligned the package workspace with that backend rule by disabling the publish action unless the current audit is approved and marked for release.
+- Added release-loop API coverage for the new audit gate, proving that a package build cannot be promoted when the audit regresses to `needs_revision` with a blocking resolution.
+- Extended the SDK self-check so release history views are validated for the operator-facing fields that Phase 4 depends on, including operator notes, audit state, and package preview detail.
+- Verification passed for Phase 4 with `npm run test:contracts --workspace @lumosreading/sdk`, `npm run build --workspace studio-web`, `npm run build --workspace caregiver-web`, `pytest tests/test_story_package_release_v2.py -q`, and `pytest tests/test_caregiver_v2_contracts.py -q`.
+- Phase 4 QC gate is cleared after subagent re-review confirmed no remaining blocking issue; accepted follow-ups are that the local seed/runtime store still over-represents approved/released states and that a dedicated audit router is still deferred because draft/history views already surface the required audit evidence for this phase.
+- The next recommended slice is Phase 5 AI content supply chain v1, with emphasis on brief records, generation jobs, reviewable AI-generated drafts, and keeping runtime consumption release-only.
 
 ## Session update: 2026-03-17
 

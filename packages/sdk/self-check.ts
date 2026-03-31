@@ -53,6 +53,7 @@ import {
   fallbackCaregiverPlan,
   fallbackCaregiverProgress,
 } from "./demo";
+import { buildStoryPackageHistoryView } from "./release";
 
 type ValidationCase = {
   name: string;
@@ -286,14 +287,33 @@ export function validateDemoContractsOrThrow(): ValidationResult {
     "Demo caregiver progress should preserve package language metadata for English packages.",
   );
 
+  const storyPackageHistoryView = buildStoryPackageHistoryView(
+    buildDemoStoryPackageHistory(),
+  );
+  assert(
+    storyPackageHistoryView.operatorNotes.length > 0,
+    "Release history view should preserve operator notes for studio surfaces.",
+  );
+  assert(
+    storyPackageHistoryView.audit.audit_status === "approved",
+    "Release history view should preserve audit status for studio surfaces.",
+  );
+  assert(
+    storyPackageHistoryView.packagePreview.title.length > 0,
+    "Release history view should preserve package preview details for studio surfaces.",
+  );
+
   return {
     checked: [
       ...checked,
       "demo english session payload inherits package language",
       "demo english event batch inherits package language",
       "demo caregiver progress preserves english language metadata",
+      "release history view preserves operator notes",
+      "release history view preserves audit status",
+      "release history view preserves package preview detail",
     ],
-    count: checked.length + 3,
+    count: checked.length + 6,
   };
 }
 

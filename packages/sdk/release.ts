@@ -1,8 +1,10 @@
 import type {
+  SafetyAuditV1,
   StoryPackageBuildCommandV1,
   StoryPackageBuildV1,
   StoryPackageDraftIndexV1,
   StoryPackageHistoryV1,
+  StoryPackageManifestV1,
   StoryPackageRecallCommandV1,
   StoryPackageReleaseCommandV1,
   StoryPackageReleaseV1,
@@ -37,6 +39,9 @@ export type StoryPackageDraftCard = {
   workflowState: string;
   sourceType: string;
   reviewStatus: string;
+  auditStatus: string;
+  auditSeverity: string;
+  findingCount: number;
   releaseChannel: string;
   latestBuildId: string | null;
   activeReleaseId: string | null;
@@ -44,13 +49,24 @@ export type StoryPackageDraftCard = {
 };
 
 export type StoryPackageHistoryView = {
+  draftId: string;
   packageId: string;
   title: string;
+  subtitle?: string;
+  sourceType: string;
   workflowState: string;
   reviewStatus: string;
+  auditStatus: string;
+  auditSeverity: string;
+  findingCount: number;
+  packagePreview: StoryPackageManifestV1;
+  audit: SafetyAuditV1;
+  operatorNotes: string[];
   builds: StoryPackageBuildV1[];
   releases: StoryPackageReleaseV1[];
+  latestBuildId: string | null;
   activeReleaseId: string | null;
+  createdAt: string;
   updatedAt: string;
 };
 
@@ -84,7 +100,10 @@ export function buildStoryPackageDraftCards(
     title: draft.package_preview.title,
     workflowState: draft.workflow_state,
     sourceType: draft.source_type,
-    reviewStatus: draft.safety_audit.audit_status,
+    reviewStatus: draft.package_preview.safety.review_status,
+    auditStatus: draft.safety_audit.audit_status,
+    auditSeverity: draft.safety_audit.severity,
+    findingCount: draft.safety_audit.findings.length,
     releaseChannel: draft.package_preview.release_channel,
     latestBuildId: draft.latest_build_id ?? null,
     activeReleaseId: draft.active_release_id ?? null,
@@ -96,13 +115,24 @@ export function buildStoryPackageHistoryView(
   resource: StoryPackageHistoryV1,
 ): StoryPackageHistoryView {
   return {
+    draftId: resource.draft.draft_id,
     packageId: resource.package_id,
     title: resource.draft.package_preview.title,
+    subtitle: resource.draft.package_preview.subtitle,
+    sourceType: resource.draft.source_type,
     workflowState: resource.draft.workflow_state,
-    reviewStatus: resource.draft.safety_audit.audit_status,
+    reviewStatus: resource.draft.package_preview.safety.review_status,
+    auditStatus: resource.draft.safety_audit.audit_status,
+    auditSeverity: resource.draft.safety_audit.severity,
+    findingCount: resource.draft.safety_audit.findings.length,
+    packagePreview: resource.draft.package_preview,
+    audit: resource.draft.safety_audit,
+    operatorNotes: resource.draft.operator_notes,
     builds: resource.builds,
     releases: resource.releases,
+    latestBuildId: resource.draft.latest_build_id ?? null,
     activeReleaseId: resource.active_release_id ?? null,
+    createdAt: resource.draft.created_at,
     updatedAt: resource.draft.updated_at,
   };
 }

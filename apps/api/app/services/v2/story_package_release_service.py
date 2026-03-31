@@ -157,9 +157,20 @@ class StoryPackageReleaseService:
             self._bootstrap_release_state(state)
             draft = self._find_draft(state, package_id)
             build = self._find_build(state, command.build_id)
+            audit = self._find_audit(state, draft["safety_audit_id"])
 
             if build["package_id"] != str(package_id):
                 raise StoryPackageReleaseValidationError("Build does not belong to the requested package.")
+
+            if audit["audit_status"] != "approved":
+                raise StoryPackageReleaseValidationError(
+                    "Only packages with an approved safety audit can be released."
+                )
+
+            if audit.get("resolution", {}).get("action") != "release":
+                raise StoryPackageReleaseValidationError(
+                    "Safety audit resolution must explicitly allow release."
+                )
 
             for release in state["releases"]:
                 if release["package_id"] == str(package_id) and release["status"] == "active":
