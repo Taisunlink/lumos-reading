@@ -37,6 +37,7 @@ async def ingest_reading_events(
 ) -> ReadingEventIngestedResponse:
     """Accept a V2 batch of reading events for downstream analytics ingestion."""
     events_by_household = defaultdict(list)
+    accepted_events = []
 
     for event in request.events:
         assignment = child_service.get_child_assignment(event.child_id)
@@ -45,14 +46,15 @@ async def ingest_reading_events(
             continue
 
         events_by_household[assignment.household_id].append(event)
+        accepted_events.append(event)
 
     for household_id, events in events_by_household.items():
         append_ingested_reading_events(household_id, events)
 
-    session_ids = sorted({event.session_id for event in request.events}, key=str)
+    session_ids = sorted({event.session_id for event in accepted_events}, key=str)
     return ReadingEventIngestedResponse(
         status="accepted",
-        accepted_count=len(request.events),
+        accepted_count=len(accepted_events),
         accepted_at=datetime.now(timezone.utc),
         session_ids=session_ids,
     )

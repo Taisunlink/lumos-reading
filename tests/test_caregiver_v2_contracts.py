@@ -18,9 +18,6 @@ os.environ.setdefault("DATABASE_URL", "sqlite:///./test.db")
 sys.path.insert(0, str(API_DIR))
 
 from app.main import app  # noqa: E402
-from app.services.v2.reading_event_store import (  # noqa: E402
-    reset_ingested_reading_events,
-)
 from app.services.v2.child_service import reset_child_package_assignment_overrides  # noqa: E402
 from app.services.v2.reading_event_store import reset_ingested_reading_events  # noqa: E402
 
@@ -278,6 +275,43 @@ def test_caregiver_assignment_updates_children_and_child_home() -> None:
     finally:
         reset_payload = assign_package_for_test(client, PACKAGE_ID)
         assert reset_payload["current_package_id"] == PACKAGE_ID
+
+
+def test_invalid_assignment_does_not_mutate_child_state() -> None:
+    client = TestClient(app)
+    invalid_package_id = "aaaaaaaa-1111-2222-3333-bbbbbbbbbbbb"
+    request_payload = build_assignment_payload(invalid_package_id)
+    validate_payload(request_payload, "caregiver-assignment-command.v1.schema.json")
+
+    response = client.post(
+        f"/api/v2/caregiver/households/{HOUSEHOLD_ID}/children/{CHILD_ID}/assignment",
+        headers={"host": "localhost"},
+        json=request_payload,
+    )
+    assert response.status_code == 400
+
+    children_response = client.get(
+        f"/api/v2/caregiver/households/{HOUSEHOLD_ID}/children",
+        headers={"host": "localhost"},
+    )
+    assert children_response.status_code == 200
+    children_payload = children_response.json()
+    validate_payload(children_payload, "caregiver-children.v1.schema.json")
+    mina_assignment = next(
+        child for child in children_payload["children"] if child["child_id"] == CHILD_ID
+    )
+    assert mina_assignment["current_package_id"] == PACKAGE_ID
+    assert mina_assignment["current_package"]["package_id"] == PACKAGE_ID
+
+    child_home_response = client.get(
+        f"/api/v2/child-home/{CHILD_ID}",
+        headers={"host": "localhost"},
+    )
+    assert child_home_response.status_code == 200
+    child_home_payload = child_home_response.json()
+    validate_payload(child_home_payload, "child-home.v1.schema.json")
+    assert child_home_payload["current_package_id"] == PACKAGE_ID
+    assert child_home_payload["package_queue"][0]["package_id"] == PACKAGE_ID
 
 
 def test_reading_session_contract_matches_schema() -> None:

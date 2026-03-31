@@ -137,6 +137,7 @@ The following checks have already passed on the current baseline:
 - Updated `apps/child-app` so the child shelf can be manually refreshed and automatically resynced when the app returns to the foreground.
 - Added API coverage for assignment mutation plus progress readback after fresh event ingestion, keeping the end-to-end caregiver feedback loop under test.
 - Verification passed for Phase 2 with `pytest tests/test_caregiver_v2_contracts.py -q`, `npm run test:contracts --workspace @lumosreading/sdk`, `npm run test:runtime-contracts --workspace child-app`, `npm run build --workspace caregiver-web`, `npm run typecheck --workspace child-app`, and `npm run build --workspace child-app`.
+- Phase 2 QC gate is cleared after making caregiver assignment validation atomic, so invalid package requests now fail with `400` and leave `caregiver/children` plus `child-home` unchanged.
 - The next recommended slice is Phase 3 package release loop delivery.
 
 ## Session update: 2026-03-17

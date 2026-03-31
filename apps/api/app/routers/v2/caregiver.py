@@ -11,7 +11,11 @@ from app.schemas.v2.caregiver import (
     CaregiverPlanV1,
     CaregiverProgressV1,
 )
-from app.services.v2.caregiver_assignment_service import CaregiverAssignmentService
+from app.services.v2.caregiver_assignment_service import (
+    CaregiverAssignmentNotFoundError,
+    CaregiverAssignmentService,
+    CaregiverAssignmentValidationError,
+)
 from app.services.v2.caregiver_children_read_service import CaregiverChildrenReadService
 from app.services.v2.caregiver_dashboard_service import CaregiverDashboardService
 from app.services.v2.caregiver_household_read_service import CaregiverHouseholdReadService
@@ -118,7 +122,9 @@ async def assign_caregiver_package(
 
     try:
         return assignment_service.assign_package(command)
-    except ValueError as exc:
+    except CaregiverAssignmentValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except CaregiverAssignmentNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
 
 

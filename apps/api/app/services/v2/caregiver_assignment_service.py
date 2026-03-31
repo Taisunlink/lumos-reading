@@ -11,6 +11,14 @@ from app.services.v2.plan_service import PlanService
 from app.services.v2.story_package_service import StoryPackageService
 
 
+class CaregiverAssignmentNotFoundError(ValueError):
+    """Raised when the target child cannot be resolved inside the household."""
+
+
+class CaregiverAssignmentValidationError(ValueError):
+    """Raised when the requested package is invalid for the household."""
+
+
 class CaregiverAssignmentService:
     def __init__(
         self,
@@ -33,18 +41,7 @@ class CaregiverAssignmentService:
         previous_assignment = self.child_service.get_child_assignment(command.child_id)
 
         if previous_assignment is None or previous_assignment.household_id != command.household_id:
-            raise ValueError(
-                f"Unknown child id {command.child_id} for household {command.household_id}"
-            )
-
-        updated_assignment = self.child_service.assign_package(
-            command.household_id,
-            command.child_id,
-            command.package_id,
-        )
-
-        if updated_assignment is None:
-            raise ValueError(
+            raise CaregiverAssignmentNotFoundError(
                 f"Unknown child id {command.child_id} for household {command.household_id}"
             )
 
@@ -56,8 +53,19 @@ class CaregiverAssignmentService:
         current_package = package_map.get(command.package_id)
 
         if current_package is None:
-            raise ValueError(
+            raise CaregiverAssignmentValidationError(
                 f"Unknown package id {command.package_id} for household {command.household_id}"
+            )
+
+        updated_assignment = self.child_service.assign_package(
+            command.household_id,
+            command.child_id,
+            command.package_id,
+        )
+
+        if updated_assignment is None:
+            raise CaregiverAssignmentNotFoundError(
+                f"Unknown child id {command.child_id} for household {command.household_id}"
             )
 
         return CaregiverAssignmentResponseV1(
