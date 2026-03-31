@@ -10,6 +10,10 @@ This directory is the single active documentation set for LumosReading V2.
   Target architecture, domain model, API and event blueprint, migration plan, and delivery roadmap.
 - `03-activity-log.md`
   Current execution log, repo baseline, recent milestones, operating decisions, verification history, and next slices.
+- `04-engineering-delivery-plan.md`
+  Sequential delivery order, phase gates, QC protocol, and execution rules.
+- `phase-tasks/`
+  Executable task playbooks for Phase 0 through Phase 6.
 
 ## Required read order
 

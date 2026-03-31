@@ -1,6 +1,6 @@
 # V2 Activity Log
 
-Updated: 2026-03-17
+Updated: 2026-03-31
 
 ## Purpose
 
@@ -98,10 +98,22 @@ The following checks have already passed on the current baseline:
 
 ## Current focus and next slices
 
-- Keep extracting shared logic out of app-local code into `packages/contracts` and `packages/sdk`.
-- Grow the child runtime from the new routed shell toward real offline package persistence, richer overlay semantics, and assignment-driven home recommendations.
+- Execute the sequential seven-phase delivery plan defined in `docs/v2/04-engineering-delivery-plan.md`.
+- Complete Phase 1 first: child runtime persistence, assignment-driven shelf semantics, buffered events, and restart-safe session recovery.
 - Replace bootstrap fallback/demo responses with real backend module implementations behind the same contracts.
 - Continue reducing legacy `apps/web` responsibility until it can be retired from the V2 main path.
+
+## Session update: 2026-03-31 Phase 0
+
+- Re-read the V2 strategy, architecture blueprint, schema governance, apps governance, and activity log before starting execution.
+- Confirmed the repo baseline is still aligned with the active V2 direction and that `master` is in sync with `origin/master` at the start of the session.
+- Added `docs/v2/04-engineering-delivery-plan.md` as the authoritative sequential delivery plan for seven execution phases.
+- Added `docs/v2/phase-tasks/` with one executable task playbook per phase from Phase 0 through Phase 6.
+- Updated `docs/v2/README.md` so the new delivery plan and phase task docs are part of the active V2 documentation set.
+- Locked the operating rule for the remainder of this execution run: each phase must implement code, pass QC, update this log, then commit and push before the next phase is considered complete.
+- Ran Phase 0 QC against the new delivery plan, phase task docs, active docs index, and activity log; no blocking findings were identified.
+- Recorded follow-up notes from QC: keep verification commands explicit per phase, treat later entitlement work as new contract scope, and continue logging phase gate outcomes directly in this file.
+- Set the next recommended slice to Phase 1 child runtime stability, with emphasis on assignment-driven shelf loading, local persistence, buffered reading event delivery, and cold-start session recovery.
 
 ## Session update: 2026-03-17
 
