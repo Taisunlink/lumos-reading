@@ -3,6 +3,7 @@ from datetime import datetime
 from uuid import UUID
 
 from app.schemas.v2.child_home import ChildHomeV1
+from app.services.v2.access_errors import NoEntitledPackagesError
 from app.services.v2.child_service import ChildService
 from app.services.v2.fixtures import CHILD_SUPPORT_MODE_DEFAULTS
 from app.services.v2.plan_service import PlanService
@@ -29,10 +30,12 @@ class ChildHomeService:
             raise ValueError(f"Unknown child id: {child_id}")
 
         plan = self.plan_service.get_household_plan(assignment.household_id)
+        if not plan.package_queue:
+            raise NoEntitledPackagesError(
+                f"Household {assignment.household_id} has no entitled packages for child {child_id}."
+            )
         package_map = {story_package.package_id: story_package for story_package in plan.package_queue}
-        current_package = package_map.get(assignment.child.current_package_id) or self.story_package_service.get_story_package(
-            assignment.child.current_package_id
-        )
+        current_package = package_map.get(assignment.child.current_package_id) or plan.package_queue[0]
         package_queue = [current_package] + [
             item
             for item in plan.package_queue

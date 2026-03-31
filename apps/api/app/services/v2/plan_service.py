@@ -23,6 +23,11 @@ class PlanService(Protocol):
         """Return curated package queue and weekly plan for a household."""
 
 
+class PackageAccessPolicy(Protocol):
+    def is_package_entitled(self, household_id: UUID, package_id: UUID) -> bool:
+        """Return whether the household can currently access the requested package."""
+
+
 class DemoPlanService:
     def __init__(self, story_package_service: StoryPackageService):
         self.story_package_service = story_package_service
@@ -47,5 +52,43 @@ class DemoPlanService:
                     objective=fixture.objective,
                 )
                 for fixture in weekly_plan_fixtures
+            ],
+        )
+
+
+class EntitlementAwarePlanService:
+    def __init__(
+        self,
+        base_plan_service: PlanService,
+        package_access_policy: PackageAccessPolicy,
+    ):
+        self.base_plan_service = base_plan_service
+        self.package_access_policy = package_access_policy
+
+    def get_household_plan(self, household_id: UUID) -> HouseholdPlanSnapshot:
+        plan = self.base_plan_service.get_household_plan(household_id)
+        entitled_queue = [
+            story_package
+            for story_package in plan.package_queue
+            if self.package_access_policy.is_package_entitled(
+                household_id,
+                story_package.package_id,
+            )
+        ]
+        entitled_package_ids = {
+            story_package.package_id for story_package in entitled_queue
+        }
+
+        return HouseholdPlanSnapshot(
+            package_queue=entitled_queue,
+            weekly_plan=[
+                CaregiverWeeklyPlanItemV1(
+                    day=item.day,
+                    mode=item.mode,
+                    package_id=item.package_id,
+                    objective=item.objective,
+                )
+                for item in plan.weekly_plan
+                if item.package_id in entitled_package_ids
             ],
         )

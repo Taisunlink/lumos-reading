@@ -25,7 +25,7 @@ export function StudioShell({ children }: { children: ReactNode }) {
           </div>
 
           <div className="badge-row">
-            <span className="badge badge--accent">phase 4</span>
+            <span className="badge badge--accent">phase 6</span>
             <span className="badge badge--neutral">contracts first</span>
           </div>
 

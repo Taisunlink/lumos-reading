@@ -67,6 +67,25 @@ class ReadingEventFixture:
     page_index: int | None = None
 
 
+@dataclass(frozen=True)
+class PackageAccessFixture:
+    package_id: UUID
+    access_state: str
+    entitlement_source: str
+    reason: str
+
+
+@dataclass(frozen=True)
+class HouseholdEntitlementFixture:
+    subscription_status: str
+    access_state: str
+    plan_name: str
+    billing_interval: str
+    trial_ends_at: datetime | None
+    renews_at: datetime | None
+    package_access: tuple[PackageAccessFixture, ...]
+
+
 HOUSEHOLD_FIXTURES: dict[UUID, HouseholdFixture] = {
     DEMO_HOUSEHOLD_ID: HouseholdFixture(
         household_name="The Rivera household",
@@ -242,7 +261,7 @@ HOUSEHOLD_CHILD_FIXTURES: dict[UUID, tuple[ChildFixture, ...]] = {
             age_label="Age 7",
             focus="Bilingual assist with predictable pacing",
             weekly_goal="3 sessions plus 2 calm replays",
-            current_package_id=UUID("99999999-9999-9999-9999-999999999999"),
+            current_package_id=UUID("66666666-6666-6666-6666-666666666666"),
         ),
     ),
 }
@@ -263,9 +282,9 @@ HOUSEHOLD_WEEKLY_PLAN_FIXTURES: dict[UUID, tuple[WeeklyPlanFixture, ...]] = {
         ),
         WeeklyPlanFixture(
             day="Saturday",
-            mode="Bilingual assist",
-            package_id=UUID("99999999-9999-9999-9999-999999999999"),
-            objective="Reveal only three translation words and track the replay count.",
+            mode="Replay and retell",
+            package_id=UUID("66666666-6666-6666-6666-666666666666"),
+            objective="Reread a familiar calm package and let the child retell one page from memory.",
         ),
     ),
 }
@@ -322,5 +341,36 @@ CHILD_SUPPORT_MODE_DEFAULTS: dict[UUID, tuple[str, ...]] = {
         "read_aloud_sync",
         "focus_support",
         "translation_support",
+    ),
+}
+
+HOUSEHOLD_ENTITLEMENT_FIXTURES: dict[UUID, HouseholdEntitlementFixture] = {
+    DEMO_HOUSEHOLD_ID: HouseholdEntitlementFixture(
+        subscription_status="trial_active",
+        access_state="trial",
+        plan_name="Founding household trial",
+        billing_interval="none",
+        trial_ends_at=datetime(2026, 4, 17, 12, 0, 0, tzinfo=timezone.utc),
+        renews_at=None,
+        package_access=(
+            PackageAccessFixture(
+                package_id=UUID("33333333-3333-3333-3333-333333333333"),
+                access_state="entitled",
+                entitlement_source="editorial_free",
+                reason="Included in the starter household shelf.",
+            ),
+            PackageAccessFixture(
+                package_id=UUID("66666666-6666-6666-6666-666666666666"),
+                access_state="entitled",
+                entitlement_source="trial",
+                reason="Unlocked during the active household trial.",
+            ),
+            PackageAccessFixture(
+                package_id=UUID("99999999-9999-9999-9999-999999999999"),
+                access_state="locked",
+                entitlement_source="subscription",
+                reason="Requires the paid bilingual support plan.",
+            ),
+        ),
     ),
 }

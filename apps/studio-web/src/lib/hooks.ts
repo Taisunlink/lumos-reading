@@ -14,15 +14,27 @@ import {
   buildDemoStoryPackageHistory,
   buildStoryPackageDraftCards,
   buildStoryPackageHistoryView,
+  demoHouseholdId,
+  fallbackAccessDomainView,
+  fallbackOpsMetricsDomainView,
+  fallbackOpsMetricsSnapshot,
   fallbackStoryBriefIndex,
   fallbackStoryGenerationJobIndex,
   fallbackStoryPackageDraftIndex,
+  fallbackWeeklyValueDomainView,
+  type AccessDomainView,
+  type OpsMetricsDomainView,
   type StoryBriefCard,
   type StoryGenerationJobCard,
   type StoryPackageDraftCard,
   type StoryPackageHistoryView,
+  type WeeklyValueDomainView,
 } from "@lumosreading/sdk";
-import { storyGenerationServices, storyPackageReleaseServices } from "@/lib/api";
+import {
+  monetizationServices,
+  storyGenerationServices,
+  storyPackageReleaseServices,
+} from "@/lib/api";
 
 export type ResourceStatus = "loading" | "live" | "fallback";
 export type ActionStatus = "idle" | "running" | "success" | "error";
@@ -54,6 +66,13 @@ export type StudioActionState = {
 export type StudioGenerationBoard = {
   briefs: StoryBriefCard[];
   jobs: StoryGenerationJobCard[];
+  generatedAt: string;
+};
+
+export type StudioOperationsBoard = {
+  access: AccessDomainView;
+  weeklyValue: WeeklyValueDomainView;
+  ops: OpsMetricsDomainView;
   generatedAt: string;
 };
 
@@ -103,6 +122,15 @@ function buildFallbackGenerationBoard(): StudioGenerationBoard {
   };
 }
 
+function buildFallbackOperationsBoard(): StudioOperationsBoard {
+  return {
+    access: fallbackAccessDomainView,
+    weeklyValue: fallbackWeeklyValueDomainView,
+    ops: fallbackOpsMetricsDomainView,
+    generatedAt: fallbackOpsMetricsSnapshot.generated_at,
+  };
+}
+
 async function fetchStudioReleaseBoard(): Promise<StudioReleaseBoard> {
   const drafts = (await storyPackageReleaseServices.listDraftCards()).sort(sortByUpdatedAt);
   const histories = (
@@ -128,6 +156,21 @@ async function fetchStudioGenerationBoard(): Promise<StudioGenerationBoard> {
   return {
     briefs: briefs.sort(sortByUpdatedAt),
     jobs: jobs.sort(sortByUpdatedAt),
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+async function fetchStudioOperationsBoard(): Promise<StudioOperationsBoard> {
+  const [access, weeklyValue, ops] = await Promise.all([
+    monetizationServices.access.getAccessOverview(demoHouseholdId),
+    monetizationServices.value.getWeeklyValue(demoHouseholdId),
+    monetizationServices.ops.getSnapshot(),
+  ]);
+
+  return {
+    access,
+    weeklyValue,
+    ops,
     generatedAt: new Date().toISOString(),
   };
 }
@@ -392,6 +435,63 @@ export function useStudioReleaseBoard() {
     reviewPackage,
     recallRelease,
     rollbackRelease,
+  };
+}
+
+export function useStudioOperationsBoard() {
+  const [board, setBoard] = useState<StudioOperationsBoard>(buildFallbackOperationsBoard());
+  const [status, setStatus] = useState<ResourceStatus>("loading");
+  const [error, setError] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState(0);
+
+  useEffect(() => {
+    let active = true;
+
+    setStatus("loading");
+    setError(null);
+
+    fetchStudioOperationsBoard()
+      .then((nextBoard) => {
+        if (!active) {
+          return;
+        }
+
+        startTransition(() => {
+          setBoard(nextBoard);
+          setStatus("live");
+          setError(null);
+        });
+      })
+      .catch((caught) => {
+        if (!active) {
+          return;
+        }
+
+        startTransition(() => {
+          setBoard(buildFallbackOperationsBoard());
+          setStatus("fallback");
+          setError(
+            describeError(caught, "Failed to hydrate studio operations metrics."),
+          );
+        });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [refreshToken]);
+
+  function refresh() {
+    startTransition(() => {
+      setRefreshToken((current) => current + 1);
+    });
+  }
+
+  return {
+    board,
+    status,
+    error,
+    refresh,
   };
 }
 

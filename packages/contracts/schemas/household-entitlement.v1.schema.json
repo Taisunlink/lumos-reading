@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lumosreading.local/household-entitlement.v1.schema.json",
+  "title": "HouseholdEntitlementV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "household_id",
+    "subscription_status",
+    "access_state",
+    "plan_name",
+    "billing_interval",
+    "package_access",
+    "entitled_package_count",
+    "locked_package_count",
+    "generated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "household-entitlement.v1"
+    },
+    "household_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "subscription_status": {
+      "type": "string",
+      "enum": [
+        "trial_active",
+        "active",
+        "grace_period",
+        "expired",
+        "canceled"
+      ]
+    },
+    "access_state": {
+      "type": "string",
+      "enum": [
+        "trial",
+        "paid",
+        "grace",
+        "expired"
+      ]
+    },
+    "plan_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "billing_interval": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "annual",
+        "none"
+      ]
+    },
+    "trial_ends_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "renews_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "package_access": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/package_access"
+      }
+    },
+    "entitled_package_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "locked_package_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "package_access": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "package_id",
+        "title",
+        "language_mode",
+        "age_band",
+        "release_channel",
+        "access_state",
+        "entitlement_source",
+        "reason"
+      ],
+      "properties": {
+        "package_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "language_mode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "age_band": {
+          "type": "string",
+          "minLength": 1
+        },
+        "release_channel": {
+          "type": "string",
+          "enum": [
+            "general",
+            "pilot",
+            "experimental",
+            "internal"
+          ]
+        },
+        "access_state": {
+          "type": "string",
+          "enum": [
+            "entitled",
+            "locked"
+          ]
+        },
+        "entitlement_source": {
+          "type": "string",
+          "enum": [
+            "trial",
+            "subscription",
+            "editorial_free",
+            "grace_period"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

@@ -24,4 +24,9 @@ export const studioNavItems = [
     label: "Audits",
     description: "Safety findings, review status, and traceability back to runtime packages.",
   },
+  {
+    href: "/operations",
+    label: "Operations",
+    description: "Access state, weekly value, and trial-to-paid operating metrics.",
+  },
 ] as const;

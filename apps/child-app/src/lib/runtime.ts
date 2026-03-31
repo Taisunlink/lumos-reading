@@ -340,9 +340,13 @@ export function getRuntimeEventLabel(
 }
 
 export async function loadRuntimeStoryPackage(
-  packageId: string
+  packageId: string,
+  childId: string = childRuntime.defaultChildId,
 ): Promise<StoryPackageManifestV1> {
-  const storyPackage = await childRuntime.services.storyPackages.lookup(packageId);
+  const storyPackage = await childRuntime.services.storyPackages.lookup(
+    packageId,
+    childId,
+  );
 
   if (childRuntime.mode === 'demo') {
     return storyPackage;

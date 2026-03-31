@@ -19,6 +19,7 @@
     "caregiver.ts",
     "demo.ts",
     "generation.ts",
+    "monetization.ts",
     "object-storage.ts",
     "release.ts",
     "tsconfig.json",

@@ -11,7 +11,10 @@ from app.schemas.v2.caregiver import (
     CaregiverPlanV1,
     CaregiverProgressV1,
 )
+from app.schemas.v2.monetization import HouseholdEntitlementV1, WeeklyValueReportV1
+from app.services.v2.access_errors import NoEntitledPackagesError
 from app.services.v2.caregiver_assignment_service import (
+    CaregiverAssignmentAccessError,
     CaregiverAssignmentNotFoundError,
     CaregiverAssignmentService,
     CaregiverAssignmentValidationError,
@@ -23,11 +26,13 @@ from app.services.v2.caregiver_plan_read_service import CaregiverPlanReadService
 from app.services.v2.caregiver_progress_read_service import CaregiverProgressReadService
 from app.services.v2.child_service import DemoChildService
 from app.services.v2.child_home_service import ChildHomeService
+from app.services.v2.entitlement_service import DemoEntitlementService
 from app.services.v2.fixtures import FIXTURE_TIMESTAMP
 from app.services.v2.household_service import DemoHouseholdService
-from app.services.v2.plan_service import DemoPlanService
+from app.services.v2.plan_service import DemoPlanService, EntitlementAwarePlanService
 from app.services.v2.progress_service import DemoProgressService
 from app.services.v2.story_package_release_service import create_release_story_package_services
+from app.services.v2.weekly_value_service import WeeklyValueService
 
 router = APIRouter()
 story_package_service, _release_service = create_release_story_package_services(
@@ -35,8 +40,19 @@ story_package_service, _release_service = create_release_story_package_services(
 )
 household_service = DemoHouseholdService()
 child_service = DemoChildService()
-plan_service = DemoPlanService(story_package_service)
+entitlement_service = DemoEntitlementService(
+    story_package_service=story_package_service,
+    clock=lambda: FIXTURE_TIMESTAMP,
+)
+plan_service = EntitlementAwarePlanService(
+    base_plan_service=DemoPlanService(story_package_service),
+    package_access_policy=entitlement_service,
+)
 progress_service = DemoProgressService()
+weekly_value_service = WeeklyValueService(
+    progress_service=progress_service,
+    clock=lambda: FIXTURE_TIMESTAMP,
+)
 child_home_service = ChildHomeService(
     child_service=child_service,
     plan_service=plan_service,
@@ -81,6 +97,7 @@ assignment_service = CaregiverAssignmentService(
     child_home_service=child_home_service,
     plan_service=plan_service,
     story_package_service=story_package_service,
+    entitlement_service=entitlement_service,
     clock=lambda: FIXTURE_TIMESTAMP,
 )
 
@@ -92,7 +109,10 @@ assignment_service = CaregiverAssignmentService(
 )
 async def get_caregiver_household(household_id: UUID) -> CaregiverHouseholdV1:
     """Return the V2 caregiver household read model."""
-    return household_read_service.get_household(household_id)
+    try:
+        return household_read_service.get_household(household_id)
+    except NoEntitledPackagesError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
 
 
 @router.get(
@@ -102,7 +122,10 @@ async def get_caregiver_household(household_id: UUID) -> CaregiverHouseholdV1:
 )
 async def get_caregiver_children(household_id: UUID) -> CaregiverChildrenV1:
     """Return the V2 caregiver child assignment read model."""
-    return children_read_service.get_children(household_id)
+    try:
+        return children_read_service.get_children(household_id)
+    except NoEntitledPackagesError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
 
 
 @router.post(
@@ -124,6 +147,8 @@ async def assign_caregiver_package(
 
     try:
         return assignment_service.assign_package(command)
+    except CaregiverAssignmentAccessError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except CaregiverAssignmentValidationError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except CaregiverAssignmentNotFoundError as exc:
@@ -137,7 +162,10 @@ async def assign_caregiver_package(
 )
 async def get_caregiver_plan(household_id: UUID) -> CaregiverPlanV1:
     """Return the V2 caregiver weekly plan read model."""
-    return plan_read_service.get_plan(household_id)
+    try:
+        return plan_read_service.get_plan(household_id)
+    except NoEntitledPackagesError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
 
 
 @router.get(
@@ -151,10 +179,33 @@ async def get_caregiver_progress(household_id: UUID) -> CaregiverProgressV1:
 
 
 @router.get(
+    "/households/{household_id}/entitlement",
+    response_model=HouseholdEntitlementV1,
+    response_model_exclude_none=True,
+)
+async def get_household_entitlement(household_id: UUID) -> HouseholdEntitlementV1:
+    """Return the household subscription and package access state."""
+    return entitlement_service.get_household_entitlement(household_id)
+
+
+@router.get(
+    "/households/{household_id}/weekly-value",
+    response_model=WeeklyValueReportV1,
+    response_model_exclude_none=True,
+)
+async def get_weekly_value_report(household_id: UUID) -> WeeklyValueReportV1:
+    """Return the weekly value summary derived from reading behavior."""
+    return weekly_value_service.get_weekly_value_report(household_id)
+
+
+@router.get(
     "/households/{household_id}/dashboard",
     response_model=CaregiverDashboardV1,
     response_model_exclude_none=True,
 )
 async def get_caregiver_dashboard(household_id: UUID) -> CaregiverDashboardV1:
     """Return the V2 caregiver household dashboard aggregate."""
-    return dashboard_service.get_dashboard(household_id)
+    try:
+        return dashboard_service.get_dashboard(household_id)
+    except NoEntitledPackagesError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc

@@ -10,6 +10,10 @@ import type {
 export interface ReadingApplicationClient {
   getChildHome(childId: string): Promise<ChildHomeV1>;
   getStoryPackage(packageId: string): Promise<StoryPackageManifestV1>;
+  getChildScopedStoryPackage?(
+    childId: string,
+    packageId: string,
+  ): Promise<StoryPackageManifestV1>;
   createReadingSession(
     payload: ReadingSessionCreateV2,
   ): Promise<ReadingSessionResponseV2>;
@@ -19,7 +23,7 @@ export interface ReadingApplicationClient {
 }
 
 export interface StoryPackageLookupService {
-  lookup(packageId: string): Promise<StoryPackageManifestV1>;
+  lookup(packageId: string, childId?: string): Promise<StoryPackageManifestV1>;
 }
 
 export interface ChildHomeLookupService {
@@ -53,7 +57,11 @@ export function createReadingApplicationServices(
       },
     },
     storyPackages: {
-      async lookup(packageId: string) {
+      async lookup(packageId: string, childId?: string) {
+        if (childId && typeof client.getChildScopedStoryPackage === "function") {
+          return client.getChildScopedStoryPackage(childId, packageId);
+        }
+
         return client.getStoryPackage(packageId);
       },
     },

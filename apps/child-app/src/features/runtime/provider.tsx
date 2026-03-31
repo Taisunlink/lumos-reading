@@ -618,7 +618,10 @@ export function ChildRuntimeProvider({ children }: ChildRuntimeProviderProps) {
     setError(null);
 
     try {
-      const storyPackage = await loadRuntimeStoryPackage(packageId);
+      const storyPackage = await loadRuntimeStoryPackage(
+        packageId,
+        childRuntime.defaultChildId,
+      );
       await persistPackage(storyPackage);
 
       startTransition(() => {

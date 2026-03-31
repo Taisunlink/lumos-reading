@@ -98,7 +98,7 @@ The following checks have already passed on the current baseline:
 ## Current focus and next slices
 
 - Execute the sequential seven-phase delivery plan defined in `docs/v2/04-engineering-delivery-plan.md`.
-- Complete Phase 6 next: monetization and optimization on top of the caregiver, child runtime, and release-aware package surfaces.
+- The seven-phase V2 delivery plan is now complete through all seven phases (`Phase 0` through `Phase 6`).
 - Replace bootstrap fallback/demo responses with real backend module implementations behind the same contracts.
 - Continue reducing legacy `apps/web` responsibility until it can be retired from the V2 main path.
 
@@ -185,8 +185,24 @@ The following checks have already passed on the current baseline:
 - Added a new `/briefs` route in `apps/studio-web`, with brief creation, draft generation, media generation, and provider fallback visibility; the existing package workspace now carries the review decision step needed to move generated drafts into the Phase 3/4 release loop.
 - Added dedicated Phase 5 API coverage for seeded briefs/jobs, generated draft creation, media provider fallback, unreleased runtime gating, and the full review -> build -> release path for AI-generated packages.
 - Verification passed for Phase 5 with `pytest tests/test_story_generation_v2.py -q`, `pytest tests/test_story_package_release_v2.py -q`, `pytest tests/test_caregiver_v2_contracts.py -q`, `npm run test:contracts --workspace @lumosreading/sdk`, `npm run build --workspace studio-web`, and `npm run build --workspace caregiver-web`.
-- Phase 5 QC is ready for final re-review; the expected accepted follow-up is that generation still runs through deterministic synchronous helpers rather than a real queued provider execution boundary, but the phase gate itself is satisfied because AI output lands only as reviewable draft content and runtime lookup remains release-only.
+- Phase 5 QC gate is cleared after final subagent re-review confirmed no blocking issue; accepted follow-ups are that generation still runs through deterministic synchronous helpers rather than a real queued provider boundary, verification must remain serialized while the repo-local runtime store uses only in-process locking, and the architecture docs were later updated to remove the obsolete `apps/ai-service` write-scope implication from the delivery plan.
 - The next recommended slice is Phase 6 monetization and optimization, with emphasis on household-scoped entitlements, subscription visibility, package delivery gates, and weekly value reporting.
+
+## Session update: 2026-03-31 Phase 6
+
+- Added shared Phase 6 contracts for `household-entitlement`, `weekly-value-report`, and `ops-metrics-snapshot`, extending the V2 schema authority from release and generation into the commercial loop.
+- Added API-side Phase 6 Pydantic models plus a household entitlement service, weekly value service, ops metrics service, and an access event store so monetization state can be derived from one consistent set of demo facts.
+- Added entitlement-aware caregiver and child-runtime rules in FastAPI: caregiver assignment now rejects locked packages with a validation error (`400`), child-home package queues exclude locked items, and child package delivery now goes through `GET /api/v2/child-home/{child_id}/packages/{package_id}` so runtime access is household-scoped instead of context-free.
+- Added new caregiver endpoints for `GET /api/v2/caregiver/households/{household_id}/entitlement` and `GET /api/v2/caregiver/households/{household_id}/weekly-value`, plus `GET /api/v2/ops/metrics` for studio operations visibility.
+- Updated the shared SDK with monetization-domain services, fallback entitlement/value/ops payloads, and child-scoped package lookup support so caregiver-web, studio-web, and child-app all consume the same Phase 6 read models.
+- Updated caregiver-web with a new `/access` route for subscription state, entitled vs locked packages, and weekly value; updated studio-web with a new `/operations` route for access mirrors, blocked-request visibility, and weekly value metrics; updated child-app so API-mode package fetches now use the child-scoped delivery route.
+- Rebased the demo baseline so the second child now defaults to an entitled package while the premium bilingual package remains visible only through entitlement surfaces and historical telemetry.
+- Added dedicated Phase 6 API coverage for entitlement contracts, weekly value reporting, blocked assignment behavior, child-scoped delivery rules, and ops metrics snapshots; extended the existing contract test list to include the three new schema files.
+- Closed a QC-blocking access leak in the caregiver and child read models: when a previously current or featured package loses entitlement, `child-home`, `caregiver/children`, `caregiver/household`, and `caregiver/dashboard` now all fall back only to the remaining entitled queue instead of resolving the raw package fixture.
+- Added a dedicated regression test proving that entitlement loss hides the old current/featured package across all Phase 6 read surfaces and preserves only the entitled queue plus filtered weekly plan.
+- Closed a second QC-blocking boundary case for zero-entitlement households: package-bearing read surfaces now return an explicit access-lost response instead of throwing unhandled errors or emitting contract-invalid empty package queues.
+- Verification was re-run after the gate fix and passed for Phase 6 with `npm run test:contracts --workspace @lumosreading/sdk`, `pytest tests/test_story_generation_v2.py -q`, `pytest tests/test_story_package_release_v2.py -q`, `pytest tests/test_monetization_v2.py -q`, `pytest tests/test_caregiver_v2_contracts.py -q`, `npm run build --workspace caregiver-web`, `npm run build --workspace studio-web`, `npm run typecheck --workspace child-app`, and `npm run build --workspace child-app`.
+- Phase 6 QC gate is cleared after subagent re-review confirmed that access state, delivery rules, and weekly value now reconcile across caregiver, child, studio, API, and SDK surfaces; the accepted follow-up is that manual workbench package lookup helpers still expose a context-free route and should later converge on the same child-scoped access semantics.
 
 ## Session update: 2026-03-17
 

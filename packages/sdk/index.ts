@@ -7,6 +7,8 @@ import type {
   CaregiverHouseholdV1,
   CaregiverPlanV1,
   CaregiverProgressV1,
+  HouseholdEntitlementV1,
+  OpsMetricsSnapshotV1,
   ReadingEventBatchRequestV2,
   ReadingEventIngestedResponseV2,
   ReadingSessionCreateV2,
@@ -28,11 +30,13 @@ import type {
   StoryPackageReleaseV1,
   StoryPackageRollbackCommandV1,
   StoryPackageManifestV1,
+  WeeklyValueReportV1,
 } from "@lumosreading/contracts";
 
 export * from "./caregiver";
 export * from "./demo";
 export * from "./generation";
+export * from "./monetization";
 export * from "./object-storage";
 export * from "./application";
 export * from "./release";
@@ -162,11 +166,46 @@ export function createLumosApiClient(options: LumosApiClientOptions = {}) {
         options.headers,
       );
     },
+    async getHouseholdEntitlement(householdId: string): Promise<HouseholdEntitlementV1> {
+      return request<HouseholdEntitlementV1>(
+        fetchImpl,
+        baseUrl,
+        `/caregiver/households/${householdId}/entitlement`,
+        options.headers,
+      );
+    },
+    async getWeeklyValueReport(householdId: string): Promise<WeeklyValueReportV1> {
+      return request<WeeklyValueReportV1>(
+        fetchImpl,
+        baseUrl,
+        `/caregiver/households/${householdId}/weekly-value`,
+        options.headers,
+      );
+    },
+    async getOpsMetricsSnapshot(): Promise<OpsMetricsSnapshotV1> {
+      return request<OpsMetricsSnapshotV1>(
+        fetchImpl,
+        baseUrl,
+        "/ops/metrics",
+        options.headers,
+      );
+    },
     async getChildHome(childId: string): Promise<ChildHomeV1> {
       return request<ChildHomeV1>(
         fetchImpl,
         baseUrl,
         `/child-home/${childId}`,
+        options.headers,
+      );
+    },
+    async getChildScopedStoryPackage(
+      childId: string,
+      packageId: string,
+    ): Promise<StoryPackageManifestV1> {
+      return request<StoryPackageManifestV1>(
+        fetchImpl,
+        baseUrl,
+        `/child-home/${childId}/packages/${packageId}`,
         options.headers,
       );
     },

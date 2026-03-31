@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lumosreading.local/ops-metrics-snapshot.v1.schema.json",
+  "title": "OpsMetricsSnapshotV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "households_in_scope",
+    "households_in_trial",
+    "households_with_paid_access",
+    "entitled_package_deliveries",
+    "blocked_package_requests",
+    "completed_sessions",
+    "reuse_signals",
+    "average_weekly_value_score"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "ops-metrics-snapshot.v1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "households_in_scope": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "households_in_trial": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "households_with_paid_access": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "entitled_package_deliveries": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "blocked_package_requests": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "completed_sessions": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "reuse_signals": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "average_weekly_value_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    }
+  }
+}

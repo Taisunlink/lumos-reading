@@ -9,6 +9,8 @@ import {
   CAREGIVER_PLAN_SCHEMA_VERSION,
   CAREGIVER_PROGRESS_SCHEMA_VERSION,
   CHILD_HOME_SCHEMA_VERSION,
+  HOUSEHOLD_ENTITLEMENT_SCHEMA_VERSION,
+  OPS_METRICS_SNAPSHOT_SCHEMA_VERSION,
   READING_EVENT_SCHEMA_VERSION,
   SAFETY_AUDIT_SCHEMA_VERSION,
   STORY_BRIEF_COMMAND_SCHEMA_VERSION,
@@ -28,6 +30,7 @@ import {
   STORY_PACKAGE_RELEASE_SCHEMA_VERSION,
   STORY_PACKAGE_ROLLBACK_COMMAND_SCHEMA_VERSION,
   STORY_PACKAGE_SCHEMA_VERSION,
+  WEEKLY_VALUE_REPORT_SCHEMA_VERSION,
   type ChildHomeV1,
   type CaregiverChildAssignmentV1,
   type CaregiverChildSummaryV1,
@@ -39,6 +42,9 @@ import {
   type CaregiverProgressEventV1,
   type CaregiverProgressV1,
   type CaregiverWeeklyPlanItemV1,
+  type HouseholdEntitlementPackageV1,
+  type HouseholdEntitlementV1,
+  type OpsMetricsSnapshotV1,
   type ReadingEventBatchRequestV2,
   type ReadingEventIngestedResponseV2,
   type ReadingEventV1,
@@ -62,6 +68,7 @@ import {
   type StoryPackageReleaseV1,
   type StoryPackageRollbackCommandV1,
   type StoryPackageManifestV1,
+  type WeeklyValueReportV1,
 } from '@lumosreading/contracts';
 import {
   buildChildDomainView,
@@ -69,6 +76,11 @@ import {
   buildPlanDomainView,
   buildProgressDomainView,
 } from './caregiver';
+import {
+  buildAccessDomainView,
+  buildOpsMetricsDomainView,
+  buildWeeklyValueDomainView,
+} from './monetization';
 import { createPlaceholderOssStorageService } from './object-storage';
 
 export const demoHouseholdId = '44444444-4444-4444-4444-444444444444';
@@ -308,6 +320,10 @@ export const demoPackageQueue = [
   packageLibrary.friendshipTrail,
   packageLibrary.moonGarden,
   packageLibrary.bridgeWords,
+] as const;
+export const demoEntitledPackageQueue = [
+  packageLibrary.friendshipTrail,
+  packageLibrary.moonGarden,
 ] as const;
 
 export const demoSafetyAudit: SafetyAuditV1 = {
@@ -818,11 +834,7 @@ export const fallbackCaregiverDashboard: CaregiverDashboardV1 = {
   household_id: demoHouseholdId,
   household_name: 'The Rivera household',
   featured_package_id: packageLibrary.friendshipTrail.package_id,
-  package_queue: [
-    packageLibrary.friendshipTrail,
-    packageLibrary.moonGarden,
-    packageLibrary.bridgeWords,
-  ],
+  package_queue: [...demoEntitledPackageQueue],
   recent_events: recentEvents,
   children: [
     {
@@ -839,7 +851,7 @@ export const fallbackCaregiverDashboard: CaregiverDashboardV1 = {
       age_label: 'Age 7',
       focus: 'Bilingual assist with predictable pacing',
       weekly_goal: '3 sessions plus 2 calm replays',
-      current_package_id: packageLibrary.bridgeWords.package_id,
+      current_package_id: packageLibrary.moonGarden.package_id,
     },
   ],
   weekly_plan: [
@@ -858,10 +870,10 @@ export const fallbackCaregiverDashboard: CaregiverDashboardV1 = {
     },
     {
       day: 'Saturday',
-      mode: 'Bilingual assist',
-      package_id: packageLibrary.bridgeWords.package_id,
+      mode: 'Replay and retell',
+      package_id: packageLibrary.moonGarden.package_id,
       objective:
-        'Reveal only three translation words and track the replay count.',
+        'Reread a familiar calm package and let the child retell one page from memory.',
     },
   ],
   progress_metrics: {
@@ -989,13 +1001,98 @@ export const fallbackCaregiverProgress: CaregiverProgressV1 = {
             child => child.child_id === event.child_id
           )?.name ?? event.child_id,
         package_title:
-          fallbackCaregiverDashboard.package_queue.find(
+          demoPackageQueue.find(
             storyPackage => storyPackage.package_id === event.package_id
           )?.title ?? event.package_id,
       })
     ),
   progress_metrics: fallbackCaregiverDashboard.progress_metrics,
   generated_at: fallbackCaregiverDashboard.generated_at,
+};
+
+export const fallbackHouseholdEntitlement: HouseholdEntitlementV1 = {
+  schema_version: HOUSEHOLD_ENTITLEMENT_SCHEMA_VERSION,
+  household_id: demoHouseholdId,
+  subscription_status: 'trial_active',
+  access_state: 'trial',
+  plan_name: 'Founding household trial',
+  billing_interval: 'none',
+  trial_ends_at: '2026-04-17T12:00:00Z',
+  renews_at: null,
+  package_access: [
+    {
+      package_id: packageLibrary.friendshipTrail.package_id,
+      title: packageLibrary.friendshipTrail.title,
+      language_mode: packageLibrary.friendshipTrail.language_mode,
+      age_band: packageLibrary.friendshipTrail.age_band,
+      release_channel: packageLibrary.friendshipTrail.release_channel,
+      access_state: 'entitled',
+      entitlement_source: 'editorial_free',
+      reason: 'Included in the starter household shelf.',
+    },
+    {
+      package_id: packageLibrary.moonGarden.package_id,
+      title: packageLibrary.moonGarden.title,
+      language_mode: packageLibrary.moonGarden.language_mode,
+      age_band: packageLibrary.moonGarden.age_band,
+      release_channel: packageLibrary.moonGarden.release_channel,
+      access_state: 'entitled',
+      entitlement_source: 'trial',
+      reason: 'Unlocked during the active household trial.',
+    },
+    {
+      package_id: packageLibrary.bridgeWords.package_id,
+      title: packageLibrary.bridgeWords.title,
+      language_mode: packageLibrary.bridgeWords.language_mode,
+      age_band: packageLibrary.bridgeWords.age_band,
+      release_channel: packageLibrary.bridgeWords.release_channel,
+      access_state: 'locked',
+      entitlement_source: 'subscription',
+      reason: 'Requires the paid bilingual support plan.',
+    },
+  ] satisfies HouseholdEntitlementPackageV1[],
+  entitled_package_count: 2,
+  locked_package_count: 1,
+  generated_at: fallbackCaregiverDashboard.generated_at,
+};
+
+export const fallbackWeeklyValueReport: WeeklyValueReportV1 = {
+  schema_version: WEEKLY_VALUE_REPORT_SCHEMA_VERSION,
+  household_id: demoHouseholdId,
+  period_start: '2026-03-10T12:00:00Z',
+  period_end: '2026-03-17T12:00:00Z',
+  completed_sessions: 1,
+  total_reading_minutes: 7,
+  distinct_packages_completed: 1,
+  reread_sessions: 0,
+  caregiver_prompt_completions: 0,
+  value_score: 47,
+  highlights: [
+    {
+      code: 'completed_sessions',
+      title: 'Completed reading loop',
+      detail: '1 completed session and 7 minutes of finished reading this week.',
+    },
+    {
+      code: 'replay_signal',
+      title: 'Replay signal',
+      detail: '1 audio replay event shows the child is revisiting familiar moments.',
+    },
+  ],
+  generated_at: fallbackCaregiverDashboard.generated_at,
+};
+
+export const fallbackOpsMetricsSnapshot: OpsMetricsSnapshotV1 = {
+  schema_version: OPS_METRICS_SNAPSHOT_SCHEMA_VERSION,
+  generated_at: fallbackCaregiverDashboard.generated_at,
+  households_in_scope: 1,
+  households_in_trial: 1,
+  households_with_paid_access: 0,
+  entitled_package_deliveries: 1,
+  blocked_package_requests: 1,
+  completed_sessions: 1,
+  reuse_signals: 1,
+  average_weekly_value_score: 47,
 };
 
 export const fallbackChildHome: ChildHomeV1 = {
@@ -1007,7 +1104,7 @@ export const fallbackChildHome: ChildHomeV1 = {
   weekly_goal: '4 completed sessions',
   featured_package_id: demoStoryPackage.package_id,
   current_package_id: demoStoryPackage.package_id,
-  package_queue: [...demoPackageQueue],
+  package_queue: [...demoEntitledPackageQueue],
   support_mode_defaults: ['read_aloud_sync', 'focus_support'],
   generated_at: fallbackCaregiverDashboard.generated_at,
 };
@@ -1036,7 +1133,7 @@ export function buildDemoChildHome(
     current_package_id: currentPackage.package_id,
     package_queue: [
       currentPackage,
-      ...demoPackageQueue.filter(
+      ...demoEntitledPackageQueue.filter(
         item => item.package_id !== currentPackage.package_id
       ),
     ],
@@ -1055,6 +1152,15 @@ export const fallbackPlanDomainView = buildPlanDomainView(
 );
 export const fallbackProgressDomainView = buildProgressDomainView(
   fallbackCaregiverProgress
+);
+export const fallbackAccessDomainView = buildAccessDomainView(
+  fallbackHouseholdEntitlement
+);
+export const fallbackWeeklyValueDomainView = buildWeeklyValueDomainView(
+  fallbackWeeklyValueReport
+);
+export const fallbackOpsMetricsDomainView = buildOpsMetricsDomainView(
+  fallbackOpsMetricsSnapshot
 );
 
 export type DemoReadingSessionPayloadOptions = {

@@ -22,22 +22,40 @@ Close the access control, reporting, and optimization loop required for sustaine
 
 ## Tasks
 
-- [ ] Define entitlement and subscription contracts
-- [ ] Add entitlement-aware package access rules in API and SDK
-- [ ] Surface subscription and access state in caregiver-web
-- [ ] Expand weekly reports with value-oriented metrics
-- [ ] Add experiment-safe instrumentation for retention and reuse signals
-- [ ] Add tests for access control and reporting
+- [x] Define entitlement, weekly value, and ops metrics contracts
+- [x] Add entitlement-aware package access rules in API and SDK
+- [x] Surface subscription, locked-package visibility, and weekly value in caregiver-web
+- [x] Expand weekly reports with value-oriented metrics
+- [x] Add experiment-safe instrumentation for blocked requests, entitled deliveries, and reuse signals
+- [x] Add tests for access control and reporting
+
+## Delivered slice
+
+- Household-scoped entitlement contract plus caregiver endpoint
+- Child-scoped package delivery endpoint gated by current household access
+- Assignment rejection for locked packages with explicit access-denied semantics
+- Weekly value report derived from shared reading events
+- Studio operations page for access, value, and ops metrics visibility
+- Demo fallback alignment so child-home and caregiver plan exclude locked packages while entitlement surfaces still show them
+- Read-model fallback alignment so loss of entitlement rebinds current and featured package views to the remaining entitled queue instead of leaking raw package fixtures
+- Zero-entitlement guardrails so package-bearing caregiver and child read surfaces return access-lost semantics instead of crashing or emitting invalid empty package payloads
 
 ## Verification
 
-- [ ] contract tests pass
-- [ ] relevant API tests pass
-- [ ] `npm run build --workspace caregiver-web`
-- [ ] affected app builds pass
+- [x] `npm run test:contracts --workspace @lumosreading/sdk`
+- [x] `pytest tests/test_story_generation_v2.py -q`
+- [x] `pytest tests/test_story_package_release_v2.py -q`
+- [x] `pytest tests/test_monetization_v2.py -q`
+- [x] `pytest tests/test_caregiver_v2_contracts.py -q`
+- [x] `npm run build --workspace caregiver-web`
+- [x] `npm run build --workspace studio-web`
+- [x] `npm run typecheck --workspace child-app`
+- [x] `npm run build --workspace child-app`
 
 ## QC gate
 
-- [ ] Paid access state is reflected consistently across surfaces
-- [ ] Weekly report value is tied to completed reading behavior
-- [ ] Metrics additions do not bypass shared event and contract semantics
+- [x] Paid or trial access state is reflected consistently across caregiver, child runtime, and studio surfaces
+- [x] Weekly report value is tied to completed reading behavior
+- [x] Metrics additions do not bypass shared event and contract semantics
+- [x] Previously visible packages that lose entitlement no longer leak through child-home, caregiver household, caregiver children, or caregiver dashboard read models
+- [x] Zero-entitlement households no longer crash package-bearing read surfaces or emit contract-invalid empty package queues

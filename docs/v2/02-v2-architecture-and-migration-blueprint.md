@@ -1,6 +1,6 @@
 # LumosReading V2 目标架构、契约草案与迁移蓝图
 
-更新日期：2026-03-17
+更新日期：2026-03-31
 
 ## 1. 文档目标
 
@@ -223,7 +223,7 @@ erDiagram
 
 #### 获取首页推荐
 
-`GET /api/v2/child-home`
+`GET /api/v2/child-home/{child_id}`
 
 返回：
 
@@ -232,9 +232,9 @@ erDiagram
 - current reading program
 - lightweight caregiver prompts
 
-#### 获取内容包清单
+#### 获取 child 作用域下的内容包
 
-`GET /api/v2/story-packages/{package_id}`
+`GET /api/v2/child-home/{child_id}/packages/{package_id}`
 
 返回：
 
@@ -242,6 +242,12 @@ erDiagram
 - signed CDN URLs
 - overlay configuration
 - runtime feature flags
+
+Phase 6 implementation note:
+- 儿童主链路必须通过 child 作用域的 package 路径取包，而不是直接使用上下文无关的 `GET /api/v2/story-packages/{package_id}`。
+- `child-home`、`caregiver/children`、`caregiver/households/{household_id}` 与 `caregiver/households/{household_id}/dashboard` 都应基于 entitlement 过滤后的 package queue 生成。
+- 如果当前包或 featured 包失去 entitlement，读模型必须自动回退到“仍然 entitled 的第一个 package”，不能回退到原始未过滤 package。
+- 如果 household 当前没有任何 entitled package，则 package-bearing 读接口应返回明确的 access-lost 响应，而不是返回空但不合法的 package 读模型。
 
 #### 上报阅读会话
 
@@ -284,15 +290,19 @@ erDiagram
 
 ### 8.2 面向家长端的核心接口
 
-- `GET /api/v2/caregivers/me`
-- `GET /api/v2/children`
-- `POST /api/v2/children`
-- `PATCH /api/v2/children/{child_id}`
-- `GET /api/v2/children/{child_id}/progress`
-- `GET /api/v2/children/{child_id}/weekly-report`
-- `POST /api/v2/reading-programs/{program_id}:assign`
-- `GET /api/v2/entitlements`
-- `POST /api/v2/subscriptions/checkout`
+- `GET /api/v2/caregiver/households/{household_id}`
+- `GET /api/v2/caregiver/households/{household_id}/children`
+- `POST /api/v2/caregiver/households/{household_id}/children/{child_id}/assignment`
+- `GET /api/v2/caregiver/households/{household_id}/plan`
+- `GET /api/v2/caregiver/households/{household_id}/progress`
+- `GET /api/v2/caregiver/households/{household_id}/entitlement`
+- `GET /api/v2/caregiver/households/{household_id}/weekly-value`
+- `GET /api/v2/caregiver/households/{household_id}/dashboard`
+
+Phase 6 implementation note:
+- 当前 caregiver 商业化闭环已经落到 household 作用域，而不是早期草案中的全局 `children`/`entitlements` 平铺接口。
+- `entitlement` 用于展示 trial、locked、entitled 状态；`weekly-value` 用于展示由阅读行为衍生的周价值结果；assignment 写路径必须在 household entitlement 下校验访问权限。
+- `household`、`children`、`plan`、`dashboard` 这类带 package 主体的读接口，在 zero-entitlement household 下应统一退化为 access-lost，而 entitlement 读接口仍可继续展示商业化状态。
 
 ### 8.3 面向 CMS / Studio 的核心接口
 
@@ -308,11 +318,16 @@ erDiagram
 - `POST /api/v2/story-packages/{package_id}:recall`
 - `POST /api/v2/story-packages/{package_id}:rollback`
 - `GET /api/v2/story-packages/{package_id}/history`
+- `GET /api/v2/ops/metrics`
 - `POST /api/v2/experiments`
 
 Phase 4/5 implementation note:
 - A dedicated `GET /api/v2/safety-audits` router is still deferred.
 - The current studio console reads audit evidence through package draft and history views.
+
+Phase 6 implementation note:
+- `GET /api/v2/ops/metrics` 已作为 studio operations 视图的读接口落地，用于汇总 blocked package requests、entitled deliveries、weekly value 和 trial/paid household 状态。
+- 当前 `ops` 视图仍是 contract-first 的运营快照，不代表最终 BI/warehouse 架构已经落地。
 
 ### 8.4 异步 job 契约
 

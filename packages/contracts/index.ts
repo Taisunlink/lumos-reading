@@ -6,6 +6,8 @@ import caregiverHouseholdSchema from "./schemas/caregiver-household.v1.schema.js
 import caregiverPlanSchema from "./schemas/caregiver-plan.v1.schema.json";
 import caregiverProgressSchema from "./schemas/caregiver-progress.v1.schema.json";
 import childHomeSchema from "./schemas/child-home.v1.schema.json";
+import householdEntitlementSchema from "./schemas/household-entitlement.v1.schema.json";
+import opsMetricsSnapshotSchema from "./schemas/ops-metrics-snapshot.v1.schema.json";
 import readingEventBatchSchema from "./schemas/reading-event-batch.v2.schema.json";
 import readingEventIngestedResponseSchema from "./schemas/reading-event-ingested-response.v2.schema.json";
 import readingEventSchema from "./schemas/reading-event.v1.schema.json";
@@ -29,6 +31,7 @@ import storyPackageReleaseCommandSchema from "./schemas/story-package-release-co
 import storyPackageReleaseSchema from "./schemas/story-package-release.v1.schema.json";
 import storyPackageRollbackCommandSchema from "./schemas/story-package-rollback-command.v1.schema.json";
 import storyPackageSchema from "./schemas/story-package.v1.schema.json";
+import weeklyValueReportSchema from "./schemas/weekly-value-report.v1.schema.json";
 
 export const CAREGIVER_DASHBOARD_SCHEMA_VERSION = "caregiver-dashboard.v1" as const;
 export const CAREGIVER_ASSIGNMENT_COMMAND_SCHEMA_VERSION =
@@ -40,7 +43,10 @@ export const CAREGIVER_CHILDREN_SCHEMA_VERSION = "caregiver-children.v1" as cons
 export const CAREGIVER_PLAN_SCHEMA_VERSION = "caregiver-plan.v1" as const;
 export const CAREGIVER_PROGRESS_SCHEMA_VERSION = "caregiver-progress.v1" as const;
 export const CHILD_HOME_SCHEMA_VERSION = "child-home.v1" as const;
+export const HOUSEHOLD_ENTITLEMENT_SCHEMA_VERSION = "household-entitlement.v1" as const;
+export const OPS_METRICS_SNAPSHOT_SCHEMA_VERSION = "ops-metrics-snapshot.v1" as const;
 export const STORY_PACKAGE_SCHEMA_VERSION = "story-package.v1" as const;
+export const WEEKLY_VALUE_REPORT_SCHEMA_VERSION = "weekly-value-report.v1" as const;
 export const READING_EVENT_SCHEMA_VERSION = "reading-event.v1" as const;
 export const READING_SESSION_CREATE_SCHEMA_VERSION = "reading-session-create.v2" as const;
 export const READING_SESSION_RESPONSE_SCHEMA_VERSION = "reading-session-response.v2" as const;
@@ -81,7 +87,10 @@ export const caregiverChildrenV1Schema = caregiverChildrenSchema;
 export const caregiverPlanV1Schema = caregiverPlanSchema;
 export const caregiverProgressV1Schema = caregiverProgressSchema;
 export const childHomeV1Schema = childHomeSchema;
+export const householdEntitlementV1Schema = householdEntitlementSchema;
+export const opsMetricsSnapshotV1Schema = opsMetricsSnapshotSchema;
 export const storyPackageV1Schema = storyPackageSchema;
+export const weeklyValueReportV1Schema = weeklyValueReportSchema;
 export const readingEventV1Schema = readingEventSchema;
 export const readingSessionCreateV2Schema = readingSessionCreateSchema;
 export const readingSessionResponseV2Schema = readingSessionResponseSchema;
@@ -120,6 +129,11 @@ export type StoryGenerationJobType = "brief_to_draft" | "draft_to_media";
 export type StoryGenerationJobStatus = "queued" | "running" | "succeeded" | "failed";
 export type StoryGenerationProvider = "qwen" | "vertex" | "openai" | "placeholder";
 export type StoryGenerationProviderAttemptStatus = "succeeded" | "failed" | "skipped";
+export type SubscriptionStatus = "trial_active" | "active" | "grace_period" | "expired" | "canceled";
+export type HouseholdAccessState = "trial" | "paid" | "grace" | "expired";
+export type BillingInterval = "monthly" | "annual" | "none";
+export type PackageAccessState = "entitled" | "locked";
+export type EntitlementSource = "trial" | "subscription" | "editorial_free" | "grace_period";
 
 export interface StoryPackageSafetyV1 {
   review_status: StoryPackageReviewStatus;
@@ -316,6 +330,66 @@ export interface ChildHomeV1 {
   package_queue: StoryPackageManifestV1[];
   support_mode_defaults: string[];
   generated_at: string;
+}
+
+export interface HouseholdEntitlementPackageV1 {
+  package_id: string;
+  title: string;
+  language_mode: LanguageTag;
+  age_band: string;
+  release_channel: ReleaseChannel;
+  access_state: PackageAccessState;
+  entitlement_source: EntitlementSource;
+  reason: string;
+}
+
+export interface HouseholdEntitlementV1 {
+  schema_version: typeof HOUSEHOLD_ENTITLEMENT_SCHEMA_VERSION;
+  household_id: string;
+  subscription_status: SubscriptionStatus;
+  access_state: HouseholdAccessState;
+  plan_name: string;
+  billing_interval: BillingInterval;
+  trial_ends_at?: string | null;
+  renews_at?: string | null;
+  package_access: HouseholdEntitlementPackageV1[];
+  entitled_package_count: number;
+  locked_package_count: number;
+  generated_at: string;
+}
+
+export interface WeeklyValueHighlightV1 {
+  code: string;
+  title: string;
+  detail: string;
+}
+
+export interface WeeklyValueReportV1 {
+  schema_version: typeof WEEKLY_VALUE_REPORT_SCHEMA_VERSION;
+  household_id: string;
+  period_start: string;
+  period_end: string;
+  completed_sessions: number;
+  total_reading_minutes: number;
+  distinct_packages_completed: number;
+  reread_sessions: number;
+  caregiver_prompt_completions: number;
+  value_score: number;
+  highlights: WeeklyValueHighlightV1[];
+  generated_at: string;
+}
+
+export interface OpsMetricsSnapshotV1 {
+  schema_version: typeof OPS_METRICS_SNAPSHOT_SCHEMA_VERSION;
+  generated_at: string;
+  households_in_scope: number;
+  households_in_trial: number;
+  households_with_paid_access: number;
+  entitled_package_deliveries: number;
+  blocked_package_requests: number;
+  completed_sessions: number;
+  reuse_signals: number;
+  average_weekly_value_score: number;
 }
 
 export interface ReadingSessionCreateV2 {

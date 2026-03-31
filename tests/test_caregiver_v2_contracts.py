@@ -19,6 +19,7 @@ sys.path.insert(0, str(API_DIR))
 
 from app.main import app  # noqa: E402
 from app.services.v2.child_service import reset_child_package_assignment_overrides  # noqa: E402
+from app.services.v2.package_access_store import reset_package_access_events  # noqa: E402
 from app.services.v2.reading_event_store import reset_ingested_reading_events  # noqa: E402
 from app.services.v2.story_package_release_store import reset_story_package_release_state  # noqa: E402
 
@@ -57,10 +58,12 @@ SCHEMA_REGISTRY = build_schema_registry()
 @pytest.fixture(autouse=True)
 def reset_demo_runtime_state() -> None:
     reset_child_package_assignment_overrides()
+    reset_package_access_events()
     reset_ingested_reading_events()
     reset_story_package_release_state()
     yield
     reset_child_package_assignment_overrides()
+    reset_package_access_events()
     reset_ingested_reading_events()
     reset_story_package_release_state()
 
@@ -80,6 +83,9 @@ def test_contract_schema_files_exist() -> None:
         "caregiver-progress.v1.schema.json",
         "caregiver-dashboard.v1.schema.json",
         "child-home.v1.schema.json",
+        "household-entitlement.v1.schema.json",
+        "weekly-value-report.v1.schema.json",
+        "ops-metrics-snapshot.v1.schema.json",
         "story-package.v1.schema.json",
         "reading-event.v1.schema.json",
         "reading-session-create.v2.schema.json",

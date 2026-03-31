@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lumosreading.local/weekly-value-report.v1.schema.json",
+  "title": "WeeklyValueReportV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "household_id",
+    "period_start",
+    "period_end",
+    "completed_sessions",
+    "total_reading_minutes",
+    "distinct_packages_completed",
+    "reread_sessions",
+    "caregiver_prompt_completions",
+    "value_score",
+    "highlights",
+    "generated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "weekly-value-report.v1"
+    },
+    "household_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_sessions": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "total_reading_minutes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "distinct_packages_completed": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "reread_sessions": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "caregiver_prompt_completions": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "value_score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "highlights": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/highlight"
+      }
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "highlight": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "title",
+        "detail"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

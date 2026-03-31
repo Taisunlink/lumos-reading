@@ -9,6 +9,8 @@ import {
   caregiverHouseholdV1Schema,
   caregiverPlanV1Schema,
   caregiverProgressV1Schema,
+  householdEntitlementV1Schema,
+  opsMetricsSnapshotV1Schema,
   readingEventBatchV2Schema,
   readingEventIngestedResponseV2Schema,
   readingSessionCreateV2Schema,
@@ -31,6 +33,7 @@ import {
   storyPackageReleaseV1Schema,
   storyPackageRollbackCommandV1Schema,
   storyPackageV1Schema,
+  weeklyValueReportV1Schema,
 } from "@lumosreading/contracts";
 import {
   buildDemoCaregiverAssignmentCommand,
@@ -63,10 +66,13 @@ import {
   fallbackCaregiverPlan,
   fallbackCaregiverProgress,
   fallbackDraftGenerationJob,
+  fallbackHouseholdEntitlement,
   fallbackMediaGenerationJob,
+  fallbackOpsMetricsSnapshot,
   fallbackStoryBrief,
   fallbackStoryBriefIndex,
   fallbackStoryGenerationJobIndex,
+  fallbackWeeklyValueReport,
 } from "./demo";
 import { buildStoryPackageHistoryView } from "./release";
 
@@ -131,6 +137,21 @@ function buildValidationCases(): ValidationCase[] {
       name: "caregiver-dashboard.v1 fallback dashboard",
       schema: caregiverDashboardV1Schema,
       payload: fallbackCaregiverDashboard,
+    },
+    {
+      name: "household-entitlement.v1 fallback entitlement",
+      schema: householdEntitlementV1Schema,
+      payload: fallbackHouseholdEntitlement,
+    },
+    {
+      name: "weekly-value-report.v1 fallback weekly value",
+      schema: weeklyValueReportV1Schema,
+      payload: fallbackWeeklyValueReport,
+    },
+    {
+      name: "ops-metrics-snapshot.v1 fallback ops metrics",
+      schema: opsMetricsSnapshotV1Schema,
+      payload: fallbackOpsMetricsSnapshot,
     },
     {
       name: "reading-session-create.v2 demo request",
@@ -272,8 +293,20 @@ export function validateDemoContractsOrThrow(): ValidationResult {
     "https://schemas.lumosreading.local/child-home.v1.schema.json",
   );
   ajv.addSchema(
+    householdEntitlementV1Schema,
+    "https://schemas.lumosreading.local/household-entitlement.v1.schema.json",
+  );
+  ajv.addSchema(
+    opsMetricsSnapshotV1Schema,
+    "https://schemas.lumosreading.local/ops-metrics-snapshot.v1.schema.json",
+  );
+  ajv.addSchema(
     storyPackageV1Schema,
     "https://schemas.lumosreading.local/story-package.v1.schema.json",
+  );
+  ajv.addSchema(
+    weeklyValueReportV1Schema,
+    "https://schemas.lumosreading.local/weekly-value-report.v1.schema.json",
   );
   ajv.addSchema(
     safetyAuditV1Schema,
@@ -349,6 +382,16 @@ export function validateDemoContractsOrThrow(): ValidationResult {
     englishProgressEvent?.event.language_mode === "en-US",
     "Demo caregiver progress should preserve package language metadata for English packages.",
   );
+  assert(
+    !fallbackChildHome.package_queue.some(
+      storyPackage => storyPackage.package_id === "99999999-9999-9999-9999-999999999999",
+    ),
+    "Fallback child home should exclude locked packages from the visible queue.",
+  );
+  assert(
+    fallbackHouseholdEntitlement.locked_package_count === 1,
+    "Fallback entitlement should preserve one locked package for Phase 6 surfaces.",
+  );
 
   const storyPackageHistoryView = buildStoryPackageHistoryView(
     buildDemoStoryPackageHistory(),
@@ -372,11 +415,13 @@ export function validateDemoContractsOrThrow(): ValidationResult {
       "demo english session payload inherits package language",
       "demo english event batch inherits package language",
       "demo caregiver progress preserves english language metadata",
+      "fallback child home excludes locked packages",
+      "fallback entitlement preserves locked package count",
       "release history view preserves operator notes",
       "release history view preserves audit status",
       "release history view preserves package preview detail",
     ],
-    count: checked.length + 6,
+    count: checked.length + 8,
   };
 }
 

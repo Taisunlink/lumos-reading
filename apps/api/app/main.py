@@ -17,6 +17,7 @@ from app.middleware.rate_limiting import RateLimitMiddleware
 from app.middleware.security import SecurityMiddleware
 from app.routers.v2 import caregiver as v2_caregiver
 from app.routers.v2 import children as v2_children
+from app.routers.v2 import ops as v2_ops
 from app.routers.v2 import reading as v2_reading
 from app.routers.v2 import story_briefs as v2_story_briefs
 from app.routers.v2 import story_packages as v2_story_packages
@@ -156,6 +157,7 @@ app.include_router(
 )
 app.include_router(v2_caregiver.router, prefix="/api/v2/caregiver", tags=["v2-caregiver"])
 app.include_router(v2_children.router, prefix="/api/v2/child-home", tags=["v2-child-home"])
+app.include_router(v2_ops.router, prefix="/api/v2/ops", tags=["v2-ops"])
 app.include_router(v2_reading.router, prefix="/api/v2", tags=["v2-reading"])
 
 if settings.enable_legacy_v1_routers:

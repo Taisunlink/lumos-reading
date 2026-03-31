@@ -20,6 +20,11 @@ export const caregiverNavItems = [
     description: "Reading events, completion signals, and caregiver-facing metrics.",
   },
   {
+    href: "/access",
+    label: "Access",
+    description: "Subscription state, entitled packages, locked packages, and weekly value.",
+  },
+  {
     href: "/settings",
     label: "Settings",
     description: "Startup order, API defaults, and migration guardrails.",

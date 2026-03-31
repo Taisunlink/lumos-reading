@@ -16,6 +16,13 @@ from .caregiver import (
     CaregiverProgressMetricsV1,
     CaregiverWeeklyPlanItemV1,
 )
+from .monetization import (
+    HouseholdEntitlementPackageV1,
+    HouseholdEntitlementV1,
+    OpsMetricsSnapshotV1,
+    WeeklyValueHighlightV1,
+    WeeklyValueReportV1,
+)
 from .reading import (
     ReadingEventBatchRequest,
     ReadingEventIngestedResponse,
@@ -62,6 +69,11 @@ __all__ = [
     "CaregiverProgressV1",
     "CaregiverProgressMetricsV1",
     "CaregiverWeeklyPlanItemV1",
+    "HouseholdEntitlementPackageV1",
+    "HouseholdEntitlementV1",
+    "OpsMetricsSnapshotV1",
+    "WeeklyValueHighlightV1",
+    "WeeklyValueReportV1",
     "ReadingEventBatchRequest",
     "ReadingEventIngestedResponse",
     "ReadingEventV1",
