@@ -91,7 +91,6 @@ The following checks have already passed on the current baseline:
 
 ## Known gaps
 
-- Real caregiver-to-child assignment write flows and caregiver-side operating UI are not implemented yet.
 - The current FastAPI layer is still a bootstrap/PoC boundary and not the final modular monolith described in `02-*`.
 - Real persistence, real object storage, release workflow, and content packaging jobs are not implemented yet.
 - Legacy `apps/web` still exists and should continue to be treated as a migration reference, not a target architecture.
@@ -99,7 +98,7 @@ The following checks have already passed on the current baseline:
 ## Current focus and next slices
 
 - Execute the sequential seven-phase delivery plan defined in `docs/v2/04-engineering-delivery-plan.md`.
-- Complete Phase 2 next: caregiver assignment mutations, caregiver-web assignment UI, and child-home refresh semantics.
+- Complete Phase 3 next: package release loop, release-state surfaces, and publish-readback flow.
 - Replace bootstrap fallback/demo responses with real backend module implementations behind the same contracts.
 - Continue reducing legacy `apps/web` responsibility until it can be retired from the V2 main path.
 
@@ -126,6 +125,19 @@ The following checks have already passed on the current baseline:
 - Aligned demo progress payloads and API progress fixtures so English packages now preserve `en-US` metadata through caregiver-facing telemetry surfaces.
 - Verification passed for Phase 1 with `pytest tests/test_caregiver_v2_contracts.py -q`, `npm run test:contracts --workspace @lumosreading/sdk`, `npm run test:runtime-contracts --workspace child-app`, `npm run typecheck --workspace child-app`, and `npm run build --workspace child-app`.
 - Phase 1 QC gate is cleared after the language metadata blocker and event outbox concurrency blocker were both resolved; the next recommended slice is Phase 2 caregiver assignment loop delivery.
+
+## Session update: 2026-03-31 Phase 2
+
+- Added governed caregiver assignment contracts so caregiver write paths now use shared schema authority instead of page-local payloads.
+- Extended the shared SDK API client and caregiver subdomain services with a typed package assignment mutation.
+- Added a caregiver assignment endpoint in FastAPI and wired it to return the updated package plus child-home context in a shared response contract.
+- Updated the demo child assignment service so caregiver package changes persist in-process and automatically flow through `caregiver/children` and `child-home` read models.
+- Added a lightweight reading event store for ingested child runtime telemetry and merged it into caregiver progress readbacks so newly completed sessions appear beyond the static fixtures.
+- Updated `apps/caregiver-web` children management so caregivers can assign a package, see the latest reading status per child, and inspect the latest package outcome.
+- Updated `apps/child-app` so the child shelf can be manually refreshed and automatically resynced when the app returns to the foreground.
+- Added API coverage for assignment mutation plus progress readback after fresh event ingestion, keeping the end-to-end caregiver feedback loop under test.
+- Verification passed for Phase 2 with `pytest tests/test_caregiver_v2_contracts.py -q`, `npm run test:contracts --workspace @lumosreading/sdk`, `npm run test:runtime-contracts --workspace child-app`, `npm run build --workspace caregiver-web`, `npm run typecheck --workspace child-app`, and `npm run build --workspace child-app`.
+- The next recommended slice is Phase 3 package release loop delivery.
 
 ## Session update: 2026-03-17
 

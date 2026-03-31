@@ -1,5 +1,7 @@
 import type {
   ChildHomeV1,
+  CaregiverAssignmentCommandV1,
+  CaregiverAssignmentResponseV1,
   CaregiverChildrenV1,
   CaregiverDashboardV1,
   CaregiverHouseholdV1,
@@ -102,6 +104,20 @@ export function createLumosApiClient(options: LumosApiClientOptions = {}) {
         baseUrl,
         `/caregiver/households/${householdId}/children`,
         options.headers,
+      );
+    },
+    async assignCaregiverPackage(
+      payload: CaregiverAssignmentCommandV1,
+    ): Promise<CaregiverAssignmentResponseV1> {
+      return request<CaregiverAssignmentResponseV1>(
+        fetchImpl,
+        baseUrl,
+        `/caregiver/households/${payload.household_id}/children/${payload.child_id}/assignment`,
+        options.headers,
+        {
+          method: "POST",
+          body: JSON.stringify(payload),
+        },
       );
     },
     async getCaregiverPlan(householdId: string): Promise<CaregiverPlanV1> {

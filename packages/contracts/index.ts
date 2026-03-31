@@ -1,4 +1,6 @@
 import caregiverDashboardSchema from "./schemas/caregiver-dashboard.v1.schema.json";
+import caregiverAssignmentCommandSchema from "./schemas/caregiver-assignment-command.v1.schema.json";
+import caregiverAssignmentResponseSchema from "./schemas/caregiver-assignment-response.v1.schema.json";
 import caregiverChildrenSchema from "./schemas/caregiver-children.v1.schema.json";
 import caregiverHouseholdSchema from "./schemas/caregiver-household.v1.schema.json";
 import caregiverPlanSchema from "./schemas/caregiver-plan.v1.schema.json";
@@ -13,6 +15,10 @@ import safetyAuditSchema from "./schemas/safety-audit.v1.schema.json";
 import storyPackageSchema from "./schemas/story-package.v1.schema.json";
 
 export const CAREGIVER_DASHBOARD_SCHEMA_VERSION = "caregiver-dashboard.v1" as const;
+export const CAREGIVER_ASSIGNMENT_COMMAND_SCHEMA_VERSION =
+  "caregiver-assignment-command.v1" as const;
+export const CAREGIVER_ASSIGNMENT_RESPONSE_SCHEMA_VERSION =
+  "caregiver-assignment-response.v1" as const;
 export const CAREGIVER_HOUSEHOLD_SCHEMA_VERSION = "caregiver-household.v1" as const;
 export const CAREGIVER_CHILDREN_SCHEMA_VERSION = "caregiver-children.v1" as const;
 export const CAREGIVER_PLAN_SCHEMA_VERSION = "caregiver-plan.v1" as const;
@@ -28,6 +34,8 @@ export const READING_EVENT_INGESTED_RESPONSE_SCHEMA_VERSION =
 export const SAFETY_AUDIT_SCHEMA_VERSION = "safety-audit.v1" as const;
 
 export const caregiverDashboardV1Schema = caregiverDashboardSchema;
+export const caregiverAssignmentCommandV1Schema = caregiverAssignmentCommandSchema;
+export const caregiverAssignmentResponseV1Schema = caregiverAssignmentResponseSchema;
 export const caregiverHouseholdV1Schema = caregiverHouseholdSchema;
 export const caregiverChildrenV1Schema = caregiverChildrenSchema;
 export const caregiverPlanV1Schema = caregiverPlanSchema;
@@ -149,6 +157,27 @@ export interface CaregiverProgressMetricsV1 {
 
 export interface CaregiverChildAssignmentV1 extends CaregiverChildSummaryV1 {
   current_package: StoryPackageManifestV1;
+}
+
+export interface CaregiverAssignmentCommandV1 {
+  schema_version: typeof CAREGIVER_ASSIGNMENT_COMMAND_SCHEMA_VERSION;
+  household_id: string;
+  child_id: string;
+  package_id: string;
+  source: "caregiver-web" | "studio-web";
+  requested_at: string;
+}
+
+export interface CaregiverAssignmentResponseV1 {
+  schema_version: typeof CAREGIVER_ASSIGNMENT_RESPONSE_SCHEMA_VERSION;
+  status: "accepted";
+  household_id: string;
+  child_id: string;
+  previous_package_id: string;
+  current_package_id: string;
+  current_package: StoryPackageManifestV1;
+  child_home: ChildHomeV1;
+  accepted_at: string;
 }
 
 export interface CaregiverPlannedSessionV1 extends CaregiverWeeklyPlanItemV1 {

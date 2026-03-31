@@ -22,6 +22,7 @@ export default function ChildHomeScreen() {
     homePackages,
     mode,
     pendingEventCount,
+    refreshHome,
     sessionReceipt,
   } =
     useChildRuntime();
@@ -60,6 +61,22 @@ export default function ChildHomeScreen() {
             <Text style={styles.resumeActionLabel}>Continue Current Session</Text>
           </Pressable>
         ) : null}
+
+        <Pressable
+          onPress={() => void refreshHome()}
+          disabled={activeAction === 'home'}
+          style={({ pressed }) => [
+            styles.refreshAction,
+            activeAction === 'home' && styles.disabledAction,
+            pressed && styles.pressedAction,
+          ]}
+        >
+          <Text style={styles.refreshActionLabel}>
+            {activeAction === 'home'
+              ? 'Refreshing assigned shelf...'
+              : 'Refresh Assigned Shelf'}
+          </Text>
+        </Pressable>
 
         <View style={styles.metricsRow}>
           <View style={styles.metricCard}>
@@ -268,6 +285,22 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
     textTransform: 'uppercase',
   },
+  refreshAction: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#fff8ef',
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: '#d6c8ae',
+  },
+  refreshActionLabel: {
+    color: '#24313f',
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
   metricCard: {
     backgroundColor: '#304252',
     borderRadius: 22,
@@ -447,6 +480,9 @@ const styles = StyleSheet.create({
     color: '#596170',
     fontSize: 14,
     lineHeight: 20,
+  },
+  disabledAction: {
+    opacity: 0.55,
   },
   pressedAction: {
     transform: [{ scale: 0.985 }],

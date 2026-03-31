@@ -8,6 +8,8 @@ This package carries the formal shared contracts used across apps and services. 
 
 ## Governed contracts
 
+- `CaregiverAssignmentCommand v1`
+- `CaregiverAssignmentResponse v1`
 - `CaregiverDashboard v1`
 - `ChildHome v1`
 - `CaregiverHousehold v1`
@@ -49,6 +51,8 @@ Before starting V2 work, read in this order:
 
 ## Current schema files
 
+- `schemas/caregiver-assignment-command.v1.schema.json`
+- `schemas/caregiver-assignment-response.v1.schema.json`
 - `schemas/caregiver-household.v1.schema.json`
 - `schemas/caregiver-children.v1.schema.json`
 - `schemas/caregiver-plan.v1.schema.json`

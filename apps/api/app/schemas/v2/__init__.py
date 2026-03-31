@@ -2,6 +2,8 @@
 
 from .child_home import ChildHomeV1
 from .caregiver import (
+    CaregiverAssignmentCommandV1,
+    CaregiverAssignmentResponseV1,
     CaregiverChildAssignmentV1,
     CaregiverChildSummaryV1,
     CaregiverChildrenV1,
@@ -25,6 +27,8 @@ from .safety_audit import SafetyAuditV1
 from .story_package import StoryPackageManifestV1
 
 __all__ = [
+    "CaregiverAssignmentCommandV1",
+    "CaregiverAssignmentResponseV1",
     "ChildHomeV1",
     "CaregiverChildAssignmentV1",
     "CaregiverChildSummaryV1",

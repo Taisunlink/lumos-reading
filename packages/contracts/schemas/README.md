@@ -4,6 +4,8 @@ These files are the authoritative shared schemas for LumosReading V2.
 
 ## Current schema set
 
+- `caregiver-assignment-command.v1.schema.json`
+- `caregiver-assignment-response.v1.schema.json`
 - `caregiver-household.v1.schema.json`
 - `caregiver-children.v1.schema.json`
 - `caregiver-plan.v1.schema.json`
@@ -20,6 +22,10 @@ These files are the authoritative shared schemas for LumosReading V2.
 
 ## Scope
 
+- `CaregiverAssignmentCommand v1`
+  Write contract for updating a child's currently assigned reading package from the caregiver surface.
+- `CaregiverAssignmentResponse v1`
+  Response contract for an accepted caregiver assignment update with the updated child assignment context.
 - `CaregiverHousehold v1`
   Read model for the household operating surface, featured package selection, queue visibility, and top-level caregiver metrics.
 - `CaregiverChildren v1`

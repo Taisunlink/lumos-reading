@@ -13,6 +13,7 @@ export function useCaregiverResource<T>(
   const [value, setValue] = useState<T>(initialValue);
   const [status, setStatus] = useState<ResourceStatus>("loading");
   const [error, setError] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -47,11 +48,18 @@ export function useCaregiverResource<T>(
     return () => {
       active = false;
     };
-  }, [fallbackMessage, householdId, initialValue, load]);
+  }, [fallbackMessage, householdId, initialValue, load, refreshToken]);
+
+  function refresh() {
+    startTransition(() => {
+      setRefreshToken((current) => current + 1);
+    });
+  }
 
   return {
     value,
     status,
     error,
+    refresh,
   };
 }

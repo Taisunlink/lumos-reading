@@ -5,6 +5,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.v2.reading import ReadingEventV1
+from app.schemas.v2.child_home import ChildHomeV1
 from app.schemas.v2.story_package import StoryPackageManifestV1
 
 
@@ -40,6 +41,35 @@ class CaregiverChildAssignmentV1(CaregiverChildSummaryV1):
     model_config = ConfigDict(extra="forbid")
 
     current_package: StoryPackageManifestV1
+
+
+class CaregiverAssignmentCommandV1(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: Literal["caregiver-assignment-command.v1"] = (
+        "caregiver-assignment-command.v1"
+    )
+    household_id: UUID
+    child_id: UUID
+    package_id: UUID
+    source: Literal["caregiver-web", "studio-web"]
+    requested_at: datetime
+
+
+class CaregiverAssignmentResponseV1(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: Literal["caregiver-assignment-response.v1"] = (
+        "caregiver-assignment-response.v1"
+    )
+    status: Literal["accepted"] = "accepted"
+    household_id: UUID
+    child_id: UUID
+    previous_package_id: UUID
+    current_package_id: UUID
+    current_package: StoryPackageManifestV1
+    child_home: ChildHomeV1
+    accepted_at: datetime
 
 
 class CaregiverPlannedSessionV1(CaregiverWeeklyPlanItemV1):

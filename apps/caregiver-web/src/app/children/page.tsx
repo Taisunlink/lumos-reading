@@ -1,7 +1,13 @@
 "use client";
 
-import { formatDurationMinutes } from "@/lib/format";
+import { startTransition, useState } from "react";
+import { CAREGIVER_ASSIGNMENT_COMMAND_SCHEMA_VERSION } from "@lumosreading/contracts";
+
+import { formatDurationMinutes, formatEventType } from "@/lib/format";
+import { useCaregiverAssignmentMutation } from "@/lib/hooks/use-caregiver-assignment-mutation";
 import { useChildDomain } from "@/lib/hooks/use-child-domain";
+import { usePlanDomain } from "@/lib/hooks/use-plan-domain";
+import { useProgressDomain } from "@/lib/hooks/use-progress-domain";
 
 const supportPatterns = [
   "Keep the primary reading language stable and reveal translation support only on demand.",
@@ -10,8 +16,43 @@ const supportPatterns = [
 ];
 
 export default function ChildrenPage() {
-  const { childDomain, status, error } = useChildDomain();
+  const { childDomain, status, error, refresh } = useChildDomain();
+  const { planDomain } = usePlanDomain();
+  const { progressDomain, refresh: refreshProgress } = useProgressDomain();
+  const assignmentMutation = useCaregiverAssignmentMutation();
+  const [selectedPackageIds, setSelectedPackageIds] = useState<Record<string, string>>({});
+  const [activeChildId, setActiveChildId] = useState<string | null>(null);
   const { children, supportSignals, bilingualAssignments, plannedSessions } = childDomain;
+  const latestProgressByChildId = progressDomain.timeline.reduce<
+    Record<string, (typeof progressDomain.timeline)[number]>
+  >((accumulator, entry) => {
+    const currentEntry = accumulator[entry.childId];
+
+    if (!currentEntry || entry.occurredAt > currentEntry.occurredAt) {
+      accumulator[entry.childId] = entry;
+    }
+
+    return accumulator;
+  }, {});
+
+  async function assignPackage(childId: string, packageId: string) {
+    setActiveChildId(childId);
+
+    try {
+      await assignmentMutation.mutate({
+        schema_version: CAREGIVER_ASSIGNMENT_COMMAND_SCHEMA_VERSION,
+        household_id: childDomain.householdId,
+        child_id: childId,
+        package_id: packageId,
+        source: "caregiver-web",
+        requested_at: new Date().toISOString(),
+      });
+      refresh();
+      refreshProgress();
+    } catch {
+      return;
+    }
+  }
 
   return (
     <main className="page-stack">
@@ -87,7 +128,77 @@ export default function ChildrenPage() {
                   {formatDurationMinutes(child.currentPackage.estimated_duration_sec)}
                 </span>
               </div>
+              <div className="meta-pair">
+                <span className="meta-pair__label">Latest reading status</span>
+                <span className="meta-pair__value">
+                  {latestProgressByChildId[child.childId]?.description ?? "No reading event yet."}
+                </span>
+              </div>
+              <div className="meta-pair">
+                <span className="meta-pair__label">Latest package outcome</span>
+                <span className="meta-pair__value">
+                  {latestProgressByChildId[child.childId]
+                    ? `${latestProgressByChildId[child.childId].packageTitle} / ${formatEventType(
+                        latestProgressByChildId[child.childId].eventType,
+                      )}`
+                    : "Waiting for the first completed loop."}
+                </span>
+              </div>
             </div>
+
+            <div className="api-workbench__controls">
+              <select
+                className="api-workbench__input"
+                value={selectedPackageIds[child.childId] ?? child.currentPackageId}
+                onChange={(event) => {
+                  const nextPackageId = event.target.value;
+
+                  startTransition(() => {
+                    setSelectedPackageIds((previous) => ({
+                      ...previous,
+                      [child.childId]: nextPackageId,
+                    }));
+                  });
+                }}
+              >
+                {planDomain.packageQueue.map((storyPackage) => (
+                  <option key={storyPackage.package_id} value={storyPackage.package_id}>
+                    {storyPackage.title} / {storyPackage.language_mode} / {storyPackage.difficulty_level}
+                  </option>
+                ))}
+              </select>
+              <div className="button-row">
+                <button
+                  className="button"
+                  disabled={
+                    assignmentMutation.status === "pending" ||
+                    (selectedPackageIds[child.childId] ?? child.currentPackageId) ===
+                      child.currentPackageId
+                  }
+                  onClick={() =>
+                    void assignPackage(
+                      child.childId,
+                      selectedPackageIds[child.childId] ?? child.currentPackageId,
+                    )
+                  }
+                >
+                  {assignmentMutation.status === "pending" && activeChildId === child.childId
+                    ? "Saving assignment..."
+                    : "Assign package"}
+                </button>
+              </div>
+            </div>
+
+            {assignmentMutation.status === "success" &&
+            assignmentMutation.data?.child_id === child.childId ? (
+              <div className="note-card">
+                Assignment saved. The child home shelf will pick up the updated package on the next refresh.
+              </div>
+            ) : null}
+
+            {assignmentMutation.status === "error" && activeChildId === child.childId ? (
+              <div className="note-card">{assignmentMutation.error}</div>
+            ) : null}
           </article>
         ))}
       </section>

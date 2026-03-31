@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lumosreading.local/caregiver-assignment-command.v1.schema.json",
+  "title": "CaregiverAssignmentCommandV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "household_id",
+    "child_id",
+    "package_id",
+    "source",
+    "requested_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "caregiver-assignment-command.v1"
+    },
+    "household_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "child_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "package_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "caregiver-web",
+        "studio-web"
+      ]
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid"
+    }
+  }
+}

@@ -1,4 +1,6 @@
 import type {
+  CaregiverAssignmentCommandV1,
+  CaregiverAssignmentResponseV1,
   CaregiverChildrenV1,
   CaregiverHouseholdV1,
   CaregiverPlanV1,
@@ -15,6 +17,9 @@ function formatMinutesFromMs(milliseconds: number): string {
 export interface CaregiverReadModelClient {
   getCaregiverHousehold(householdId: string): Promise<CaregiverHouseholdV1>;
   getCaregiverChildren(householdId: string): Promise<CaregiverChildrenV1>;
+  assignCaregiverPackage(
+    payload: CaregiverAssignmentCommandV1,
+  ): Promise<CaregiverAssignmentResponseV1>;
   getCaregiverPlan(householdId: string): Promise<CaregiverPlanV1>;
   getCaregiverProgress(householdId: string): Promise<CaregiverProgressV1>;
 }
@@ -86,7 +91,9 @@ export type ProgressTimelineEntry = {
   eventId: string;
   eventType: string;
   occurredAt: string;
+  childId: string;
   childName: string;
+  packageId: string;
   packageTitle: string;
   surface: string;
   description: string;
@@ -112,6 +119,9 @@ export interface CaregiverHouseholdService {
 
 export interface CaregiverChildrenService {
   getAssignments(householdId: string): Promise<ChildDomainView>;
+  assignPackage(
+    payload: CaregiverAssignmentCommandV1,
+  ): Promise<CaregiverAssignmentResponseV1>;
 }
 
 export interface CaregiverPlanService {
@@ -264,7 +274,9 @@ export function buildProgressDomainView(progressResource: CaregiverProgressV1): 
       eventId: entry.event.event_id,
       eventType: entry.event.event_type,
       occurredAt: entry.event.occurred_at,
+      childId: entry.event.child_id,
       childName: entry.child_name,
+      packageId: entry.event.package_id,
       packageTitle: entry.package_title,
       surface: entry.event.surface,
       description: describeEvent(entry.event),
@@ -288,6 +300,9 @@ export function createCaregiverSubdomainServices(
     children: {
       async getAssignments(householdId: string) {
         return buildChildDomainView(await client.getCaregiverChildren(householdId));
+      },
+      async assignPackage(payload: CaregiverAssignmentCommandV1) {
+        return client.assignCaregiverPackage(payload);
       },
     },
     plan: {

@@ -21,22 +21,26 @@ Let caregivers assign content and see the resulting reading activity.
 
 ## Tasks
 
-- [ ] Add caregiver assignment contracts and API endpoints
-- [ ] Add caregiver assignment service methods in `packages/sdk`
-- [ ] Update caregiver-web to assign packages to children
-- [ ] Surface recent child reading status and package outcome
-- [ ] Ensure child-app shelf refreshes assigned packages from caregiver changes
-- [ ] Add tests for assignment and progress flow
+- [x] Add caregiver assignment contracts and API endpoints
+- [x] Add caregiver assignment service methods in `packages/sdk`
+- [x] Update caregiver-web to assign packages to children
+- [x] Surface recent child reading status and package outcome
+- [x] Ensure child-app shelf refreshes assigned packages from caregiver changes
+- [x] Add tests for assignment and progress flow
+- [x] Persist newly ingested reading events into caregiver progress readbacks
 
 ## Verification
 
-- [ ] `pytest tests/test_caregiver_v2_contracts.py -q`
-- [ ] `npm run test:contracts --workspace @lumosreading/sdk`
-- [ ] `npm run build --workspace caregiver-web`
-- [ ] `npm run build --workspace child-app`
+- [x] `pytest tests/test_caregiver_v2_contracts.py -q`
+- [x] `npm run test:contracts --workspace @lumosreading/sdk`
+- [x] `npm run test:runtime-contracts --workspace child-app`
+- [x] `npm run build --workspace caregiver-web`
+- [x] `npm run typecheck --workspace child-app`
+- [x] `npm run build --workspace child-app`
 
 ## QC gate
 
-- [ ] A caregiver assignment changes the child shelf
-- [ ] Completed child sessions appear in caregiver progress
-- [ ] No page invents its own payload shape outside shared contracts
+- [x] A caregiver assignment changes the child shelf
+- [x] Completed child sessions appear in caregiver progress
+- [x] No page invents its own payload shape outside shared contracts
+- [x] Child runtime can resync caregiver assignments without a reinstall or cache reset

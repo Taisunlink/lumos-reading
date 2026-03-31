@@ -4,6 +4,7 @@ import type {
   ReadingSessionResponseV2,
   StoryPackageManifestV1,
 } from '@lumosreading/contracts';
+import { AppState } from 'react-native';
 import {
   setAudioModeAsync,
   useAudioPlayer,
@@ -100,6 +101,7 @@ type ChildRuntimeContextValue = {
   hasActiveSession: boolean;
   canGoToPreviousPage: boolean;
   canGoToNextPage: boolean;
+  refreshHome(): Promise<boolean>;
   loadPackage(packageId: string): Promise<StoryPackageManifestV1 | null>;
   startSession(packageId: string): Promise<ReadingSessionResponseV2 | null>;
   ingestEvent(args: {
@@ -164,6 +166,21 @@ function orderPackages(
   return featuredPackage ? [featuredPackage, ...remainingPackages] : packages;
 }
 
+function getHomeRefreshActivityLabel(
+  reason: 'initial' | 'resume' | 'manual',
+  packageCount: number
+): string {
+  if (reason === 'initial') {
+    return `Loaded assigned shelf with ${packageCount} package(s) in ${childRuntime.mode} mode.`;
+  }
+
+  if (reason === 'resume') {
+    return `Resynced the assigned shelf after returning to the app.`;
+  }
+
+  return `Refreshed the assigned shelf and picked up the latest caregiver assignment.`;
+}
+
 type ChildRuntimeProviderProps = {
   children: ReactNode;
 };
@@ -195,6 +212,7 @@ export function ChildRuntimeProvider({ children }: ChildRuntimeProviderProps) {
 
   const pageEnteredAtRef = useRef(Date.now());
   const flushQueuedEventsRef = useRef<Promise<boolean> | null>(null);
+  const refreshHomeRef = useRef<Promise<boolean> | null>(null);
 
   const activePackage = activePackageId
     ? (packageMap[activePackageId] ?? null)
@@ -298,6 +316,83 @@ export function ChildRuntimeProvider({ children }: ChildRuntimeProviderProps) {
     }
   }
 
+  async function refreshHome(options: {
+    background?: boolean;
+    reason?: 'initial' | 'resume' | 'manual';
+    preferredPackageId?: string | null;
+  } = {}) {
+    if (refreshHomeRef.current) {
+      return refreshHomeRef.current;
+    }
+
+    const refreshPromise = (async () => {
+      if (!options.background) {
+        setActiveAction('home');
+      }
+
+      setError(null);
+
+      try {
+        const childHome = await loadChildHome();
+        const orderedShelf = orderPackages(
+          childHome.package_queue,
+          childHome.featured_package_id
+        );
+
+        await persistHomePackages(orderedShelf);
+
+        startTransition(() => {
+          setHomePackages(orderedShelf);
+          setPackageMap(previous => ({
+            ...previous,
+            ...buildPackageMap(orderedShelf),
+          }));
+          setActivePackageId(
+            options.preferredPackageId ??
+              sessionReceipt?.package_id ??
+              childHome.current_package_id ??
+              childHome.featured_package_id
+          );
+          setActivity(previous =>
+            appendActivity(
+              previous,
+              getHomeRefreshActivityLabel(
+                options.reason ?? 'manual',
+                orderedShelf.length
+              )
+            )
+          );
+        });
+
+        return true;
+      } catch (refreshError) {
+        if (!options.background) {
+          const message =
+            refreshError instanceof Error
+              ? refreshError.message
+              : 'Unable to refresh the child shelf.';
+
+          startTransition(() => {
+            setError(message);
+          });
+        }
+
+        return false;
+      } finally {
+        if (!options.background) {
+          setActiveAction(null);
+        }
+      }
+    })();
+
+    refreshHomeRef.current = refreshPromise;
+    try {
+      return await refreshPromise;
+    } finally {
+      refreshHomeRef.current = null;
+    }
+  }
+
   useEffect(() => {
     let isMounted = true;
 
@@ -363,37 +458,18 @@ export function ChildRuntimeProvider({ children }: ChildRuntimeProviderProps) {
       }
 
       try {
-        const childHome = await loadChildHome();
+        const refreshed = await refreshHome({
+          background: true,
+          reason: 'initial',
+          preferredPackageId: persistedSessionSnapshot?.packageId ?? null,
+        });
 
-        if (!isMounted) {
+        if (!isMounted || !refreshed) {
           return;
         }
 
-        const orderedShelf = orderPackages(
-          childHome.package_queue,
-          childHome.featured_package_id
-        );
-        const livePackageMap = {
-          ...cachedPackageMap,
-          ...buildPackageMap(orderedShelf),
-        };
-        await persistHomePackages(orderedShelf);
-
         startTransition(() => {
-          setHomePackages(orderedShelf);
-          setPackageMap(livePackageMap);
-          setActivePackageId(
-            persistedSessionSnapshot?.packageId ??
-              childHome.current_package_id ??
-              childHome.featured_package_id
-          );
           setPendingEventCount(queuedEvents.length);
-          setActivity(previous =>
-            appendActivity(
-              previous,
-              `Loaded assigned shelf with ${orderedShelf.length} package(s) in ${childRuntime.mode} mode.`
-            )
-          );
         });
       } catch (initializationError) {
         if (!isMounted) {
@@ -424,6 +500,24 @@ export function ChildRuntimeProvider({ children }: ChildRuntimeProviderProps) {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (nextAppState !== 'active' || sessionReceipt) {
+        return;
+      }
+
+      void refreshHome({
+        background: true,
+        reason: 'resume',
+      });
+      void flushQueuedEvents();
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [sessionReceipt?.session_id]);
 
   useEffect(() => {
     let isMounted = true;
@@ -934,6 +1028,7 @@ export function ChildRuntimeProvider({ children }: ChildRuntimeProviderProps) {
         hasActiveSession,
         canGoToPreviousPage,
         canGoToNextPage,
+        refreshHome,
         loadPackage,
         startSession,
         ingestEvent,

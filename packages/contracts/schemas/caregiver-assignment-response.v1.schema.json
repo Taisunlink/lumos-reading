@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lumosreading.local/caregiver-assignment-response.v1.schema.json",
+  "title": "CaregiverAssignmentResponseV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "household_id",
+    "child_id",
+    "previous_package_id",
+    "current_package_id",
+    "current_package",
+    "child_home",
+    "accepted_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "caregiver-assignment-response.v1"
+    },
+    "status": {
+      "const": "accepted"
+    },
+    "household_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "child_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "previous_package_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "current_package_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "current_package": {
+      "$ref": "https://schemas.lumosreading.local/story-package.v1.schema.json"
+    },
+    "child_home": {
+      "$ref": "https://schemas.lumosreading.local/child-home.v1.schema.json"
+    },
+    "accepted_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}

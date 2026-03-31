@@ -8,7 +8,7 @@ import { caregiverSubdomainServices } from "@/lib/api/v2";
 import { useCaregiverResource } from "@/lib/hooks/use-caregiver-resource";
 
 export function useChildDomain() {
-  const { value, status, error } = useCaregiverResource(
+  const { value, status, error, refresh } = useCaregiverResource(
     demoHouseholdId,
     fallbackChildDomainView,
     caregiverSubdomainServices.children.getAssignments,
@@ -19,5 +19,6 @@ export function useChildDomain() {
     childDomain: value,
     status,
     error,
+    refresh,
   };
 }

@@ -1,4 +1,8 @@
 import {
+  CAREGIVER_ASSIGNMENT_COMMAND_SCHEMA_VERSION,
+  CAREGIVER_ASSIGNMENT_RESPONSE_SCHEMA_VERSION,
+  type CaregiverAssignmentCommandV1,
+  type CaregiverAssignmentResponseV1,
   CAREGIVER_CHILDREN_SCHEMA_VERSION,
   CAREGIVER_DASHBOARD_SCHEMA_VERSION,
   CAREGIVER_HOUSEHOLD_SCHEMA_VERSION,
@@ -510,6 +514,38 @@ export const fallbackChildHome: ChildHomeV1 = {
   generated_at: fallbackCaregiverDashboard.generated_at,
 };
 
+export type DemoChildHomeOptions = {
+  childId?: string;
+  householdId?: string;
+  packageId?: string;
+  generatedAt?: string;
+};
+
+export function buildDemoChildHome(
+  options: DemoChildHomeOptions = {}
+): ChildHomeV1 {
+  const childId = options.childId ?? demoChildId;
+  const packageId = options.packageId ?? demoStoryPackageId;
+  const currentPackage =
+    demoPackageQueue.find(item => item.package_id === packageId) ??
+    demoStoryPackage;
+
+  return {
+    ...fallbackChildHome,
+    child_id: childId,
+    household_id: options.householdId ?? demoHouseholdId,
+    featured_package_id: currentPackage.package_id,
+    current_package_id: currentPackage.package_id,
+    package_queue: [
+      currentPackage,
+      ...demoPackageQueue.filter(
+        item => item.package_id !== currentPackage.package_id
+      ),
+    ],
+    generated_at: options.generatedAt ?? fallbackCaregiverDashboard.generated_at,
+  };
+}
+
 export const fallbackHouseholdOverview = buildHouseholdOverview(
   fallbackCaregiverHousehold
 );
@@ -642,5 +678,62 @@ export function buildDemoReadingEventIngestedResponse(
     accepted_count: options.acceptedCount ?? 2,
     accepted_at: options.acceptedAt ?? demoAcceptedAt,
     session_ids: options.sessionIds ?? [demoReadingSessionId],
+  };
+}
+
+export type DemoCaregiverAssignmentCommandOptions = {
+  householdId?: string;
+  childId?: string;
+  packageId?: string;
+  requestedAt?: string;
+  source?: CaregiverAssignmentCommandV1['source'];
+};
+
+export function buildDemoCaregiverAssignmentCommand(
+  options: DemoCaregiverAssignmentCommandOptions = {}
+): CaregiverAssignmentCommandV1 {
+  return {
+    schema_version: CAREGIVER_ASSIGNMENT_COMMAND_SCHEMA_VERSION,
+    household_id: options.householdId ?? demoHouseholdId,
+    child_id: options.childId ?? demoChildId,
+    package_id: options.packageId ?? demoStoryPackageId,
+    source: options.source ?? 'caregiver-web',
+    requested_at: options.requestedAt ?? demoAcceptedAt,
+  };
+}
+
+export type DemoCaregiverAssignmentResponseOptions = {
+  householdId?: string;
+  childId?: string;
+  packageId?: string;
+  previousPackageId?: string;
+  acceptedAt?: string;
+};
+
+export function buildDemoCaregiverAssignmentResponse(
+  options: DemoCaregiverAssignmentResponseOptions = {}
+): CaregiverAssignmentResponseV1 {
+  const householdId = options.householdId ?? demoHouseholdId;
+  const childId = options.childId ?? demoChildId;
+  const packageId = options.packageId ?? demoStoryPackageId;
+  const currentPackage =
+    demoPackageQueue.find(storyPackage => storyPackage.package_id === packageId) ??
+    demoStoryPackage;
+
+  return {
+    schema_version: CAREGIVER_ASSIGNMENT_RESPONSE_SCHEMA_VERSION,
+    status: 'accepted',
+    household_id: householdId,
+    child_id: childId,
+    previous_package_id: options.previousPackageId ?? demoStoryPackageId,
+    current_package_id: currentPackage.package_id,
+    current_package: currentPackage,
+    child_home: buildDemoChildHome({
+      childId,
+      householdId,
+      packageId: currentPackage.package_id,
+      generatedAt: options.acceptedAt ?? demoAcceptedAt,
+    }),
+    accepted_at: options.acceptedAt ?? demoAcceptedAt,
   };
 }

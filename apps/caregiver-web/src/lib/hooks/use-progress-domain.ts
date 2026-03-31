@@ -8,7 +8,7 @@ import { caregiverSubdomainServices } from "@/lib/api/v2";
 import { useCaregiverResource } from "@/lib/hooks/use-caregiver-resource";
 
 export function useProgressDomain() {
-  const { value, status, error } = useCaregiverResource(
+  const { value, status, error, refresh } = useCaregiverResource(
     demoHouseholdId,
     fallbackProgressDomainView,
     caregiverSubdomainServices.progress.getInsights,
@@ -19,5 +19,6 @@ export function useProgressDomain() {
     progressDomain: value,
     status,
     error,
+    refresh,
   };
 }

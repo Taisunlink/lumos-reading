@@ -1,6 +1,8 @@
 import Ajv2020 from "ajv/dist/2020";
 import addFormats from "ajv-formats";
 import {
+  caregiverAssignmentCommandV1Schema,
+  caregiverAssignmentResponseV1Schema,
   childHomeV1Schema,
   caregiverChildrenV1Schema,
   caregiverDashboardV1Schema,
@@ -14,6 +16,8 @@ import {
   storyPackageV1Schema,
 } from "@lumosreading/contracts";
 import {
+  buildDemoCaregiverAssignmentCommand,
+  buildDemoCaregiverAssignmentResponse,
   buildDemoReadingEventBatchRequest,
   buildDemoReadingEventIngestedResponse,
   buildDemoReadingSessionPayload,
@@ -43,6 +47,20 @@ type ValidationResult = {
 
 function buildValidationCases(): ValidationCase[] {
   return [
+    {
+      name: "caregiver-assignment-command.v1 demo request",
+      schema: caregiverAssignmentCommandV1Schema,
+      payload: buildDemoCaregiverAssignmentCommand({
+        requestedAt: demoAcceptedAt,
+      }),
+    },
+    {
+      name: "caregiver-assignment-response.v1 demo response",
+      schema: caregiverAssignmentResponseV1Schema,
+      payload: buildDemoCaregiverAssignmentResponse({
+        acceptedAt: demoAcceptedAt,
+      }),
+    },
     {
       name: "child-home.v1 fallback child home",
       schema: childHomeV1Schema,
@@ -123,6 +141,10 @@ export function validateDemoContractsOrThrow(): ValidationResult {
     strict: false,
   });
   addFormats(ajv);
+  ajv.addSchema(
+    childHomeV1Schema,
+    "https://schemas.lumosreading.local/child-home.v1.schema.json",
+  );
   ajv.addSchema(
     storyPackageV1Schema,
     "https://schemas.lumosreading.local/story-package.v1.schema.json",
