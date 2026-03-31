@@ -55,23 +55,24 @@ def _build_story_package(
         ),
         pages=[
             StoryPackagePageV1(
-                page_index=0,
+                page_index=index,
                 text_runs=[
                     StoryPackageTextRunV1(
-                        text=fixture.text,
+                        text=page.text,
                         lang=fixture.language_mode,
-                        tts_timing=list(fixture.tts_timing),
+                        tts_timing=list(page.tts_timing),
                     )
                 ],
                 media=StoryPackageMediaV1(
-                    image_url=storage_service.get_public_url(fixture.page_image_object_key),
-                    audio_url=storage_service.get_public_url(fixture.page_audio_object_key),
+                    image_url=storage_service.get_public_url(page.page_image_object_key),
+                    audio_url=storage_service.get_public_url(page.page_audio_object_key),
                 ),
                 overlays=StoryPackageOverlayV1(
-                    vocabulary=list(fixture.vocabulary),
-                    caregiver_prompt_ids=list(fixture.caregiver_prompt_ids),
+                    vocabulary=list(page.vocabulary),
+                    caregiver_prompt_ids=list(page.caregiver_prompt_ids),
                 ),
             )
+            for index, page in enumerate(fixture.pages)
         ],
     )
 

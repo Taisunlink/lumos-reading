@@ -1,4 +1,5 @@
 import type {
+  ChildHomeV1,
   CaregiverChildrenV1,
   CaregiverDashboardV1,
   CaregiverHouseholdV1,
@@ -124,6 +125,14 @@ export function createLumosApiClient(options: LumosApiClientOptions = {}) {
         fetchImpl,
         baseUrl,
         `/caregiver/households/${householdId}/dashboard`,
+        options.headers,
+      );
+    },
+    async getChildHome(childId: string): Promise<ChildHomeV1> {
+      return request<ChildHomeV1>(
+        fetchImpl,
+        baseUrl,
+        `/child-home/${childId}`,
         options.headers,
       );
     },

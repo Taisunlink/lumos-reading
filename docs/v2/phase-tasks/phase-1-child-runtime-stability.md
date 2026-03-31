@@ -23,25 +23,28 @@ Make the child runtime resilient enough for real reading sessions instead of dem
 
 ## Tasks
 
-- [ ] Add child-home or equivalent assigned-shelf API contract and endpoint
-- [ ] Extend shared SDK with child-home lookup semantics
-- [ ] Persist runtime state in `apps/child-app`
-- [ ] Restore active session state on cold start
-- [ ] Queue reading events locally before upload
-- [ ] Retry or flush pending reading events on runtime start and phase transitions
-- [ ] Upgrade API story package fixtures to multi-page payloads
-- [ ] Add contract and behavior tests for the new flow
+- [x] Add child-home or equivalent assigned-shelf API contract and endpoint
+- [x] Extend shared SDK with child-home lookup semantics
+- [x] Persist runtime state in `apps/child-app`
+- [x] Restore active session state on cold start
+- [x] Queue reading events locally before upload
+- [x] Retry or flush pending reading events on runtime start and phase transitions
+- [x] Upgrade API story package fixtures to multi-page payloads
+- [x] Add contract and behavior tests for the new flow
+- [x] Preserve `language_mode` from the selected package in session and event payloads
 
 ## Verification
 
-- [ ] `pytest tests/test_caregiver_v2_contracts.py -q`
-- [ ] `npm run test:contracts --workspace @lumosreading/sdk`
-- [ ] `npm run typecheck --workspace child-app`
-- [ ] `npm run build --workspace child-app`
+- [x] `pytest tests/test_caregiver_v2_contracts.py -q`
+- [x] `npm run test:contracts --workspace @lumosreading/sdk`
+- [x] `npm run test:runtime-contracts --workspace child-app`
+- [x] `npm run typecheck --workspace child-app`
+- [x] `npm run build --workspace child-app`
 
 ## QC gate
 
-- [ ] Child shelf is not hardcoded to one default package in API mode
-- [ ] Active session survives app restart
-- [ ] Reading completion is not lost when event upload fails once
-- [ ] API mode can exercise a real multi-page package
+- [x] Child shelf is not hardcoded to one default package in API mode
+- [x] Active session survives app restart
+- [x] Reading completion is not lost when event upload fails once
+- [x] API mode can exercise a real multi-page package
+- [x] Session and event `language_mode` follow the selected package instead of a hardcoded default

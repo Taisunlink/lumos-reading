@@ -13,6 +13,8 @@ LumosReading V2 child runtime shell built with Expo and React Native.
 - Page asset preload via `expo-asset`
 - Read-to-me audio playback via `expo-audio`
 - Bundled local demo media so placeholder OSS URLs do not block runtime work
+- Local package persistence, session resume, and queued reading event sync
+- Remote asset download for API-mode package caching via `expo-file-system`
 
 ## Commands
 
@@ -56,8 +58,9 @@ In demo mode the app resolves package media to bundled local assets inside this 
 - `assets/images/splash-icon.png`
 - `assets/audio/demo-page.wav`
 
-This keeps the runtime flow stable while real object storage, signed URLs, and package caching are
-still placeholder-backed.
+This keeps the runtime flow stable while real signed URL authorization is still placeholder-backed.
+Phase 1 now also persists assigned packages, session state, and queued reading events locally so the
+child runtime can recover after interruption.
 
 ## Read order
 

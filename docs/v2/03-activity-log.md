@@ -91,7 +91,7 @@ The following checks have already passed on the current baseline:
 
 ## Known gaps
 
-- `apps/child-app` now has routed session state plus initial media orchestration, but offline package caching, durable package persistence, and real caregiver-to-child assignment flows are not implemented yet.
+- Real caregiver-to-child assignment write flows and caregiver-side operating UI are not implemented yet.
 - The current FastAPI layer is still a bootstrap/PoC boundary and not the final modular monolith described in `02-*`.
 - Real persistence, real object storage, release workflow, and content packaging jobs are not implemented yet.
 - Legacy `apps/web` still exists and should continue to be treated as a migration reference, not a target architecture.
@@ -99,7 +99,7 @@ The following checks have already passed on the current baseline:
 ## Current focus and next slices
 
 - Execute the sequential seven-phase delivery plan defined in `docs/v2/04-engineering-delivery-plan.md`.
-- Complete Phase 1 first: child runtime persistence, assignment-driven shelf semantics, buffered events, and restart-safe session recovery.
+- Complete Phase 2 next: caregiver assignment mutations, caregiver-web assignment UI, and child-home refresh semantics.
 - Replace bootstrap fallback/demo responses with real backend module implementations behind the same contracts.
 - Continue reducing legacy `apps/web` responsibility until it can be retired from the V2 main path.
 
@@ -114,6 +114,18 @@ The following checks have already passed on the current baseline:
 - Ran Phase 0 QC against the new delivery plan, phase task docs, active docs index, and activity log; no blocking findings were identified.
 - Recorded follow-up notes from QC: keep verification commands explicit per phase, treat later entitlement work as new contract scope, and continue logging phase gate outcomes directly in this file.
 - Set the next recommended slice to Phase 1 child runtime stability, with emphasis on assignment-driven shelf loading, local persistence, buffered reading event delivery, and cold-start session recovery.
+
+## Session update: 2026-03-31 Phase 1
+
+- Completed the assignment-driven child shelf contract and API path around `child-home.v1`, so the child runtime now loads a real package queue instead of assuming one default package.
+- Extended the shared SDK and child runtime bootstrap path to load child-home, persist home packages, cache package manifests locally, and resume a session snapshot after cold start.
+- Added buffered event outbox persistence in `apps/child-app`, plus serialized queue writes and single-flight flush behavior so event retries do not clear unrelated buffered events.
+- Added offline session fallback handling so a reading session can start and continue buffering telemetry even when the session create call fails once.
+- Added runtime-specific self-check coverage in `apps/child-app` and extended SDK/API contract checks to cover English package language propagation.
+- Closed a QC-blocking data correctness issue: `ReadingSessionCreateV2.language_mode` and `ReadingEventV1.language_mode` now inherit from the selected package rather than being hardcoded to `zh-CN`.
+- Aligned demo progress payloads and API progress fixtures so English packages now preserve `en-US` metadata through caregiver-facing telemetry surfaces.
+- Verification passed for Phase 1 with `pytest tests/test_caregiver_v2_contracts.py -q`, `npm run test:contracts --workspace @lumosreading/sdk`, `npm run test:runtime-contracts --workspace child-app`, `npm run typecheck --workspace child-app`, and `npm run build --workspace child-app`.
+- Phase 1 QC is ready for release review; the next recommended slice is Phase 2 caregiver assignment loop delivery.
 
 ## Session update: 2026-03-17
 

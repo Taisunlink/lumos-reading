@@ -4,8 +4,10 @@ import {
   CAREGIVER_HOUSEHOLD_SCHEMA_VERSION,
   CAREGIVER_PLAN_SCHEMA_VERSION,
   CAREGIVER_PROGRESS_SCHEMA_VERSION,
+  CHILD_HOME_SCHEMA_VERSION,
   READING_EVENT_SCHEMA_VERSION,
   STORY_PACKAGE_SCHEMA_VERSION,
+  type ChildHomeV1,
   type CaregiverChildAssignmentV1,
   type CaregiverChildSummaryV1,
   type CaregiverChildrenV1,
@@ -149,7 +151,7 @@ function buildEvent(args: {
     platform: 'ipadOS',
     surface: 'child-app',
     app_version: '2.0.0',
-    language_mode: 'zh-CN',
+    language_mode: resolveDemoPackageLanguageMode(args.packageId),
     payload: args.payload,
   };
 }
@@ -260,6 +262,13 @@ export const demoPackageQueue = [
   packageLibrary.moonGarden,
   packageLibrary.bridgeWords,
 ] as const;
+
+function resolveDemoPackageLanguageMode(packageId: string): string {
+  return (
+    demoPackageQueue.find(item => item.package_id === packageId)?.language_mode ??
+    demoStoryPackage.language_mode
+  );
+}
 
 const recentEvents: ReadingEventV1[] = [
   buildEvent({
@@ -487,6 +496,20 @@ export const fallbackCaregiverProgress: CaregiverProgressV1 = {
   generated_at: fallbackCaregiverDashboard.generated_at,
 };
 
+export const fallbackChildHome: ChildHomeV1 = {
+  schema_version: CHILD_HOME_SCHEMA_VERSION,
+  child_id: demoChildId,
+  household_id: demoHouseholdId,
+  child_name: 'Mina',
+  focus: 'Shared reading and early vocabulary',
+  weekly_goal: '4 completed sessions',
+  featured_package_id: demoStoryPackage.package_id,
+  current_package_id: demoStoryPackage.package_id,
+  package_queue: [...demoPackageQueue],
+  support_mode_defaults: ['read_aloud_sync', 'focus_support'],
+  generated_at: fallbackCaregiverDashboard.generated_at,
+};
+
 export const fallbackHouseholdOverview = buildHouseholdOverview(
   fallbackCaregiverHousehold
 );
@@ -512,12 +535,15 @@ export type DemoReadingSessionPayloadOptions = {
 export function buildDemoReadingSessionPayload(
   options: DemoReadingSessionPayloadOptions = {}
 ): ReadingSessionCreateV2 {
+  const packageId = options.packageId ?? demoStoryPackageId;
+
   return {
     child_id: options.childId ?? demoChildId,
-    package_id: options.packageId ?? demoStoryPackageId,
+    package_id: packageId,
     started_at: options.startedAt ?? new Date().toISOString(),
     mode: options.mode ?? 'read_to_me',
-    language_mode: options.languageMode ?? 'zh-CN',
+    language_mode:
+      options.languageMode ?? resolveDemoPackageLanguageMode(packageId),
     assist_mode: options.assistMode ?? ['read_aloud_sync'],
   };
 }
@@ -558,7 +584,8 @@ export function buildDemoReadingEventBatchRequest(
   const sessionId = options.sessionId ?? demoReadingSessionId;
   const occurredAt = options.occurredAt ?? new Date().toISOString();
   const appVersion = options.appVersion ?? '2.0.0';
-  const languageMode = options.languageMode ?? 'zh-CN';
+  const languageMode =
+    options.languageMode ?? resolveDemoPackageLanguageMode(packageId);
 
   return {
     events: [

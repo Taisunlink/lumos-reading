@@ -9,6 +9,7 @@ This package carries the formal shared contracts used across apps and services. 
 ## Governed contracts
 
 - `CaregiverDashboard v1`
+- `ChildHome v1`
 - `CaregiverHousehold v1`
 - `CaregiverChildren v1`
 - `CaregiverPlan v1`
@@ -53,6 +54,7 @@ Before starting V2 work, read in this order:
 - `schemas/caregiver-plan.v1.schema.json`
 - `schemas/caregiver-progress.v1.schema.json`
 - `schemas/caregiver-dashboard.v1.schema.json`
+- `schemas/child-home.v1.schema.json`
 - `schemas/story-package.v1.schema.json`
 - `schemas/reading-event.v1.schema.json`
 - `schemas/reading-session-create.v2.schema.json`

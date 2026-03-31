@@ -13,6 +13,16 @@ class HouseholdFixture:
 
 
 @dataclass(frozen=True)
+class StoryPackagePageFixture:
+    text: str
+    tts_timing: tuple[int, ...]
+    page_image_object_key: str
+    page_audio_object_key: str
+    vocabulary: tuple[str, ...]
+    caregiver_prompt_ids: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class StoryPackageFixture:
     story_master_id: UUID
     story_variant_id: UUID
@@ -24,12 +34,7 @@ class StoryPackageFixture:
     estimated_duration_sec: int
     cover_image_object_key: str
     tags: tuple[str, ...]
-    text: str
-    tts_timing: tuple[int, ...]
-    page_image_object_key: str
-    page_audio_object_key: str
-    vocabulary: tuple[str, ...]
-    caregiver_prompt_ids: tuple[str, ...]
+    pages: tuple[StoryPackagePageFixture, ...]
 
 
 @dataclass(frozen=True)
@@ -81,12 +86,32 @@ PACKAGE_FIXTURES: dict[UUID, StoryPackageFixture] = {
         estimated_duration_sec=480,
         cover_image_object_key="story-packages/demo/lantern/cover.png",
         tags=("friendship", "shared-reading", "comfort"),
-        text="灯笼沿着小路摇晃，小伙伴们约好一起出发，也一起回家。",
-        tts_timing=(0, 420, 910),
-        page_image_object_key="story-packages/demo/lantern/pages/0/image.png",
-        page_audio_object_key="story-packages/demo/lantern/pages/0/audio.mp3",
-        vocabulary=("灯笼", "约定", "回来"),
-        caregiver_prompt_ids=("prompt-friendship-1", "prompt-friendship-2"),
+        pages=(
+            StoryPackagePageFixture(
+                text="Mina lifted a lantern and waited while the path outside turned soft and quiet.",
+                tts_timing=(0, 320, 840),
+                page_image_object_key="story-packages/demo/lantern/pages/0/image.png",
+                page_audio_object_key="story-packages/demo/lantern/pages/0/audio.mp3",
+                vocabulary=("lantern", "quiet", "path"),
+                caregiver_prompt_ids=("prompt-lantern-1",),
+            ),
+            StoryPackagePageFixture(
+                text="At the bridge, she whispered that waiting together can feel warm instead of lonely.",
+                tts_timing=(0, 360, 810),
+                page_image_object_key="story-packages/demo/lantern/pages/1/image.png",
+                page_audio_object_key="story-packages/demo/lantern/pages/1/audio.mp3",
+                vocabulary=("bridge", "waiting", "warm"),
+                caregiver_prompt_ids=("prompt-lantern-2",),
+            ),
+            StoryPackagePageFixture(
+                text="When the last light blinked home, Mina smiled because every promise had found its way back.",
+                tts_timing=(0, 350, 920),
+                page_image_object_key="story-packages/demo/lantern/pages/2/image.png",
+                page_audio_object_key="story-packages/demo/lantern/pages/2/audio.mp3",
+                vocabulary=("light", "promise", "return"),
+                caregiver_prompt_ids=("prompt-lantern-3",),
+            ),
+        ),
     ),
     UUID("66666666-6666-6666-6666-666666666666"): StoryPackageFixture(
         story_master_id=UUID("77777777-7777-7777-7777-777777777777"),
@@ -99,12 +124,32 @@ PACKAGE_FIXTURES: dict[UUID, StoryPackageFixture] = {
         estimated_duration_sec=360,
         cover_image_object_key="story-packages/demo/moon-garden/cover.png",
         tags=("calm", "predictable", "wind-down"),
-        text="Moonlight settles over the garden, and every breath makes the silver leaves glow a little more.",
-        tts_timing=(0, 390, 870),
-        page_image_object_key="story-packages/demo/moon-garden/pages/0/image.png",
-        page_audio_object_key="story-packages/demo/moon-garden/pages/0/audio.mp3",
-        vocabulary=("moonlight", "garden", "breathing"),
-        caregiver_prompt_ids=("prompt-calm-1",),
+        pages=(
+            StoryPackagePageFixture(
+                text="In the moon garden, Leo counted three silver leaves before he took his first slow breath.",
+                tts_timing=(0, 300, 760),
+                page_image_object_key="story-packages/demo/moon-garden/pages/0/image.png",
+                page_audio_object_key="story-packages/demo/moon-garden/pages/0/audio.mp3",
+                vocabulary=("moon", "garden", "breath"),
+                caregiver_prompt_ids=("prompt-moon-1",),
+            ),
+            StoryPackagePageFixture(
+                text="The fountain glowed once, then twice, and Leo let his shoulders grow quiet with the light.",
+                tts_timing=(0, 280, 720),
+                page_image_object_key="story-packages/demo/moon-garden/pages/1/image.png",
+                page_audio_object_key="story-packages/demo/moon-garden/pages/1/audio.mp3",
+                vocabulary=("fountain", "glow", "quiet"),
+                caregiver_prompt_ids=("prompt-moon-2",),
+            ),
+            StoryPackagePageFixture(
+                text="By the time the stars blinked goodnight, Leo knew exactly how to find the calm path home.",
+                tts_timing=(0, 330, 780),
+                page_image_object_key="story-packages/demo/moon-garden/pages/2/image.png",
+                page_audio_object_key="story-packages/demo/moon-garden/pages/2/audio.mp3",
+                vocabulary=("stars", "goodnight", "calm"),
+                caregiver_prompt_ids=("prompt-moon-3",),
+            ),
+        ),
     ),
     UUID("99999999-9999-9999-9999-999999999999"): StoryPackageFixture(
         story_master_id=UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
@@ -117,32 +162,64 @@ PACKAGE_FIXTURES: dict[UUID, StoryPackageFixture] = {
         estimated_duration_sec=540,
         cover_image_object_key="story-packages/demo/bridge-words/cover.png",
         tags=("bilingual-assist", "vocabulary", "bridge"),
-        text="At the bridge, Mina hears one story in English and unlocks just a few helper words in Chinese.",
-        tts_timing=(0, 360, 790),
-        page_image_object_key="story-packages/demo/bridge-words/pages/0/image.png",
-        page_audio_object_key="story-packages/demo/bridge-words/pages/0/audio.mp3",
-        vocabulary=("bridge", "echo", "spark"),
-        caregiver_prompt_ids=("prompt-bridge-1", "prompt-bridge-2"),
+        pages=(
+            StoryPackagePageFixture(
+                text="A bridge can hold two ideas at once, just like one story can carry two languages.",
+                tts_timing=(0, 300, 700),
+                page_image_object_key="story-packages/demo/bridge-words/pages/0/image.png",
+                page_audio_object_key="story-packages/demo/bridge-words/pages/0/audio.mp3",
+                vocabulary=("bridge", "languages", "story"),
+                caregiver_prompt_ids=("prompt-bridge-1",),
+            ),
+            StoryPackagePageFixture(
+                text="When Mei heard an echo under the stones, she paused and asked what the new word might mean.",
+                tts_timing=(0, 360, 830),
+                page_image_object_key="story-packages/demo/bridge-words/pages/1/image.png",
+                page_audio_object_key="story-packages/demo/bridge-words/pages/1/audio.mp3",
+                vocabulary=("echo", "stones", "mean"),
+                caregiver_prompt_ids=("prompt-bridge-2",),
+            ),
+            StoryPackagePageFixture(
+                text="One bright spark of translation was enough, because the main narration still stayed clear.",
+                tts_timing=(0, 280, 760),
+                page_image_object_key="story-packages/demo/bridge-words/pages/2/image.png",
+                page_audio_object_key="story-packages/demo/bridge-words/pages/2/audio.mp3",
+                vocabulary=("spark", "translation", "clear"),
+                caregiver_prompt_ids=("prompt-bridge-3",),
+            ),
+        ),
     ),
 }
 
 DEFAULT_STORY_PACKAGE_FIXTURE = StoryPackageFixture(
     story_master_id=UUID("11111111-1111-1111-1111-111111111111"),
     story_variant_id=UUID("22222222-2222-2222-2222-222222222222"),
-    title="小兔子的冒险",
-    subtitle="V2 content package skeleton",
+    title="The Default Lantern Story",
+    subtitle="Fallback V2 content package skeleton",
     language_mode="zh-CN",
     difficulty_level="L2",
     age_band="4-6",
-    estimated_duration_sec=480,
+    estimated_duration_sec=420,
     cover_image_object_key="story-packages/demo/default/cover.png",
-    tags=("friendship", "shared-reading", "bilingual-assist"),
-    text="从前有一只小兔子，它喜欢和朋友一起探险。",
-    tts_timing=(0, 450, 980),
-    page_image_object_key="story-packages/demo/default/pages/0/image.png",
-    page_audio_object_key="story-packages/demo/default/pages/0/audio.mp3",
-    vocabulary=("探险", "朋友"),
-    caregiver_prompt_ids=("prompt-friendship-1",),
+    tags=("friendship", "shared-reading"),
+    pages=(
+        StoryPackagePageFixture(
+            text="A small lantern waited at the front door for the next quiet story to begin.",
+            tts_timing=(0, 320, 700),
+            page_image_object_key="story-packages/demo/default/pages/0/image.png",
+            page_audio_object_key="story-packages/demo/default/pages/0/audio.mp3",
+            vocabulary=("lantern", "quiet"),
+            caregiver_prompt_ids=("prompt-default-1",),
+        ),
+        StoryPackagePageFixture(
+            text="The story followed a friendly path that always came back home.",
+            tts_timing=(0, 290, 640),
+            page_image_object_key="story-packages/demo/default/pages/1/image.png",
+            page_audio_object_key="story-packages/demo/default/pages/1/audio.mp3",
+            vocabulary=("friendly", "path"),
+            caregiver_prompt_ids=("prompt-default-2",),
+        ),
+    ),
 )
 
 HOUSEHOLD_PACKAGE_QUEUE_IDS: dict[UUID, tuple[UUID, ...]] = {
@@ -233,5 +310,17 @@ HOUSEHOLD_READING_EVENT_FIXTURES: dict[UUID, tuple[ReadingEventFixture, ...]] = 
             package_id=UUID("66666666-6666-6666-6666-666666666666"),
             payload={"assist_mode": "focus_support"},
         ),
+    ),
+}
+
+CHILD_SUPPORT_MODE_DEFAULTS: dict[UUID, tuple[str, ...]] = {
+    UUID("55555555-5555-5555-5555-555555555555"): (
+        "read_aloud_sync",
+        "focus_support",
+    ),
+    UUID("12121212-1212-1212-1212-121212121212"): (
+        "read_aloud_sync",
+        "focus_support",
+        "translation_support",
     ),
 }

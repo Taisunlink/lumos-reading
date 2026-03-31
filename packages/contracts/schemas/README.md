@@ -9,6 +9,7 @@ These files are the authoritative shared schemas for LumosReading V2.
 - `caregiver-plan.v1.schema.json`
 - `caregiver-progress.v1.schema.json`
 - `caregiver-dashboard.v1.schema.json`
+- `child-home.v1.schema.json`
 - `story-package.v1.schema.json`
 - `reading-event.v1.schema.json`
 - `reading-session-create.v2.schema.json`
@@ -29,6 +30,8 @@ These files are the authoritative shared schemas for LumosReading V2.
   Read model for caregiver progress review with typed events plus child and package labels.
 - `CaregiverDashboard v1`
   Aggregate compatibility view for the caregiver surface.
+- `ChildHome v1`
+  Child-facing assigned shelf contract that provides featured package selection and the runtime shelf.
 - `StoryPackage v1`
   Runtime distribution and cache contract for child-facing story packages.
 - `ReadingEvent v1`

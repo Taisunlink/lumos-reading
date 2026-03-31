@@ -3,6 +3,7 @@ import caregiverChildrenSchema from "./schemas/caregiver-children.v1.schema.json
 import caregiverHouseholdSchema from "./schemas/caregiver-household.v1.schema.json";
 import caregiverPlanSchema from "./schemas/caregiver-plan.v1.schema.json";
 import caregiverProgressSchema from "./schemas/caregiver-progress.v1.schema.json";
+import childHomeSchema from "./schemas/child-home.v1.schema.json";
 import readingEventBatchSchema from "./schemas/reading-event-batch.v2.schema.json";
 import readingEventIngestedResponseSchema from "./schemas/reading-event-ingested-response.v2.schema.json";
 import readingEventSchema from "./schemas/reading-event.v1.schema.json";
@@ -16,6 +17,7 @@ export const CAREGIVER_HOUSEHOLD_SCHEMA_VERSION = "caregiver-household.v1" as co
 export const CAREGIVER_CHILDREN_SCHEMA_VERSION = "caregiver-children.v1" as const;
 export const CAREGIVER_PLAN_SCHEMA_VERSION = "caregiver-plan.v1" as const;
 export const CAREGIVER_PROGRESS_SCHEMA_VERSION = "caregiver-progress.v1" as const;
+export const CHILD_HOME_SCHEMA_VERSION = "child-home.v1" as const;
 export const STORY_PACKAGE_SCHEMA_VERSION = "story-package.v1" as const;
 export const READING_EVENT_SCHEMA_VERSION = "reading-event.v1" as const;
 export const READING_SESSION_CREATE_SCHEMA_VERSION = "reading-session-create.v2" as const;
@@ -30,6 +32,7 @@ export const caregiverHouseholdV1Schema = caregiverHouseholdSchema;
 export const caregiverChildrenV1Schema = caregiverChildrenSchema;
 export const caregiverPlanV1Schema = caregiverPlanSchema;
 export const caregiverProgressV1Schema = caregiverProgressSchema;
+export const childHomeV1Schema = childHomeSchema;
 export const storyPackageV1Schema = storyPackageSchema;
 export const readingEventV1Schema = readingEventSchema;
 export const readingSessionCreateV2Schema = readingSessionCreateSchema;
@@ -204,6 +207,20 @@ export interface CaregiverDashboardV1 {
   children: CaregiverChildSummaryV1[];
   weekly_plan: CaregiverWeeklyPlanItemV1[];
   progress_metrics: CaregiverProgressMetricsV1;
+  generated_at: string;
+}
+
+export interface ChildHomeV1 {
+  schema_version: typeof CHILD_HOME_SCHEMA_VERSION;
+  child_id: string;
+  household_id: string;
+  child_name: string;
+  focus: string;
+  weekly_goal: string;
+  featured_package_id: string;
+  current_package_id: string;
+  package_queue: StoryPackageManifestV1[];
+  support_mode_defaults: string[];
   generated_at: string;
 }
 

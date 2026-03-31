@@ -1,5 +1,6 @@
 """V2 API schemas."""
 
+from .child_home import ChildHomeV1
 from .caregiver import (
     CaregiverChildAssignmentV1,
     CaregiverChildSummaryV1,
@@ -24,6 +25,7 @@ from .safety_audit import SafetyAuditV1
 from .story_package import StoryPackageManifestV1
 
 __all__ = [
+    "ChildHomeV1",
     "CaregiverChildAssignmentV1",
     "CaregiverChildSummaryV1",
     "CaregiverChildrenV1",

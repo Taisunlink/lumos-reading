@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 import { Asset } from 'expo-asset';
 
 import {
-  READING_EVENT_SCHEMA_VERSION,
+  type ChildHomeV1,
   type Platform as RuntimePlatform,
   type ReadingEventBatchRequestV2,
   type ReadingEventType,
@@ -20,8 +20,16 @@ import {
   demoPackageQueue,
   demoStoryPackage,
   demoStoryPackageId,
+  fallbackChildHome,
   type ReadingApplicationClient,
 } from '@lumosreading/sdk';
+
+import { cacheStoryPackageForOffline } from '@/lib/runtime-storage';
+import {
+  buildReadingEventBatch,
+  buildReadingSessionPayload,
+  type BuildReadingEventBatchOptions,
+} from '@/lib/reading-contracts';
 
 export type ChildRuntimeMode = 'demo' | 'api';
 export type RuntimeAssetSource = number | string;
@@ -41,27 +49,6 @@ export type ResolvedRuntimePage = StoryPackagePageV1 & {
 export type RuntimePreloadResult = {
   readyPageIndexes: number[];
   failedPageIndexes: number[];
-};
-
-type BuildReadingSessionPayloadOptions = {
-  childId?: string;
-  packageId?: string;
-};
-
-type BuildReadingEventBatchOptions = {
-  eventType: Extract<
-    ReadingEventType,
-    | 'session_started'
-    | 'page_viewed'
-    | 'page_replayed_audio'
-    | 'word_revealed_translation'
-    | 'session_completed'
-  >;
-  sessionId: string;
-  childId: string;
-  packageId: string;
-  pageIndex?: number | null;
-  payload: Record<string, unknown>;
 };
 
 const bundledDemoImageSources = [
@@ -91,6 +78,15 @@ function getPlatform(): RuntimePlatform {
 }
 
 const demoApplicationClient: ReadingApplicationClient = {
+  async getChildHome(childId: string): Promise<ChildHomeV1> {
+    return {
+      ...fallbackChildHome,
+      child_id: childId,
+      current_package_id:
+        fallbackChildHome.current_package_id ?? demoStoryPackage.package_id,
+      generated_at: new Date().toISOString(),
+    };
+  },
   async getStoryPackage(packageId: string): Promise<StoryPackageManifestV1> {
     const storyPackage =
       demoPackageQueue.find(item => item.package_id === packageId) ??
@@ -134,54 +130,63 @@ export const childRuntime = {
   services: createReadingApplicationServices(applicationClient),
 } as const;
 
-export async function loadRuntimeLibrary(): Promise<StoryPackageManifestV1[]> {
+export async function loadChildHome(
+  childId: string = childRuntime.defaultChildId
+): Promise<ChildHomeV1> {
+  const childHome =
+    childRuntime.mode === 'demo'
+      ? {
+          ...fallbackChildHome,
+          child_id: childId,
+          current_package_id:
+            fallbackChildHome.current_package_id ?? demoStoryPackage.package_id,
+          generated_at: new Date().toISOString(),
+        }
+      : await childRuntime.services.childHome.load(childId);
+
   if (childRuntime.mode === 'demo') {
-    return [...demoPackageQueue];
+    return childHome;
   }
 
-  const defaultPackage = await childRuntime.services.storyPackages.lookup(
-    childRuntime.defaultPackageId
-  );
-  return [defaultPackage];
-}
-
-export function buildReadingSessionPayload(
-  options: BuildReadingSessionPayloadOptions = {}
-): ReadingSessionCreateV2 {
   return {
-    child_id: options.childId ?? childRuntime.defaultChildId,
-    package_id: options.packageId ?? childRuntime.defaultPackageId,
-    started_at: new Date().toISOString(),
-    mode: 'read_to_me',
-    language_mode: 'zh-CN',
-    assist_mode: ['read_aloud_sync', 'focus_support'],
+    ...childHome,
+    package_queue: await Promise.all(
+      childHome.package_queue.map(storyPackage =>
+        cacheStoryPackageForOffline(storyPackage)
+      )
+    ),
   };
 }
 
-export function buildReadingEventBatch(
-  options: BuildReadingEventBatchOptions
-): ReadingEventBatchRequestV2 {
-  const occurredAt = new Date().toISOString();
+export async function loadRuntimeLibrary(): Promise<StoryPackageManifestV1[]> {
+  const childHome = await loadChildHome();
+  return childHome.package_queue;
+}
 
-  return {
-    events: [
-      {
-        schema_version: READING_EVENT_SCHEMA_VERSION,
-        event_id: `${options.eventType}-${Date.now()}`,
-        event_type: options.eventType,
-        occurred_at: occurredAt,
-        session_id: options.sessionId,
-        child_id: options.childId,
-        package_id: options.packageId,
-        page_index: options.pageIndex ?? null,
-        platform: getPlatform(),
-        surface: 'child-app',
-        app_version: '0.1.0-dev',
-        language_mode: 'zh-CN',
-        payload: options.payload,
-      },
-    ],
-  };
+export function createRuntimeUuid(): string {
+  const randomUuid = globalThis.crypto?.randomUUID?.bind(globalThis.crypto);
+
+  if (randomUuid) {
+    return randomUuid();
+  }
+
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, token => {
+    const randomValue = Math.floor(Math.random() * 16);
+    const value = token === 'x' ? randomValue : (randomValue & 0x3) | 0x8;
+    return value.toString(16);
+  });
+}
+
+export function buildOfflineReadingSessionReceipt(args: {
+  childId: string;
+  packageId: string;
+}) {
+  return buildDemoReadingSessionResponse({
+    sessionId: createRuntimeUuid(),
+    childId: args.childId,
+    packageId: args.packageId,
+    acceptedAt: new Date().toISOString(),
+  });
 }
 
 function buildPageText(page: StoryPackagePageV1): string {
@@ -302,7 +307,14 @@ export async function preloadRuntimePageAssets(
 }
 
 export function getRuntimeEventLabel(
-  eventType: BuildReadingEventBatchOptions['eventType'],
+  eventType: Extract<
+    ReadingEventType,
+    | 'session_started'
+    | 'page_viewed'
+    | 'page_replayed_audio'
+    | 'word_revealed_translation'
+    | 'session_completed'
+  >,
   pageIndex?: number | null
 ): string {
   const pageLabel =
@@ -325,4 +337,25 @@ export function getRuntimeEventLabel(
   }
 
   return 'Logged session_completed and returned the child to the home shelf.';
+}
+
+export async function loadRuntimeStoryPackage(
+  packageId: string
+): Promise<StoryPackageManifestV1> {
+  const storyPackage = await childRuntime.services.storyPackages.lookup(packageId);
+
+  if (childRuntime.mode === 'demo') {
+    return storyPackage;
+  }
+
+  return cacheStoryPackageForOffline(storyPackage);
+}
+
+export {
+  buildReadingEventBatch,
+  buildReadingSessionPayload,
+};
+
+export function getRuntimePlatform(): RuntimePlatform {
+  return getPlatform();
 }

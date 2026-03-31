@@ -14,6 +14,7 @@
     "./schemas/caregiver-plan.v1": "./schemas/caregiver-plan.v1.schema.json",
     "./schemas/caregiver-progress.v1": "./schemas/caregiver-progress.v1.schema.json",
     "./schemas/caregiver-dashboard.v1": "./schemas/caregiver-dashboard.v1.schema.json",
+    "./schemas/child-home.v1": "./schemas/child-home.v1.schema.json",
     "./schemas/story-package.v1": "./schemas/story-package.v1.schema.json",
     "./schemas/reading-event.v1": "./schemas/reading-event.v1.schema.json",
     "./schemas/reading-session-create.v2": "./schemas/reading-session-create.v2.schema.json",

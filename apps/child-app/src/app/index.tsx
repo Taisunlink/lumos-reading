@@ -16,7 +16,14 @@ function formatDuration(seconds: number): string {
 }
 
 export default function ChildHomeScreen() {
-  const { activity, activeAction, homePackages, mode, sessionReceipt } =
+  const {
+    activity,
+    activeAction,
+    homePackages,
+    mode,
+    pendingEventCount,
+    sessionReceipt,
+  } =
     useChildRuntime();
   const featuredPackage = homePackages[0] ?? null;
 
@@ -37,6 +44,23 @@ export default function ChildHomeScreen() {
           progression, media preload, and read-to-me playback state.
         </Text>
 
+        {sessionReceipt ? (
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: '/session/[sessionId]',
+                params: { sessionId: sessionReceipt.session_id },
+              })
+            }
+            style={({ pressed }) => [
+              styles.resumeAction,
+              pressed && styles.pressedAction,
+            ]}
+          >
+            <Text style={styles.resumeActionLabel}>Continue Current Session</Text>
+          </Pressable>
+        ) : null}
+
         <View style={styles.metricsRow}>
           <View style={styles.metricCard}>
             <Text style={styles.metricLabel}>Packages</Text>
@@ -49,8 +73,11 @@ export default function ChildHomeScreen() {
             </Text>
           </View>
           <View style={styles.metricCard}>
-            <Text style={styles.metricLabel}>Flow</Text>
-            <Text style={styles.metricValue}>home to package to session</Text>
+            <Text style={styles.metricLabel}>Queued</Text>
+            <Text style={styles.metricValue}>
+              {pendingEventCount} pending event
+              {pendingEventCount === 1 ? '' : 's'}
+            </Text>
           </View>
         </View>
       </View>
@@ -82,6 +109,25 @@ export default function ChildHomeScreen() {
                 {formatDuration(featuredPackage.estimated_duration_sec)}
               </Text>
             </View>
+
+            {sessionReceipt ? (
+              <Pressable
+                onPress={() =>
+                  router.push({
+                    pathname: '/session/[sessionId]',
+                    params: { sessionId: sessionReceipt.session_id },
+                  })
+                }
+                style={({ pressed }) => [
+                  styles.secondaryAction,
+                  pressed && styles.pressedAction,
+                ]}
+              >
+                <Text style={styles.secondaryActionLabel}>
+                  Resume Active Session
+                </Text>
+              </Pressable>
+            ) : null}
 
             <Pressable
               onPress={() =>
@@ -208,6 +254,20 @@ const styles = StyleSheet.create({
     gap: 12,
     flexWrap: 'wrap',
   },
+  resumeAction: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#f1b365',
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  resumeActionLabel: {
+    color: '#24313f',
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
   metricCard: {
     backgroundColor: '#304252',
     borderRadius: 22,
@@ -286,9 +346,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  secondaryAction: {
+    backgroundColor: '#e9efe8',
+    borderRadius: 24,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   primaryActionLabel: {
     color: '#fff8ef',
     fontSize: 16,
+    fontWeight: '800',
+  },
+  secondaryActionLabel: {
+    color: '#27403a',
+    fontSize: 15,
     fontWeight: '800',
   },
   shelfCard: {

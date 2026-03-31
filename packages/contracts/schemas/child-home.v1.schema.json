@@ -1,0 +1,285 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.lumosreading.local/child-home.v1.schema.json",
+  "title": "ChildHomeV1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "child_id",
+    "household_id",
+    "child_name",
+    "focus",
+    "weekly_goal",
+    "featured_package_id",
+    "current_package_id",
+    "package_queue",
+    "support_mode_defaults",
+    "generated_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "child-home.v1"
+    },
+    "child_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "household_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "child_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "focus": {
+      "type": "string",
+      "minLength": 1
+    },
+    "weekly_goal": {
+      "type": "string",
+      "minLength": 1
+    },
+    "featured_package_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "current_package_id": {
+      "$ref": "#/$defs/uuid"
+    },
+    "package_queue": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/storyPackage"
+      }
+    },
+    "support_mode_defaults": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "languageTag": {
+      "type": "string",
+      "pattern": "^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$"
+    },
+    "url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "storyPackageSafety": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "review_status"
+      ],
+      "properties": {
+        "review_status": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "limited_release",
+            "recalled"
+          ]
+        },
+        "reviewed_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "review_policy_version": {
+          "type": "string"
+        }
+      }
+    },
+    "storyPackageTextRun": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "lang"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "lang": {
+          "$ref": "#/$defs/languageTag"
+        },
+        "tts_timing": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "storyPackageMedia": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "image_url": {
+          "$ref": "#/$defs/url"
+        },
+        "audio_url": {
+          "$ref": "#/$defs/url"
+        },
+        "thumbnail_url": {
+          "$ref": "#/$defs/url"
+        }
+      }
+    },
+    "storyPackageOverlay": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "vocabulary": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "caregiver_prompt_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "interaction_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "storyPackagePage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "page_index",
+        "text_runs"
+      ],
+      "properties": {
+        "page_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "text_runs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/storyPackageTextRun"
+          }
+        },
+        "media": {
+          "$ref": "#/$defs/storyPackageMedia"
+        },
+        "overlays": {
+          "$ref": "#/$defs/storyPackageOverlay"
+        }
+      }
+    },
+    "storyPackage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "package_id",
+        "story_master_id",
+        "story_variant_id",
+        "title",
+        "language_mode",
+        "difficulty_level",
+        "age_band",
+        "estimated_duration_sec",
+        "release_channel",
+        "safety",
+        "pages"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "story-package.v1"
+        },
+        "package_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "story_master_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "story_variant_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subtitle": {
+          "type": "string"
+        },
+        "language_mode": {
+          "$ref": "#/$defs/languageTag"
+        },
+        "difficulty_level": {
+          "type": "string",
+          "minLength": 1
+        },
+        "age_band": {
+          "type": "string",
+          "minLength": 1
+        },
+        "estimated_duration_sec": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "release_channel": {
+          "type": "string",
+          "enum": [
+            "general",
+            "pilot",
+            "experimental",
+            "internal"
+          ]
+        },
+        "cover_image_url": {
+          "$ref": "#/$defs/url"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "safety": {
+          "$ref": "#/$defs/storyPackageSafety"
+        },
+        "pages": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/storyPackagePage"
+          }
+        }
+      }
+    }
+  }
+}

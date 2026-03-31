@@ -1,5 +1,6 @@
 import type {
   ReadingEventType,
+  ReadingEventV1,
   ReadingSessionResponseV2,
   StoryPackageManifestV1,
 } from '@lumosreading/contracts';
@@ -19,16 +20,32 @@ import {
 } from 'react';
 
 import {
+  buildOfflineReadingSessionReceipt,
   buildReadingEventBatch,
   buildReadingSessionPayload,
   childRuntime,
   getRuntimeEventLabel,
+  getRuntimePlatform,
   getRuntimePreloadPageIndexes,
-  loadRuntimeLibrary,
+  loadChildHome,
+  loadRuntimeStoryPackage,
   preloadRuntimePageAssets,
   resolveRuntimePage,
   type ResolvedRuntimePage,
 } from '@/lib/runtime';
+import {
+  clearSessionSnapshot,
+  loadPersistedHomePackages,
+  loadPersistedPackageCache,
+  loadPersistedSessionSnapshot,
+  loadQueuedEvents,
+  persistHomePackages,
+  persistPackage,
+  persistSessionSnapshot,
+  queueEvents,
+  removeQueuedEventsById,
+} from '@/lib/persistence';
+import { resolveStoryPackageLanguageMode } from '@/lib/reading-contracts';
 
 type RuntimeAction = 'home' | 'package' | 'session' | 'event';
 
@@ -79,6 +96,7 @@ type ChildRuntimeContextValue = {
   translationVisible: boolean;
   preloadState: RuntimePreloadState;
   audio: RuntimeAudioState;
+  pendingEventCount: number;
   hasActiveSession: boolean;
   canGoToPreviousPage: boolean;
   canGoToNextPage: boolean;
@@ -91,6 +109,7 @@ type ChildRuntimeContextValue = {
     revealTranslation?: boolean;
     background?: boolean;
   }): Promise<boolean>;
+  flushQueuedEvents(): Promise<boolean>;
   goToPreviousPage(): Promise<boolean>;
   goToNextPage(): Promise<boolean>;
   togglePlayPause(): void;
@@ -115,7 +134,7 @@ function appendActivity(
   previous: RuntimeActivity[],
   label: string
 ): RuntimeActivity[] {
-  return [buildActivityEntry(label), ...previous].slice(0, 10);
+  return [buildActivityEntry(label), ...previous].slice(0, 12);
 }
 
 function buildPackageMap(
@@ -128,6 +147,21 @@ function buildPackageMap(
     },
     {}
   );
+}
+
+function orderPackages(
+  packages: StoryPackageManifestV1[],
+  featuredPackageId?: string | null
+): StoryPackageManifestV1[] {
+  const packageMap = buildPackageMap(packages);
+  const featuredPackage = featuredPackageId
+    ? packageMap[featuredPackageId] ?? null
+    : null;
+  const remainingPackages = packages.filter(
+    item => item.package_id !== featuredPackage?.package_id
+  );
+
+  return featuredPackage ? [featuredPackage, ...remainingPackages] : packages;
 }
 
 type ChildRuntimeProviderProps = {
@@ -151,6 +185,7 @@ export function ChildRuntimeProvider({ children }: ChildRuntimeProviderProps) {
   );
   const [translationVisible, setTranslationVisible] = useState(false);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
+  const [pendingEventCount, setPendingEventCount] = useState(0);
   const [preloadState, setPreloadState] = useState<RuntimePreloadState>({
     status: 'idle',
     targetPageIndexes: [],
@@ -159,6 +194,7 @@ export function ChildRuntimeProvider({ children }: ChildRuntimeProviderProps) {
   });
 
   const pageEnteredAtRef = useRef(Date.now());
+  const flushQueuedEventsRef = useRef<Promise<boolean> | null>(null);
 
   const activePackage = activePackageId
     ? (packageMap[activePackageId] ?? null)
@@ -176,6 +212,9 @@ export function ChildRuntimeProvider({ children }: ChildRuntimeProviderProps) {
   );
   const canGoToPreviousPage = hasActiveSession && currentPageIndex > 0;
   const canGoToNextPage = hasActiveSession && currentPageIndex < pageCount - 1;
+  const currentSessionLanguageMode = resolveStoryPackageLanguageMode(
+    currentSessionPackage ?? activePackage
+  );
 
   const audioPlayer = useAudioPlayer(
     currentPage?.runtime_media.audioSource ?? null,
@@ -207,6 +246,58 @@ export function ChildRuntimeProvider({ children }: ChildRuntimeProviderProps) {
     });
   }, []);
 
+  async function flushQueuedEvents() {
+    if (flushQueuedEventsRef.current) {
+      return flushQueuedEventsRef.current;
+    }
+
+    const flushPromise = (async () => {
+      const queuedEvents = await loadQueuedEvents();
+
+      if (queuedEvents.length === 0) {
+        startTransition(() => {
+          setPendingEventCount(0);
+        });
+        return true;
+      }
+
+      try {
+        await childRuntime.services.readingEvents.ingestBatch({
+          events: queuedEvents,
+        });
+        const remainingEvents = await removeQueuedEventsById(
+          queuedEvents.map(event => event.event_id)
+        );
+
+        startTransition(() => {
+          setPendingEventCount(remainingEvents.length);
+          setActivity(previous =>
+            appendActivity(
+              previous,
+              `Flushed ${queuedEvents.length} queued event(s) to the API.`
+            )
+          );
+        });
+
+        return true;
+      } catch {
+        const latestEvents = await loadQueuedEvents();
+
+        startTransition(() => {
+          setPendingEventCount(latestEvents.length);
+        });
+        return false;
+      }
+    })();
+
+    flushQueuedEventsRef.current = flushPromise;
+    try {
+      return await flushPromise;
+    } finally {
+      flushQueuedEventsRef.current = null;
+    }
+  }
+
   useEffect(() => {
     let isMounted = true;
 
@@ -214,21 +305,93 @@ export function ChildRuntimeProvider({ children }: ChildRuntimeProviderProps) {
       setActiveAction('home');
       setError(null);
 
+      const [
+        persistedHomePackages,
+        persistedPackageCache,
+        persistedSessionSnapshot,
+        queuedEvents,
+      ] = await Promise.all([
+        loadPersistedHomePackages(),
+        loadPersistedPackageCache(),
+        loadPersistedSessionSnapshot(),
+        loadQueuedEvents(),
+      ]);
+
+      const cachedPackages = orderPackages(
+        Object.values(persistedPackageCache).length > 0
+          ? Object.values(persistedPackageCache)
+          : persistedHomePackages,
+        persistedSessionSnapshot?.packageId ?? persistedHomePackages[0]?.package_id
+      );
+      const cachedPackageMap = buildPackageMap(cachedPackages);
+
+      if (isMounted && cachedPackages.length > 0) {
+        startTransition(() => {
+          setHomePackages(cachedPackages);
+          setPackageMap(cachedPackageMap);
+          setActivePackageId(
+            persistedSessionSnapshot?.packageId ?? cachedPackages[0]?.package_id ?? null
+          );
+          setPendingEventCount(queuedEvents.length);
+          setActivity(previous =>
+            appendActivity(
+              previous,
+              `Recovered ${cachedPackages.length} cached package(s) from local storage.`
+            )
+          );
+        });
+      }
+
+      if (
+        isMounted &&
+        persistedSessionSnapshot &&
+        cachedPackageMap[persistedSessionSnapshot.packageId]
+      ) {
+        pageEnteredAtRef.current = Date.now();
+        startTransition(() => {
+          setSessionReceipt(persistedSessionSnapshot.sessionReceipt);
+          setCurrentPageIndex(persistedSessionSnapshot.currentPageIndex);
+          setTranslationVisible(persistedSessionSnapshot.translationVisible);
+          setActivePackageId(persistedSessionSnapshot.packageId);
+          setActivity(previous =>
+            appendActivity(
+              previous,
+              `Restored an active session on page ${persistedSessionSnapshot.currentPageIndex + 1}.`
+            )
+          );
+        });
+      }
+
       try {
-        const packages = await loadRuntimeLibrary();
+        const childHome = await loadChildHome();
 
         if (!isMounted) {
           return;
         }
 
+        const orderedShelf = orderPackages(
+          childHome.package_queue,
+          childHome.featured_package_id
+        );
+        const livePackageMap = {
+          ...cachedPackageMap,
+          ...buildPackageMap(orderedShelf),
+        };
+        await persistHomePackages(orderedShelf);
+
         startTransition(() => {
-          setHomePackages(packages);
-          setPackageMap(buildPackageMap(packages));
-          setActivePackageId(packages[0]?.package_id ?? null);
+          setHomePackages(orderedShelf);
+          setPackageMap(livePackageMap);
+          setActivePackageId(
+            persistedSessionSnapshot?.packageId ??
+              childHome.current_package_id ??
+              childHome.featured_package_id
+          );
+          setPendingEventCount(queuedEvents.length);
           setActivity(previous =>
             appendActivity(
               previous,
-              `Loaded ${packages.length} package(s) in ${childRuntime.mode} mode.`
+              `Loaded assigned shelf with ${orderedShelf.length} package(s) in ${childRuntime.mode} mode.`
             )
           );
         });
@@ -237,17 +400,20 @@ export function ChildRuntimeProvider({ children }: ChildRuntimeProviderProps) {
           return;
         }
 
-        const message =
-          initializationError instanceof Error
-            ? initializationError.message
-            : 'Unable to initialize child runtime.';
+        if (cachedPackages.length === 0) {
+          const message =
+            initializationError instanceof Error
+              ? initializationError.message
+              : 'Unable to initialize child runtime.';
 
-        startTransition(() => {
-          setError(message);
-        });
+          startTransition(() => {
+            setError(message);
+          });
+        }
       } finally {
         if (isMounted) {
           setActiveAction(null);
+          void flushQueuedEvents();
         }
       }
     }
@@ -318,6 +484,34 @@ export function ChildRuntimeProvider({ children }: ChildRuntimeProviderProps) {
     };
   }, [currentPageIndex, currentSessionPackage?.package_id]);
 
+  useEffect(() => {
+    if (homePackages.length === 0) {
+      return;
+    }
+
+    void persistHomePackages(homePackages);
+  }, [homePackages]);
+
+  useEffect(() => {
+    if (!sessionReceipt || !currentSessionPackage) {
+      void clearSessionSnapshot();
+      return;
+    }
+
+    void persistSessionSnapshot({
+      sessionReceipt,
+      packageId: currentSessionPackage.package_id,
+      currentPageIndex,
+      translationVisible,
+      restoredAt: new Date().toISOString(),
+    });
+  }, [
+    currentPageIndex,
+    currentSessionPackage?.package_id,
+    sessionReceipt?.session_id,
+    translationVisible,
+  ]);
+
   async function loadPackage(packageId: string) {
     if (packageMap[packageId]) {
       startTransition(() => {
@@ -330,14 +524,21 @@ export function ChildRuntimeProvider({ children }: ChildRuntimeProviderProps) {
     setError(null);
 
     try {
-      const storyPackage =
-        await childRuntime.services.storyPackages.lookup(packageId);
+      const storyPackage = await loadRuntimeStoryPackage(packageId);
+      await persistPackage(storyPackage);
 
       startTransition(() => {
         setPackageMap(previous => ({
           ...previous,
           [storyPackage.package_id]: storyPackage,
         }));
+        setHomePackages(previous => {
+          if (previous.some(item => item.package_id === storyPackage.package_id)) {
+            return previous;
+          }
+
+          return [...previous, storyPackage];
+        });
         setActivePackageId(storyPackage.package_id);
         setActivity(previous =>
           appendActivity(previous, `Opened package ${storyPackage.title}.`)
@@ -375,11 +576,6 @@ export function ChildRuntimeProvider({ children }: ChildRuntimeProviderProps) {
       return false;
     }
 
-    const resolvedPageIndex =
-      args.pageIndex === undefined
-        ? (currentPage?.page_index ?? currentPageIndex)
-        : args.pageIndex;
-
     if (!args.background) {
       setActiveAction('event');
     }
@@ -387,42 +583,38 @@ export function ChildRuntimeProvider({ children }: ChildRuntimeProviderProps) {
     setError(null);
 
     try {
-      await childRuntime.services.readingEvents.ingestBatch(
-        buildReadingEventBatch({
-          eventType: args.eventType,
-          sessionId: sessionReceipt.session_id,
-          childId: sessionReceipt.child_id,
-          packageId: sessionReceipt.package_id,
-          pageIndex: resolvedPageIndex,
-          payload: args.payload,
-        })
-      );
+      const resolvedPageIndex =
+        args.pageIndex === undefined
+          ? (currentPage?.page_index ?? currentPageIndex)
+          : args.pageIndex;
+      const batch = buildReadingEventBatch({
+        eventType: args.eventType,
+        sessionId: sessionReceipt.session_id,
+        childId: sessionReceipt.child_id,
+        packageId: sessionReceipt.package_id,
+        languageMode: currentSessionLanguageMode,
+        platform: getRuntimePlatform(),
+        pageIndex: resolvedPageIndex,
+        payload: args.payload,
+      });
+      const queuedEvents = await queueEvents(batch.events as ReadingEventV1[]);
 
       startTransition(() => {
         if (args.revealTranslation) {
           setTranslationVisible(true);
         }
 
+        setPendingEventCount(queuedEvents.length);
         setActivity(previous =>
           appendActivity(
             previous,
-            getRuntimeEventLabel(args.eventType, resolvedPageIndex)
+            `${getRuntimeEventLabel(args.eventType, resolvedPageIndex)} Buffered locally for sync.`
           )
         );
       });
 
+      void flushQueuedEvents();
       return true;
-    } catch (eventError) {
-      const message =
-        eventError instanceof Error
-          ? eventError.message
-          : 'Unable to ingest reading event.';
-
-      startTransition(() => {
-        setError(message);
-      });
-
-      return false;
     } finally {
       if (!args.background) {
         setActiveAction(null);
@@ -446,6 +638,7 @@ export function ChildRuntimeProvider({ children }: ChildRuntimeProviderProps) {
         buildReadingSessionPayload({
           childId: childRuntime.defaultChildId,
           packageId: storyPackage.package_id,
+          languageMode: resolveStoryPackageLanguageMode(storyPackage),
         })
       );
 
@@ -467,29 +660,79 @@ export function ChildRuntimeProvider({ children }: ChildRuntimeProviderProps) {
           appendActivity(previous, `Started session for ${storyPackage.title}.`)
         );
       });
-
-      void ingestEvent({
-        eventType: 'session_started',
-        payload: {
-          source: 'child-runtime',
-          page_count: storyPackage.pages.length,
-        },
-        pageIndex: null,
-        background: true,
-      });
-
-      return receipt;
-    } catch (sessionError) {
-      const message =
-        sessionError instanceof Error
-          ? sessionError.message
-          : 'Unable to start reading session.';
+      const queuedEvents = await queueEvents(
+        buildReadingEventBatch({
+          eventType: 'session_started',
+          sessionId: receipt.session_id,
+          childId: receipt.child_id,
+          packageId: receipt.package_id,
+          languageMode: resolveStoryPackageLanguageMode(storyPackage),
+          platform: getRuntimePlatform(),
+          pageIndex: null,
+          payload: {
+            source: 'child-runtime',
+            page_count: storyPackage.pages.length,
+          },
+        }).events as ReadingEventV1[]
+      );
 
       startTransition(() => {
-        setError(message);
+        setPendingEventCount(queuedEvents.length);
       });
 
-      return null;
+      void flushQueuedEvents();
+
+      return receipt;
+    } catch {
+      const offlineReceipt = buildOfflineReadingSessionReceipt({
+        childId: childRuntime.defaultChildId,
+        packageId: storyPackage.package_id,
+      });
+
+      pageEnteredAtRef.current = Date.now();
+      audioPlayer.pause();
+      void audioPlayer.seekTo(0).catch(() => undefined);
+
+      startTransition(() => {
+        setSessionReceipt(offlineReceipt);
+        setCurrentPageIndex(0);
+        setTranslationVisible(false);
+        setPreloadState({
+          status: 'idle',
+          targetPageIndexes: [],
+          readyPageIndexes: [],
+          error: null,
+        });
+        setActivity(previous =>
+          appendActivity(
+            previous,
+            `Started offline session for ${storyPackage.title}; session will sync later.`
+          )
+        );
+      });
+      const queuedEvents = await queueEvents(
+        buildReadingEventBatch({
+          eventType: 'session_started',
+          sessionId: offlineReceipt.session_id,
+          childId: offlineReceipt.child_id,
+          packageId: offlineReceipt.package_id,
+          languageMode: resolveStoryPackageLanguageMode(storyPackage),
+          platform: getRuntimePlatform(),
+          pageIndex: null,
+          payload: {
+            source: 'child-runtime-offline',
+            page_count: storyPackage.pages.length,
+          },
+        }).events as ReadingEventV1[]
+      );
+
+      startTransition(() => {
+        setPendingEventCount(queuedEvents.length);
+      });
+
+      void flushQueuedEvents();
+
+      return offlineReceipt;
     } finally {
       setActiveAction(null);
     }
@@ -687,12 +930,14 @@ export function ChildRuntimeProvider({ children }: ChildRuntimeProviderProps) {
           currentTimeSec: audioStatus.currentTime,
           durationSec: audioStatus.duration,
         },
+        pendingEventCount,
         hasActiveSession,
         canGoToPreviousPage,
         canGoToNextPage,
         loadPackage,
         startSession,
         ingestEvent,
+        flushQueuedEvents,
         goToPreviousPage,
         goToNextPage,
         togglePlayPause,

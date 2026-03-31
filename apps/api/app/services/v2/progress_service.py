@@ -4,7 +4,12 @@ from uuid import UUID
 
 from app.schemas.v2.caregiver import CaregiverProgressMetricsV1
 from app.schemas.v2.reading import ReadingEventV1
-from app.services.v2.fixtures import DEMO_HOUSEHOLD_ID, HOUSEHOLD_READING_EVENT_FIXTURES
+from app.services.v2.fixtures import (
+    DEFAULT_STORY_PACKAGE_FIXTURE,
+    DEMO_HOUSEHOLD_ID,
+    HOUSEHOLD_READING_EVENT_FIXTURES,
+    PACKAGE_FIXTURES,
+)
 
 
 @dataclass(frozen=True)
@@ -36,7 +41,10 @@ class DemoProgressService:
                 platform="ipadOS",
                 surface="child-app",
                 app_version="2.0.0",
-                language_mode="zh-CN",
+                language_mode=PACKAGE_FIXTURES.get(
+                    fixture.package_id,
+                    DEFAULT_STORY_PACKAGE_FIXTURE,
+                ).language_mode,
                 payload=fixture.payload,
             )
             for fixture in fixtures
