@@ -125,7 +125,7 @@ The following checks have already passed on the current baseline:
 - Closed a QC-blocking data correctness issue: `ReadingSessionCreateV2.language_mode` and `ReadingEventV1.language_mode` now inherit from the selected package rather than being hardcoded to `zh-CN`.
 - Aligned demo progress payloads and API progress fixtures so English packages now preserve `en-US` metadata through caregiver-facing telemetry surfaces.
 - Verification passed for Phase 1 with `pytest tests/test_caregiver_v2_contracts.py -q`, `npm run test:contracts --workspace @lumosreading/sdk`, `npm run test:runtime-contracts --workspace child-app`, `npm run typecheck --workspace child-app`, and `npm run build --workspace child-app`.
-- Phase 1 QC is ready for release review; the next recommended slice is Phase 2 caregiver assignment loop delivery.
+- Phase 1 QC gate is cleared after the language metadata blocker and event outbox concurrency blocker were both resolved; the next recommended slice is Phase 2 caregiver assignment loop delivery.
 
 ## Session update: 2026-03-17
 
